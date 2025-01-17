@@ -1,0 +1,12 @@
+# Python Bytecode Files
+__pycache__/
+*.pyc
+
+# Virtual Environments
+.venv/
+
+# IDEs
+.idea/
+
+# Output
+data/
