@@ -49,7 +49,7 @@ def get_filename_from_path(file_path: str):
 
 def list_file_paths_in_folder(folder_path:str):
     """ list of all relative file paths in folder
-    :param folder_path: path
+    :param folder_path: dir
     :return: [], list of files in path
     """
     # Check, if folder_path is valid
