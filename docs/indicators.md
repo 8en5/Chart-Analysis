@@ -10,7 +10,7 @@ Params:
 - std: factor, by which the standard deviation is multiplied
 
 ```
-['BBL_5_2.0', 'BBM_5_2.0', 'BBU_5_2.0', 'BBB_5_2.0', 'BBP_5_2.0'] - [Low, SMA, Up, Bandwith, Percentage]
+# ['BBL_5_2.0', 'BBM_5_2.0', 'BBU_5_2.0', 'BBB_5_2.0', 'BBP_5_2.0'] - [Low, SMA, Up, Bandwith, Percentage]
 df = ta.bbands(self.df_min['close'], length=6, std=2.0)
 col_l, col_m, col_u, col_b, col_p = list(df.columns)
 ```
@@ -31,7 +31,7 @@ Params:
 - signal: The signal line is an EMA of the MACD line itself (the difference between the fast and slow EMAs) | default = 9
 
 ```
-['MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9'] - [MACD, Histogram (Diff), Signal]
+# ['MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9'] - [MACD, Histogram (Diff), Signal]
 df = ta.macd(df['close'], fast=12, slow=26, signal=9)
 col_MACD, coll_diff, col_signal = list(df.columns)
 ```
@@ -52,6 +52,7 @@ Params:
 ```
 # ['RSI_14', 'border_lower_30', 'border_upper_70']
 df = ta.rsi(df['close'], length=14)
+col_RSI, col_bl, col_bu = list(df.columns)
 ```
 
 sell: RSI >= 70 -> too high -> sell | crossing from above under 70

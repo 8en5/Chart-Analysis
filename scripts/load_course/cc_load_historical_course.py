@@ -3,7 +3,7 @@ import yaml
 
 from modules.file_handler import *
 
-sys.path.append(r'C:\Users\bense\PycharmProjects\Chart-Analysis') # to run file in separate cmd
+sys.path.append(r'C:\Users\bense\PycharmProjects\Chart-Analysis') # to run py-file in separate cmd
 
 
 def request_course(symbol:str, to_ts=None, limit=2000):
@@ -144,10 +144,10 @@ def routine_download_course(symbol, folder_path='', update=True):
         # Error management
         error_msg = str(e)
         # Append Error to error_dict (dict with all Errors and the corresponding symbols
-        if error_msg in error_counter:
-            error_counter[error_msg].append(symbol)
+        if error_msg in error_dict:
+            error_dict[error_msg].append(symbol)
         else:
-            error_counter[error_msg] = [symbol]
+            error_dict[error_msg] = [symbol]
 
         # Known Errors
         known_errors = ['CCCAGG market does not exist for this coin pair',
@@ -231,7 +231,7 @@ def save_errors(folder_path):
     # Error management
     print('\n')
     print('-' * 70)
-    if len(error_counter) > 0:
+    if len(error_dict) > 0:
         print('Error evaluation:', '\n')
     else:
         print('No Errors')
@@ -240,15 +240,15 @@ def save_errors(folder_path):
     file_name = '_Error-Log.txt'
     file_path = os.path.join(folder_path, file_name)
     with open(file_path, 'w') as f:
-        for key, value in error_counter.items():
-            msg = f'{len(error_counter[key])}x - {key}: {value}'
+        for key, value in error_dict.items():
+            msg = f'{len(error_dict[key])}x - {key}: {value}'
             print(msg)
             f.write(msg)
     print(f'Save Error-Log in {file_path}')
 
 
 if __name__ == "__main__":
-    error_counter = {}
+    error_dict = {}
 
     # Download historical course data - 4 sources
     #routine_download_course('BTC')     # download 1 hard coded symbol

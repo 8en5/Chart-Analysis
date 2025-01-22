@@ -78,6 +78,16 @@ def ax_SMA(ax, df):
 
 
 def ax_background_colored_evaluation(ax, df):
+    allowed_col = ['evaluation', 'status']
+    col = ''
+    if any(element in allowed_col for element in df.columns):
+        if 'evaluation' in df.columns:
+            col = 'evaluation'
+        elif 'status' in df.columns:
+            col = 'status'
+    else:
+        raise ValueError(f'Column name {allowed_col} not available: {df.columns}')
+
     colors = {
         # Signal
         'buy': 'lime',
@@ -85,16 +95,21 @@ def ax_background_colored_evaluation(ax, df):
         # Trend
         'bullish': 'green',
         'bearish': 'salmon',
+        # status
+        'in': 'green',
+        'out': 'salmon',
     }
     for i in range(0, len(df)-1):
-        evaluation = df.iloc[i]['evaluation']
+        evaluation = df.iloc[i][col]
+        if evaluation == '':
+            continue
         if evaluation not in colors:
             print(f'Warning: evaluation "{evaluation}" not in color_status"')
         if evaluation in ['buy', 'sell']:
             # Vertical Line - concrete calculated signal
             color = colors[evaluation]
             ax.axvline(x=df.index[i], color=color, linestyle='-', linewidth=2)
-        elif evaluation in ['bullish', 'bearish']:
+        elif evaluation in ['bullish', 'bearish', 'in', 'out']:
             # Background color - general trend
             color = colors[evaluation]
             ax.axvspan(df.index[i], df.index[i+1], color=color, alpha=0.3)
@@ -112,7 +127,7 @@ def ax_ylim_threshold(values, ax, lower=0.05, upper=99.95):
 def ax_graph_elements(ax, title='', ylabel='Chart'):
     # Graph elements
     ax.set_title(title)
-    ax.set_xlabel('Date')
-    ax.set_ylabel(ylabel)
+    #ax.set_xlabel('Date')
+    #ax.set_ylabel(ylabel)
     ax.grid()
     ax.legend()

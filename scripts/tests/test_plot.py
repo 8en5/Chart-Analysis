@@ -9,7 +9,7 @@ from modules.plot import *
 
 
 
-def plot():
+def test_plot():
     # Figure
     fig, ax = plt.subplots(2, 1)
 
@@ -36,24 +36,25 @@ def plot():
     #ax_percentage_freq(ax[1], df_perc)
 
     ax_graph_elements(ax[1], 'Indicator')
+    plt.show()
 
 
 
-'''
 def test_ax_background_colored_evaluation():
     data = [1,2,2,2,4,4,4,5,5]
     df = get_df_from_list(data)
-    df['status'] = ''
-    df.iloc[1, 1] = 'Buy'
-    df.iloc[2, 1] = 'buy'
+    df['evaluation'] = ''
+    df.loc[df.index[1], 'evaluation'] = 'buy'
+    df.loc[df.index[3], 'evaluation'] = 'sell'
+    df.loc[df.index[5], 'evaluation'] = 'bullish'
+    df.loc[df.index[7], 'evaluation'] = 'bearish'
     print(df)
 
     fig, ax = plt.subplots(1, 1)
-    ax_course(df, ax)
-    ax_background_colored_evaluation(df, ax)
+    ax_course(ax, df)
+    ax_background_colored_evaluation(ax, df)
 
     plt.show()
-'''
 
 
 
@@ -62,7 +63,10 @@ if __name__ == "__main__":
 
     symbol = 'BTC'
     df = load_pandas_from_symbol(symbol)
-    plot()
 
-    plt.show()
+    # Test
+    #test_plot()
+    test_ax_background_colored_evaluation()
+
+
 

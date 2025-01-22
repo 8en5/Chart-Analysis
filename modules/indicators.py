@@ -33,15 +33,15 @@ def percentage_change(df, freq='D'):
     return df[[col_perc]]
 
 
-def RSI(df, length=14, lower_border=30, upper_border=70):
+def get_RSI(df, length=14, lower_border=30, upper_border=70):
     # ['RSI_14', 'border_lower_30', 'border_upper_70']
     df_RSI = pd.DataFrame(ta.rsi(df['close'], length=length))
     df_RSI[['border_lower_30', 'border_upper_70']] = [lower_border, upper_border]
     return df_RSI
 
 
-def SMA(df, *lengths):
-    # ['SMA_200']
+def get_SMA(df, *lengths):
+    # ['SMA_200', 'SMA_50']
     df_SMA = pd.DataFrame()
     if not lengths: # default value, if no parameter is given
         lengths = [200]

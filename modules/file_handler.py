@@ -9,6 +9,7 @@ def get_path(key='ws'):
     folder_dict = {
         'ws': str(workspace_path),
         'course_cc': r'data\course\crypto_compare',
+        'analyse_cc': r'data\analyse\crypto_compare',
     }
     if not key in folder_dict:
         raise KeyError(f'Key "{key}" not in folder_dict "{list(folder_dict.keys())}"')
