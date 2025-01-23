@@ -71,8 +71,9 @@ def ax_RSI(ax, df):
 def ax_SMA(ax, df):
     # ['SMA_200']
     regex_list = [r'SMA_.*']
-    col_SMA = get_col_names(df, regex_list)
-    ax.plot(df.index, df[col_SMA], label=col_SMA, color='orange', linestyle='-')
+    col_SMAs = get_col_names(df, regex_list)
+    for col_SMA in col_SMAs:
+        ax.plot(df.index, df[col_SMA], label=col_SMA, color='orange', linestyle='-')
 
 
 

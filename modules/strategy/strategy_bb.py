@@ -19,7 +19,7 @@ class BB(Strategy):
             'bb_std': 2.0
         }
 
-        self.param_study = {
+        self.params_study = {
             'bb_l': [5, 6, 8, 10, 15, 20, 30],
             'bb_std': [1.5, 1.8, 2.0, 2.2, 2.5]
         }
@@ -46,7 +46,7 @@ class BB(Strategy):
 
 
     def plot(self, save=False):
-        fig, ax = plt.subplots(2, 1)
+        fig, ax = plt.subplots(2, 1, sharex=True, sharey=True) # share -> synch both plots during zoom
         # Plot 1 (Course)
         ax_background_colored_evaluation(ax[0], self.df_evaluation)     # Evaluation In, Out
         ax_course(ax[0], self.df_min)                                   # Course

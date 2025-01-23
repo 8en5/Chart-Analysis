@@ -21,7 +21,7 @@ class RSI(Strategy):
             'bu': 70
         }
 
-        self.param_study = {
+        self.params_study = {
             'rsi_l': [10, 14, 18],
             'bl': [20, 30, 40],
             'bu': [60, 70, 90]
@@ -51,7 +51,7 @@ class RSI(Strategy):
 
 
     def plot(self, save=False):
-        fig, ax = plt.subplots(2, 1)
+        fig, ax = plt.subplots(2, 1, sharex=True, sharey=True) # share -> synch both plots during zoom
         # Plot 1 (Course)
         ax_background_colored_evaluation(ax[0], self.df_evaluation)     # Evaluation In, Out
         ax_course(ax[0], self.df_min)                                   # Course
