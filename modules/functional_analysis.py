@@ -24,8 +24,6 @@ def zero_crossing(df, col):
 
 def calculate_crossings(df, col1, col2):
     """ Calculate crossing between two lines (columns)
-    :param col1:
-    :param col2:
     :return:
     """
     name_crossing = f'Crossing_{col1}-{col2}'

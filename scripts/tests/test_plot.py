@@ -19,8 +19,8 @@ def test_plot():
 
     # Plot 2 (Indicators)
 
-    #df_BB = ta.bbands(df['close'], length=6, std=2.0)
-    #ax_BB(ax[1], df_BB)
+    df_BB = ta.bbands(df['close'], length=6, std=2.0)
+    ax_BB(ax[1], df_BB)
 
     #df_MACD = ta.macd(df['close'], fast=12, slow=26, signal=9)
     #ax_MACD(ax[1], df_MACD)
@@ -31,7 +31,7 @@ def test_plot():
     #df_SMA = SMA(df, 200, 50, 10)
     #ax_SMA(ax[1], df_SMA)
 
-    df_perc = percentage_change(df, 'ME')
+    df_perc = perc_change(df, 'ME')
     #ax_percentage(ax[1], df_perc)
     #ax_percentage_freq(ax[1], df_perc)
 
@@ -52,7 +52,7 @@ def test_ax_background_colored_evaluation():
 
     fig, ax = plt.subplots(1, 1)
     ax_course(ax, df)
-    ax_background_colored_evaluation(ax, df)
+    ax_background_colored_signals(ax, df)
 
     plt.show()
 
@@ -65,8 +65,8 @@ if __name__ == "__main__":
     df = load_pandas_from_symbol(symbol)
 
     # Test
-    #test_plot()
-    test_ax_background_colored_evaluation()
+    test_plot()
+    #test_ax_background_colored_evaluation()
 
 
 

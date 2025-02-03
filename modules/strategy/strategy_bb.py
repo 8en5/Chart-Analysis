@@ -5,6 +5,7 @@ import pandas_ta as ta
 
 from .strategy import Strategy
 from modules.plot import *
+from modules.indicators import *
 
 
 class BB(Strategy):
@@ -27,36 +28,21 @@ class BB(Strategy):
 
     def set_manual_strategy(self):
         # Indicator
-        self.df_indices['BB'] = ta.bbands(self.df_min['close'], length=self.params['bb_l'], std=self.params['bb_std'])
-        col_l, col_m, col_u, col_b, col_p = list(self.df_indices['BB'].columns)
-        # Evaluation
+        self.df_indices['BB'] = indicator_BB(self.df_min, length=self.params['bb_l'], std=self.params['bb_std'])
+        col_l, col_m, col_u = get_indicator_col_names(self.df_indices['BB'], 'BB')
+
+        # Signals
         conditions = [
             (self.df_min['close'] <= self.df_indices['BB'][col_l]),  # Bullish, if course is smaller than the lower band
             (self.df_min['close'] >= self.df_indices['BB'][col_u])   # Bearish, if course is larger than the upper band
         ]
         values = ['bullish', 'bearish']
-        self.df_indices['BB']['evaluation'] = np.select(conditions, values, default='')
+        self.df_indices['BB']['signal'] = np.select(conditions, values, default='')
 
-        self.summarize_evaluation()
-
-
-        # Buy and sell triggers from evaluation
-        self.df_evaluation['status'] = self.df_evaluation['BB'].replace({'bullish':'in','bearish':'out','': np.nan})
-        self.df_evaluation['status'] = self.df_evaluation['status'].ffill().fillna('out')
+        self._summarize_signals()
 
 
-    def plot(self, save=False):
-        fig, ax = plt.subplots(2, 1, sharex=True, sharey=True) # share -> synch both plots during zoom
-        # Plot 1 (Course)
-        ax_background_colored_evaluation(ax[0], self.df_evaluation)     # Evaluation In, Out
-        ax_course(ax[0], self.df_min)                                   # Course
-        ax_graph_elements(ax[0], self.symbol)                           # Labels
+        # Invested [in, out] from signals
+        self.df_signals['invested'] = self.df_signals['BB'].replace({'bullish': 1, 'bearish': 0, '': np.nan})
+        self.df_signals['invested'] = self.df_signals['invested'].ffill().fillna(0)
 
-        # Plot 2 (Indicator BB)
-        ax_course(ax[1], self.df_min)                                   # Course
-        ax_background_colored_evaluation(ax[1], self.df_indices['BB'])  # Evaluation Index
-        ax_BB(ax[1], self.df_indices['BB'])                             # BB
-        ax_graph_elements(ax[1], 'BB')                             # Labels
-
-        if save:
-            self.save_plot(fig)

@@ -25,6 +25,6 @@ def newest_symbols(n=10):
 if __name__ == "__main__":
     df = load_symbols_csv()
     df = df.sort_values(by='date')
-    #print(df)
+    print(df)
 
     newest_symbols(20)

@@ -1,6 +1,6 @@
 
 from test import *
-from modules.evaluation import *
+from modules.functional_analysis import *
 
 
 def test_zero_crossing():

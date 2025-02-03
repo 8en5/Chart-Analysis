@@ -1,7 +1,10 @@
 import itertools
+import matplotlib.pyplot as plt
 
 from modules.utils import *
 from modules.file_handler import *
+from modules.plot import *
+from modules.strategy.eval_strategy import *
 
 pd.set_option('future.no_silent_downcasting', True)
 
@@ -13,7 +16,7 @@ class Strategy:
         self.df_raw = df_raw                    # raw data for the next cycle in param study: df = ['time', 'high', 'low', 'open', 'volumefrom', 'volumeto', 'close']
         self.df_min = df_raw[['close']]         # min input for functions: df = ['close']
         self.df_indices = {}                    # CHILD, calculated indices: df_indices = {'BB': df, 'RSI': df, ...}
-        self.df_evaluation = df_raw[['close']]  # CHILD, every evaluation colum from indices, to calculate in, out signals
+        self.df_signals = df_raw[['close']]     # CHILD, summary signals + [in,out] from indicators
 
         # parameter study
         self.study = False                      # bool param study
@@ -25,7 +28,7 @@ class Strategy:
 
     def run(self):
         """ Main control routine to call all functions
-        distinction between parameter study and no parameter study (hard specified in the class as bool - self.study)
+        Distinction between parameter study and no parameter study (hard specified in the class as bool - self.study)
         """
         if self.study:
             # Param study
@@ -39,14 +42,15 @@ class Strategy:
                 print(f'{i}/{len(combinations_list)}: {study}')
                 self.params = study
                 self.set_manual_strategy()
-                self.plot(self.save)    # reset calculations from the current cycle
-                self.reset_df()
+                self.plot()    # reset calculations from the current cycle
+                self._reset_df()
                 i += 1
 
         else:
             # 1x default parameter
             self.set_manual_strategy()
-            self.plot(self.save)
+            #self.plot()
+            evaluate_strategy(self.df_signals[['close', 'invested']])
 
 
     def set_manual_strategy(self):
@@ -58,23 +62,39 @@ class Strategy:
         """
         raise NotImplementedError
 
-    def plot(self, save=False):
-        """ Define plot - 100% in the Child class (because every plot is unique)
-        Plot 1: Course + Status (status = background color, if in or out)
-        Plot 2: Indicator + Evaluation (evaluation = signals ['buy', 'sell', 'bullish', 'bearish'] from indicators)
-        :param save: bool: True, if plot should be saved
+    def plot(self):
+        """ Plot strategy
+        Default (for every strategy):
+          Plot 1: Course + Status (status = background color, if in or out)
+          Plot 2: Indicator + Evaluation (evaluation = signals ['buy', 'sell', 'bullish', 'bearish'] from indicators)
+        Unique:
+          plot() function defined in Child
         """
-        raise NotImplementedError
+        # Default Plot
+        fig, ax = plt.subplots(2, 1, sharex=True)  # share -> synch both plots during zoom
+         # Plot 1 (Course)
+        ax_background_colored_signals(ax[0], self.df_signals)  # [in,out]
+        ax_course(ax[0], self.df_min)                          # Course
+        ax_graph_elements(ax[0], self.symbol)                  # Labels
+         # Plot 2 (Indicator BB)
+        ax_background_colored_signals(ax[1], self.df_indices[self.strategy_name])  # Signals index
+        func_ax_indicator = globals()[f'ax_{self.strategy_name}']       # e.g. ax_BB
+        func_ax_indicator(ax[1], self.df_indices[self.strategy_name])   # Indicator
+        ax_graph_elements(ax[1], self.strategy_name)                    # Labels
+
+        if self.save:
+            self._save_plot(fig)
 
 
-    def reset_df(self):
+    def _reset_df(self):
         """ Reset all calculations from this cycle (in param study)
         """
         self.df_min = self.df_raw[['close']]
         self.df_indices = {}
-        self.df_evaluation = self.df_raw[['close']]
+        self.df_signals = self.df_raw[['close']]
 
-    def save_plot(self, fig):
+
+    def _save_plot(self, fig):
         """ Save matplotlib fig
         param study: analyse/crypto_compare/{strategy}/parameter_study/{symbol}
         normal:      analyse/crypto_compare/{strategy}/symbols
@@ -83,7 +103,7 @@ class Strategy:
         base_folder_path = str(os.path.join(get_path('analyse_cc'), self.strategy_name))
         if self.study:
             folder_path = os.path.join(base_folder_path, f'parameter_study/{self.symbol}')
-            name = f'{self.symbol}' # 'ETH_bb_l-5_bb_std-1.5' | '{symbol}_param1-value1_param2-value2
+            name = f'{self.symbol}' # e.g. 'ETH_bb_l-5_bb_std-1.5' | '{symbol}_param1-value1_param2-value2
             for key, value in self.params.items():
                 name += f'_{key}-{value}'
         else:
@@ -93,27 +113,13 @@ class Strategy:
         save_matplotlib_figure(fig, folder_path, name)
 
 
-    def print(self):
-        """ Print different dfs
-        """
-        pandas_print_width()
-        print(self.df_raw)
-
-        for key in self.df_indices:
-            print(key)
-            print(self.df_indices[key])
-            print()
-
-        print(self.df_evaluation)
-
-
-    def summarize_evaluation(self):
+    def _summarize_signals(self):
         """ Summarize all different evaluations in df_indices to one new df_evaluation
         Step 3 in set_manual_strategy(): Summarize all evaluations from indices to one df
-        self.df_evaluation['Eval-BB', 'Eval-RSI', ...]
+        self.df_signals['BB', 'RSI', ...]
         """
         for index in self.df_indices:
             col = f'{index}'
-            self.df_evaluation = pd.concat([self.df_evaluation, self.df_indices[index]['evaluation']], axis=1)
-            self.df_evaluation = self.df_evaluation.rename(columns={'evaluation': col})
+            self.df_signals = pd.concat([self.df_signals, self.df_indices[index]['signal']], axis=1)
+            self.df_signals = self.df_signals.rename(columns={'signal': col})
 

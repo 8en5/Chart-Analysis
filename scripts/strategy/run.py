@@ -9,17 +9,16 @@ from modules.strategy.strategy_rsi import RSI
 from modules.strategy.strategy_macd import MACD
 
 
-
 def run(func, param_study=False):
     symbol = 'BTC'
     df = load_pandas_from_symbol(symbol)
+    df = df[-1000:]
 
     strategy = func(symbol, df)
     if param_study:
         strategy.study = True
         strategy.save = True
     strategy.run()
-    #strategy.print()
 
     if not param_study:
         plt.show()
@@ -55,8 +54,9 @@ def routine_save_all(func):
 
 
 if __name__ == "__main__":
+    func = MACD     # MACD, BB, RSI
 
-    #run(MACD)
-    study_symbols(MACD)
+    run(func)
+    #study_symbols(func)
 
-    #routine_save_all(MACD)
+    #routine_save_all(func)

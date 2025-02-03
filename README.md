@@ -2,10 +2,8 @@
 Analyze charts using indicators and backtesting
 
 ## Workspace setup
-- import libraries
+- import libraries via requirements.txt
 
-
-## Known bugs
 ### ImportError in pandas_ta
 - Error in `import pandas_ta as ta`
     - *ImportError: cannot import name 'NaN' from 'numpy' (C:\..\Chart-Analysis\.venv\Lib\site-packages\numpy\__init__.py). Did you mean: 'nan'?*

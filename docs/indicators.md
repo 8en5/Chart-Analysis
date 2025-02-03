@@ -56,4 +56,4 @@ col_RSI, col_bl, col_bu = list(df.columns)
 ```
 
 sell: RSI >= 70 -> too high -> sell | crossing from above under 70
-buy: SI <= 30 -> too low -> buy | crossing from below over 30
+buy: RSI <= 30 -> too low -> buy | crossing from below over 30

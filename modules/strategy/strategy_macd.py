@@ -2,12 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas_ta as ta
 
-
 from .strategy import Strategy
 from modules.plot import *
 from modules.indicators import *
-from modules.evaluation import *
-from ..utils import pandas_print_all, pandas_print_width
+from modules.functional_analysis import *
 
 
 class MACD(Strategy):
@@ -32,10 +30,10 @@ class MACD(Strategy):
 
     def set_manual_strategy(self):
         # Indicator
-        self.df_indices['MACD'] = ta.macd(self.df_min['close'], fast=self.params['m_fast'], slow=self.params['m_slow'], signal=self.params['m_signal'])
-        col_MACD, coll_diff, col_signal = list(self.df_indices['MACD'].columns)
+        self.df_indices['MACD'] = indicator_MACD(self.df_min, fast=self.params['m_fast'], slow=self.params['m_slow'], signal=self.params['m_signal'])
+        col_MACD, coll_diff, col_signal = get_indicator_col_names(self.df_indices['MACD'], 'MACD')
 
-        # Evaluation
+        # Signals
         self.df_indices['MACD'], col_crossing = calculate_crossings(self.df_indices['MACD'], col_MACD, col_signal)
 
         conditions = [
@@ -44,28 +42,10 @@ class MACD(Strategy):
         ]
 
         values = ['buy', 'sell']
-        self.df_indices['MACD']['evaluation'] = np.select(conditions, values, default='')
+        self.df_indices['MACD']['signal'] = np.select(conditions, values, default='')
+        self._summarize_signals()
 
-        self.summarize_evaluation()
+        # Invested [in, out] from signals
+        self.df_signals['invested'] = self.df_signals['MACD'].replace({'buy': 1, 'sell': 0, '': np.nan})
+        self.df_signals['invested'] = self.df_signals['invested'].ffill().fillna(0)
 
-
-        # Buy and sell triggers from evaluation
-        self.df_evaluation['status'] = self.df_evaluation['MACD'].replace({'buy':'in','sell':'out','': np.nan})
-        self.df_evaluation['status'] = self.df_evaluation['status'].ffill().fillna('out')
-
-
-
-    def plot(self, save=False):
-        fig, ax = plt.subplots(2, 1, sharex=True, sharey=True) # share -> synch both plots during zoom
-        # Plot 1 (Course)
-        ax_background_colored_evaluation(ax[0], self.df_evaluation)     # Evaluation In, Out
-        ax_course(ax[0], self.df_min)                                   # Course
-        ax_graph_elements(ax[0], self.symbol)                           # Labels
-
-        # Plot 2 (Indicator BB)
-        ax_background_colored_evaluation(ax[1], self.df_indices['MACD'])  # Evaluation Index
-        ax_MACD(ax[1], self.df_indices['MACD'])                           # MACD
-        ax_graph_elements(ax[1], 'MACD')                             # Labels
-
-        if save:
-            self.save_plot(fig)
