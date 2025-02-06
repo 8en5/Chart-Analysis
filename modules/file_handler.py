@@ -48,9 +48,10 @@ def get_filename_from_path(file_path: str):
     return os.path.splitext(os.path.basename(file_path))[0]
 
 
-def list_file_paths_in_folder(folder_path:str):
+def list_file_paths_in_folder(folder_path:str, filter=''):
     """ list of all relative file paths in folder
     :param folder_path: dir
+    :param filter: filter criteria (e.g. '.csv')
     :return: [], list of files in path
     """
     # Check, if folder_path is valid
@@ -61,10 +62,10 @@ def list_file_paths_in_folder(folder_path:str):
     file_paths = []
     for file in os.listdir(folder_path):
         file_path = os.path.join(folder_path, file)
-        if os.path.isfile(file_path):
-            file_paths.append(file_path)
-        else:
-            # folder
+        if os.path.isfile(file_path): # file
+            if filter in file_path:
+                file_paths.append(file_path)
+        else: # folder
             pass
     #print(filepaths)
     return file_paths

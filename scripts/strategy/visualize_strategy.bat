@@ -18,4 +18,4 @@ REM navigate to the python script
 cd scripts\strategy
 
 REM call python script
-python run.py
+python visualize_strategy.py
