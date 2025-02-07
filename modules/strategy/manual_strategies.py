@@ -8,8 +8,8 @@ from modules.functional_analysis import *
 
 params_study_dict = {
     'BB' : {
-        'bb_l': [5], #[5, 6, 8, 10, 15, 20, 30],
-        'bb_std': [1.5] #[1.5, 1.8, 2.0, 2.2, 2.5]
+        'bb_l': (1, 8, 2), #[5, 6, 8, 10, 15, 20, 30],
+        'bb_std': [1] #[1.5, 1.8, 2.0, 2.2, 2.5]
     },
 
     'MACD': {
@@ -26,12 +26,33 @@ params_study_dict = {
 }
 
 def get_all_combinations_from_params_study(name):
+    """ Return params_study defined in params_study_dict
+    :param name: strategy name (key in dict)
+    :return: list of all params variations
+    """
+    if name not in params_study_dict:
+        raise ValueError(f'name "{name}" not in {params_study_dict}')
+    # Get raw params and prepare it
     params_study = params_study_dict[name]
+    params_study = _set_param_variation(params_study)
+    # Calculate all combinations
     keys = params_study.keys()
     values = params_study.values()
     combination = list(itertools.product(*values))
     combinations_list = [dict(zip(keys, combi)) for combi in combination]  # combination_list = [{self.params1}, {self.params2}, ... ]
     return combinations_list
+
+
+def _set_param_variation(params_study: dict[str,list[int]|tuple[int]]) -> dict[str,list]:
+    """ If present, converts a tuple (range) parameter set into a list
+    :param params_study: {key: [x,x,x], key: (start,end,step)}
+    :return: dict all in format {key: [x,x,x]}
+    """
+    for key, value in params_study.items():
+        if isinstance(value, tuple):
+            start, end, step = map(int, value)
+            params_study[key] = list(range(start, end + 1, step))
+    return params_study
 
 
 #------------------------ BB ------------------------#

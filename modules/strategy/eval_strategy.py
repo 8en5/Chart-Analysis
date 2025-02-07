@@ -23,19 +23,20 @@ from modules.utils import *
 pandas_print_width()
 
 
-def _calc_amount_transactions(df):
+def _calc_amount_transactions(df, freq=1) -> int:
     """
     :param df: df['invested']
-    :return:
+    :return: amount of transaction per time unit (e.g. transactions/month)
     """
-    # TODO per month
-    total = (df['invested'] != df['invested'].shift()).sum()
-    return total
+    total = (df['invested'] != df['invested'].shift()).sum() # sum all flank changes
+    relative = int(total / freq)     # transactions per freq (e.g. t/month)
+    return relative
 
 
 def _calc_accumulated_perc(df, n=0):
     """ Accumulated return (last accumulated value equals total return)
     :param df: df['invested', 'close_perc']
+    :param n: 0 - Buy and Hold | 1 - Strategy without fee | 2 - Strategy with fee
     :return: df['factor', 'accumulate']
     """
     df = df[['close', 'close_perc', 'invested']].copy()
@@ -72,12 +73,14 @@ def _get_total_returns(df):
 
 def evaluate_strategy(df):
     """
-    :param df: df[close, status] -> ['in', 'out']
+    :param df: df[close, invested]
     :return:
     """
+    df = df.copy()
+
     # Count amount of transaction (changes between in out)
     amount_transactions = _calc_amount_transactions(df)
-    #print(amount_transactions)
+    #print(amount_transactions, 30)
 
     # Calculate daily perc change from course
     df['close_perc'] = df['close'].pct_change(periods=1) #* 100
@@ -93,6 +96,7 @@ def evaluate_strategy(df):
     df['invested_states'] = np.select(conditions, values_type, default='')
     pandas_print_all()
     print(df)
+    exit()
 
     # Calculate the proportions of rising and falling prices
     total_perc_plus = sum(df.loc[df['close_perc'] > 0, 'close_perc'].to_list())
@@ -103,7 +107,6 @@ def evaluate_strategy(df):
         eval_dict[key] = {}
         list_perc = df.loc[df['invested_states'] == key, 'close_perc'].to_list() # list all corresponding percentages (from the 4 categories ['in+', 'in-', 'out+', 'out-']
         eval_dict[key]['sum'] = sum(list_perc)                                   # sum
-        eval_dict[key]['std'] = np.std(list_perc, ddof=1)                        # std
 
         # Calculate portion (e.g. "invested and rising" / "all rising prices")
         if '+' in key:
