@@ -1,9 +1,12 @@
+import sys
+import os
+ws_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")) # Workspace
+sys.path.append(ws_dir) # add ws to sys-path to run py-file in separate cmd
+
 import requests
 import yaml
 
 from modules.file_handler import *
-
-sys.path.append(r'C:\Users\bense\PycharmProjects\Chart-Analysis') # to run py-file in separate cmd
 
 
 def request_course(symbol:str, to_ts=None, limit=2000):
@@ -206,7 +209,7 @@ def load_symbols_from_yaml():
     symbols = data['active']
     return symbols
 
-def load_symbols_from_api_csv(n=-1):
+def load_symbols_from_api_csv(n=None):
     """
     :param n: amount of symbols (the n newest ones)
     :return: list of symbols
@@ -218,13 +221,13 @@ def load_symbols_from_api_csv(n=-1):
     if not os.path.exists(file_path):
         raise FileNotFoundError(f'File "{file_name}" does not exist -> run cc_load_symbols.py')
     df = pd.read_csv(file_path)
-    if n == -1:
-        return df['SYMBOL']
-    else:
+    if n:
         df['date'] = pd.to_datetime(df['LAUNCH_DATE'], unit='s')
-        #df = df[df['ASSET_TYPE'] == 'BLOCKCHAIN']                  # only BLOCKCHAIN (else TOKEN, INDEX, ...)
+        # df = df[df['ASSET_TYPE'] == 'BLOCKCHAIN']                  # only BLOCKCHAIN (or TOKEN, INDEX, ...)
         df_newest = df.nlargest(n, 'date')
         return df_newest['SYMBOL'].tolist()
+    else:
+        return df['SYMBOL']
 
 
 def save_errors(folder_path):

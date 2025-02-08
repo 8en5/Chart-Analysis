@@ -13,7 +13,7 @@ from modules.strategy.eval_strategy import *
 pd.set_option('future.no_silent_downcasting', True)
 
 
-class VisualizeStrategy:
+class VisualizeStrategyManager:
     def __init__(self, strategy_name, loop_param_study=False, loop_symbols=False):
         # Strategy
         self.strategy_name = strategy_name          # [str] strategy name (e.g. BB, MACD, RCI)
@@ -22,21 +22,6 @@ class VisualizeStrategy:
             # main logic - 4 possible ways: [F,F] plot one symbol | [T,F] param study for one symbol | [F,T] loop symbols for one param | [T,T] loop symbols with param study
         self.loop_param_study = loop_param_study    # [bool], if true run param study | else default param
         self.loop_symbols = loop_symbols            # [bool], if true loop over all symbols | else default symbol
-            # type of plot
-        self.plot_type = 1                          # [mapping], Plot type: 0 (only course) | 1 (course + indicator)
-
-
-        # Initialize variables, value assigned at runtime
-        self.symbol = ''                            # [str] init, coin or share (e.g. BTC)
-            # parameter study
-        self.params = None                          # [dict[str,list]] init, all params for the strategy (has values only in param study | else None)
-            # how to deal with the plot (calculated from loop_param_study and loop_symbols)
-        self.show_plot = False                      # [bool] init, if true show plot - plt.show()
-        self.save_plot = False                      # [bool] init, if true save plot
-            # df (containing calculated data)
-        self.df_raw = pd.DataFrame()                # [df] raw data from loading the course: df['time', 'high', 'low', 'open', 'volumefrom', 'volumeto', 'close']
-        self.df_min = pd.DataFrame()                # [df] min input for the following functions: df['close']
-        self.df_invested = pd.DataFrame()           # [df] normally df['invested'], but currently additionally the calculations of the indicators and signals (for the plots)
 
 
     def run(self):
@@ -60,77 +45,101 @@ class VisualizeStrategy:
                 symbol = get_filename_from_path(file_path_symbol)
                 print(f'{index + 1}/{len(file_paths_symbols)}: {symbol}')
                 if self.loop_param_study:            # 4) Loop symbols with param study
-                    self.show_plot = False
-                    self.save_plot = True
                     self.routine_param_study(symbol)
                     print('\n')
                 else:                                # 3) Loop symbols for ONE parameter
-                    self.show_plot = False
-                    self.save_plot = True
-                    self.routine_one_default_param(symbol)
+                    self.routine_one_default_param(symbol, False)
         else:
-            symbol = 'BTC'
+            symbol = 'BTC'  # default hard coded symbol
             if self.loop_param_study:                # 2) Param study for ONE symbol (save plot without show)
-                self.show_plot = False
-                self.save_plot = True
                 self.routine_param_study(symbol)
             else:                                    # 1) Test -> Plot for ONE symbol (only show without saving)
-                self.show_plot = True
-                self.save_plot = False
-                self.routine_one_default_param(symbol)
+                self.routine_one_default_param(symbol, True)
 
 
-
-
-    def routine_one_default_param(self, symbol):
+    def routine_one_default_param(self, symbol, show=False):
         """ Routine for one default param
         No param study, use the default params defined in the strategy for the specified symbol
         """
-        self._load_symbol(symbol)
-        self._main_routine()
+        # VisualizeStrategy Class
+        vs = VisualizeStrategy(self.strategy_name, symbol)
+        vs.set_bools_program_flow(False, show, not show)
+        vs.run_main_routine()
+
 
     def routine_param_study(self, symbol):
         """ Routine for param_study
         Loop over all params combinations for the specified symbol
         """
-        self._load_symbol(symbol)
-
         # Param study - Loop over all params im params_study
         params_study = get_all_combinations_from_params_study(name)
         for index, params in enumerate(params_study):
             self.params = params
             print(f'{index+1}/{len(params_study)}: {params}')
-            self._main_routine()
+
+            # VisualizeStrategy Class
+            vs = VisualizeStrategy(self.strategy_name, symbol, self.params)
+            vs.set_bools_program_flow(True, False, True)
+            vs.run_main_routine()
 
 
-    def _main_routine(self):
+class VisualizeStrategy:
+
+    def __init__(self, strategy_name, symbol , params=None):
+        # Strategy
+        self.strategy_name = strategy_name          # [str] strategy name (e.g. BB, MACD, RCI)
+        self.params = params                        # [dict[str,list]] init, all params for the strategy (has values only in param study | else None)
+
+        # Symbol
+        self.symbol = symbol                        # [str] init, coin or share (e.g. BTC)
+
+        # type of plot
+        self.plot_type = 1                          # [mapping], Plot type: 0 (only course) | 1 (course + indicator)
+
+
+        # Initialize variables, value assigned at runtime
+            # Strategy
+        self.param_study = False                    # [bool], if true params_study
+
+            # df (containing calculated data)
+        self.df_raw = pd.DataFrame()                # [df] raw data from loading the course: df['time', 'high', 'low', 'open', 'volumefrom', 'volumeto', 'close']
+        self.df_min = pd.DataFrame()                # [df] min input for the following functions: df['close']
+        self.df_invested = pd.DataFrame()           # [df] normally df['invested'], but currently additionally the calculations of the indicators and signals (for the plots)
+
+            # how to deal with the plot (calculated from loop_param_study and loop_symbols)
+        self.show_plot = False                      # [bool] init, if true show plot - plt.show()
+        self.save_plot = False                      # [bool] init, if true save plot
+
+
+    def set_bools_program_flow(self, param_study, show_plot, save_plot):
+        """ Set the bools, which control the program flow
+        """
+        self.param_study = param_study
+        self.show_plot = show_plot
+        self.save_plot = save_plot
+
+
+    def run_main_routine(self):
         """ Main routine
         1. calculate strategy df[<indicators>, 'signal', 'invested']
         2. Plot: show or save (depending on the program flow)
         3. Reset for the next params in the params_study
         """
+        self._load_symbol()
         self._manual_strategy() # calculate df_invested
         if self.show_plot or self.save_plot:
             self._plot()
             if self.show_plot:
                 plt.show()
-        self._reset()
 
 
-    def _reset(self):
-        """ Reset df_invested for the next params in the params_study
-        """
-        self.df_invested = pd.DataFrame()
-
-
-    def _load_symbol(self, symbol):
+    def _load_symbol(self):
         """ Load course from csv
         self.symbol
         self.df_raw
         self.df_min
         """
-        self.symbol = symbol        # symbol (e.g. BTC)
-        df = load_pandas_from_symbol(symbol)
+        df = load_pandas_from_symbol(self.symbol)
         self.df_raw = df            # raw data for the next cycle in param study: df = ['time', 'high', 'low', 'open', 'volumefrom', 'volumeto', 'close']
         self.df_min = df[['close']] # min input for functions: df = ['close']
 
@@ -185,7 +194,7 @@ class VisualizeStrategy:
         """
         # Folder and name
         base_folder_path = str(os.path.join(get_path('analyse_cc'), self.strategy_name))
-        if self.params:
+        if self.param_study:
             folder_path = os.path.join(base_folder_path, f'parameter_study/{self.symbol}')
             file_name = f'{self.symbol}' # e.g. 'ETH_bb_l-5_bb_std-1.5' | '{symbol}_param1-value1_param2-value2
             for key, value in self.params.items():
@@ -200,25 +209,29 @@ class VisualizeStrategy:
 
 
 if __name__ == "__main__":
-    name = 'BB' # MACD, BB, RSI
-    run_type = 1 # Program flow [1-4]
+    name = 'MACD'     # MACD, BB, RSI
+    run_type = 1    # Program flow [1-4]
 
     match run_type:
-        case 1: # [F,F] plot one symbol (for testing or specific analysis)
+        case 1: # [F,F] plot one symbol with default params (for testing or specific analysis)
             param_study = False
             loop_symbols = False
+            print(f'<{run_type}> - plot one symbol with default params (for testing)')
         case 2: # [T,F] param study for one symbol (for testing the parameter study)
             param_study = True
             loop_symbols = False
-        case 3: # [F,T] loop symbols for one param (strategy with 1x specific params applied to all symbols)
+            print(f'<{run_type}> - param study for one symbol')
+        case 3: # [F,T] loop symbols with default params (strategy with 1x specific params applied to all symbols)
             param_study = False
             loop_symbols = True
+            print(f'<{run_type}> - loop symbols with default params')
         case 4: # [T,T] loop symbols with param study (parameter study for all multiple courses)
             param_study = True
             loop_symbols = True
+            print(f'<{run_type}> - loop symbols with param study')
         case _:
             raise ValueError(f'run_type [1-4]: {run_type}')
 
-    vs = VisualizeStrategy(name, param_study, loop_symbols)
-    vs.run()
+    vsm = VisualizeStrategyManager(name, param_study, loop_symbols)
+    vsm.run()
 
