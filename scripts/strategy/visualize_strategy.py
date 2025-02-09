@@ -1,3 +1,27 @@
+""" # Aim
+Visualize strategies
+Show graphically the effectiveness of a specific strategy
+Same logic and reusable code for each new strategy (calculating when to invest, plotting and saving, parameter and symbol studies)
+
+   # Architecture
+Indicators, plots of the indicators and calculation of the strategies each in a separate file
+For generic visualization and plots in this file 2 classes:
+- VisualizeStrategy
+  - Each individual plot is processed in an object
+  - Input: strategy, symbol, params (1x params for calculating the indicators and signals)
+  - Output: Plot that visualizes the strategy
+- VisualizeStrategyManager
+  - manage the various processes of the analysis (program flow)
+    - 4 main logics based on the two bools param_study and loop_symbols
+      - for testing: plot and show 1 plot with default params
+      - for analysing: save plots from param study and symbol study in the corresponding folders
+
+    # Instructions (for defining a new strategy)
+Define strategy in manual_strategy.py
+Define indicator in indicators.py and plot in plot.py
+Check new strategy with run_type = 1
+"""
+
 import sys
 import os
 ws_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")) # Workspace
@@ -10,10 +34,15 @@ from modules.file_handler import *
 from modules.plot import *
 from modules.strategy.eval_strategy import *
 
-pd.set_option('future.no_silent_downcasting', True)
+pd.set_option('future.no_silent_downcasting', True) # if values are converted down (value to nan - when calculating df[invested] based on df[signal])
 
 
 class VisualizeStrategyManager:
+    """
+    This class manages the different program flows
+    4 different main logics result from the two bools param_study and loop_symbols
+    Based on the program flow, all symbols or parameter studies are analyzed as individual objects in the VisualizeStrategy class
+    """
     def __init__(self, strategy_name, loop_param_study=False, loop_symbols=False):
         # Strategy
         self.strategy_name = strategy_name          # [str] strategy name (e.g. BB, MACD, RCI)
@@ -38,8 +67,9 @@ class VisualizeStrategyManager:
          [T,T] loop symbols with param study (parameter study for all multiple courses)
         """
         if self.loop_symbols:
-            folder_path = os.path.join(get_path('course_cc'), 'yaml')
+            folder_path = os.path.join(get_path('course_cc'), 'yaml')   # [yaml, api]
             file_paths_symbols = list_file_paths_in_folder(folder_path, '.csv')
+            assert len(file_paths_symbols) > 100, 'Over 100 symbols - Should there really be so many graphics created?'
             # Loop over all symbols
             for index, file_path_symbol in enumerate(file_paths_symbols):
                 symbol = get_filename_from_path(file_path_symbol)
@@ -72,7 +102,8 @@ class VisualizeStrategyManager:
         Loop over all params combinations for the specified symbol
         """
         # Param study - Loop over all params im params_study
-        params_study = get_all_combinations_from_params_study(name)
+        params_study = get_all_combinations_from_params_study(self.strategy_name)
+        assert len(params_study) > 100, 'Over 100 params combinations - Should there really be so many graphics created?'
         for index, params in enumerate(params_study):
             self.params = params
             print(f'{index+1}/{len(params_study)}: {params}')
@@ -84,7 +115,12 @@ class VisualizeStrategyManager:
 
 
 class VisualizeStrategy:
-
+    """
+    This class is responsible for the calculation, evaluation and the plot of a single symbol
+    - Input: strategy, symbol, params (1x params for calculating the indicators and signals)
+    - Output: Plot and evaluation of the strategy for this one individual symbol
+    (Parameter studies and symbol analyses are controlled in the class VisualizeStrategyManager)
+    """
     def __init__(self, strategy_name, symbol , params=None):
         # Strategy
         self.strategy_name = strategy_name          # [str] strategy name (e.g. BB, MACD, RCI)
@@ -177,7 +213,7 @@ class VisualizeStrategy:
             ax_graph_elements(ax[0], self.symbol)                                 # Labels
             # Plot 2 (Indicator BB)
             ax_background_colored_signals(ax[1], self.df_invested[['signal']])    # df['signal'] -> [buy, sell, bullish, bearish]
-            func_ax_indicator = globals()[f'ax_{name}']                           # e.g. ax_BB
+            func_ax_indicator = globals()[f'ax_{self.strategy_name}']                           # e.g. ax_BB
             func_ax_indicator(ax[1], self.df_invested)                            # Indicator
             ax_graph_elements(ax[1], self.strategy_name)                          # Labels
         else:
@@ -209,8 +245,18 @@ class VisualizeStrategy:
 
 
 if __name__ == "__main__":
-    name = 'MACD'     # MACD, BB, RSI
-    run_type = 1    # Program flow [1-4]
+    """ # Explanation
+    There are 4 different main logics based on the two bools param_study and loop_symbols
+    
+        # Instructions
+    - set strategy name
+    - set run_type (for program flow, based on the two bools)
+      - (if run_type = 1, a default symbol can be set in VisualizeStrategyManager.run())
+    - (set plot type to define which plots are in the fig (only course, course + indicator): self.plot_type = [1-3])
+    """
+
+    strategy = 'MACD'     # MACD, BB, RSI
+    run_type = 1      # Program flow [1-4]
 
     match run_type:
         case 1: # [F,F] plot one symbol with default params (for testing or specific analysis)
@@ -232,6 +278,6 @@ if __name__ == "__main__":
         case _:
             raise ValueError(f'run_type [1-4]: {run_type}')
 
-    vsm = VisualizeStrategyManager(name, param_study, loop_symbols)
+    vsm = VisualizeStrategyManager(strategy, param_study, loop_symbols)
     vsm.run()
 

@@ -84,7 +84,11 @@ def indicator_BB(df, length=6, std=2.0):
     """ Bollinger Bands (BB)
     :param length: SMA samples
     :param std: factor, by which the standard deviation for the bandwidth is multiplied
-    :return: df['BBL_5_2.0', 'BBM_5_2.0', 'BBU_5_2.0', 'BBB_5_2.0', 'BBP_5_2.0'] - [Low, SMA, Up, Bandwith, Percentage]
+    :return: df['BBL_5_2.0', 'BBM_5_2.0', 'BBU_5_2.0', 'BBB_5_2.0', 'BBP_5_2.0'] - [Low, SMA, Up, Bandwith, Percentage] - col_l, col_m, col_u
+
+    3 lines: middle (SMA), upper and lower band
+    Bearish: close > upper band -> if course is larger than the upper band
+    Bullish: close < lower band -> if course is smaller than the lower band
     """
     df_indicator = ta.bbands(df['close'], length=length, std=std)
     df = pd.concat([df, df_indicator], axis=1)
@@ -106,7 +110,11 @@ def indicator_MACD(df, fast=12, slow=26, signal=9):
     :param fast: fast moving average (typically a short-term EMA)
     :param slow: slow moving average (typically a long-term EMA)
     :param signal: EMA of the MACD line over n samples
-    :return: df['MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9'] - [MACD, Histogram (Diff), Signal]
+    :return: df['MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9'] - [MACD, Histogram (Diff), Signal] - col_MACD, coll_diff, col_signal
+
+    Spot changes in the strength, direction, momentum, and duration of a trend in a stock
+    buy: when the MACD crosses the signal line from bottom to top
+    sell: when the MACD crosses the signal line from top to bottom
     """
     df_indicator = ta.macd(df['close'], fast=fast, slow=slow, signal=signal)
     df = pd.concat([df, df_indicator], axis=1)
@@ -116,7 +124,11 @@ def indicator_MACD(df, fast=12, slow=26, signal=9):
 def indicator_RSI(df, length=14, lower_border=30, upper_border=70):
     """ Relative Strength Index (RSI)
     :param length: samples
-    :return: df['RSI_14', 'border_lower_30', 'border_upper_70']
+    :return: df['RSI_14', 'border_lower_30', 'border_upper_70'] - col_RSI, col_bl, col_bu
+
+    upper and lower border
+    sell: RSI >= upper border -> too high -> sell | crossing from above under 70
+    buy: RSI <= lower border -> too low -> buy | crossing from below over 30
     """
     df = df.copy()
     df[f'RSI_{length}'] = ta.rsi(df['close'], length=length)

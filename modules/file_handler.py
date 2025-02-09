@@ -77,6 +77,22 @@ def get_file_names_in_folder(folder_path:str):
     return list_file_paths
 
 
+def get_file_in_folder(folder_path, file_name):
+    """ Returns filepath if file in folder
+    :param folder_path: directory
+    :param file_name: name
+    :return: file path if file found | else None
+    """
+    # If folder does not exist, there are no existing files
+    if not os.path.exists(folder_path):
+        return None
+    # Search if file exists in folder
+    for file_path in list_file_paths_in_folder(folder_path):
+        if file_name in get_filename_from_path(file_path):
+            return file_path
+    return None
+
+
 def load_pandas_from_symbol(symbol:str):
     # Find file path from symbol in folder
     folder_path = get_path('course_cc')

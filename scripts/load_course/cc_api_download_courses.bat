@@ -15,10 +15,10 @@ REM Back to ws
 cd ../..
 
 REM navigate to the python script
-cd scripts\strategy
+cd scripts\load_course
 
 REM call python script
-python visualize_strategy.py
+python cc_api_download_courses.py
 
 REM Keep the cmd open
 cmd /k
