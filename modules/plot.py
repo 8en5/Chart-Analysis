@@ -84,7 +84,7 @@ def ax_background_colored_signals(ax, df):
     }
     for i in range(0, len(df)-1):
         evaluation = df.iloc[i][col]
-        if evaluation == '':
+        if evaluation == '' or str(evaluation).lower() == "nan": # special case str(nan), because the entire column df[invested] is type float and df[signal] string - you can't use math.isnan(x) because of this
             continue
         if evaluation not in colors:
             print(f'Warning: evaluation "{evaluation}" not in color_status"')

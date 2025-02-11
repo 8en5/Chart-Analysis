@@ -25,7 +25,7 @@ def request_symbols():
 
 def routine_download_symbols():
     """ Download and save df with all symbols
-    save file: 'cc_symbols_api.csv' to ..\data\course\crypto_compare
+    save file: 'cc_symbols_api.csv' to 'ws/data/course/crypto_compare'
     """
     # Download symbols data from cryptocompare
     df = request_symbols()

@@ -227,7 +227,8 @@ def _load_symbols_from_yaml():
     :return: list of symbols
     """
     # Load yaml with symbols
-    file_path = 'cc_symbols_selected.yaml' # file in same dir
+    file_name = 'cc_symbols_selected.yaml' # file in same dir
+    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_name)
     with open(file_path, 'r', encoding="utf-8") as f:
         data = yaml.safe_load(f)
     symbols = data['active']
@@ -284,7 +285,7 @@ if __name__ == "__main__":
     - (if existing symbols should be requested completely new (overwrite) and should not only be updated: set self.allow_update = False)
     """
 
-    source = 'api' # [yaml, api]
+    source = 'yaml' # [yaml, api]
 
     match source:
         case 'yaml':        # self-defined coins in the yaml file

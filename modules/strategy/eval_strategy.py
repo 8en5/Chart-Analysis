@@ -96,7 +96,7 @@ def evaluate_strategy(df):
     df['invested_states'] = np.select(conditions, values_type, default='')
     pandas_print_all()
     print(df)
-    exit()
+    #exit()
 
     # Calculate the proportions of rising and falling prices
     total_perc_plus = sum(df.loc[df['close_perc'] > 0, 'close_perc'].to_list())
@@ -120,6 +120,6 @@ def evaluate_strategy(df):
     portions_dict = {key: value["portion"] for key, value in eval_dict.items()}
     print(portions_dict)
     print(_get_total_returns(df))
-    exit()
+    #exit()
 
 

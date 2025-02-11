@@ -79,9 +79,8 @@ def set_manual_strategy_BB(df, params=None):
 
     # Invested [in, out] from signals
     df['invested'] = df['signal'].replace({'bullish': 1, 'bearish': 0, '': np.nan})
-    df['invested'] = df['invested'].ffill().fillna(0)
+    df['invested'] = df['invested'].ffill()#.fillna(0)
     #print(df)
-
     return df
 
 
@@ -113,8 +112,7 @@ def set_manual_strategy_MACD(df, params=None):
 
     # Invested [in, out] from signals
     df['invested'] = df['signal'].replace({'buy': 1, 'sell': 0, '': np.nan})
-    df['invested'] = df['invested'].ffill().fillna(0)
-
+    df['invested'] = df['invested'].ffill()#.fillna(0)
     return df
 
 
@@ -143,6 +141,6 @@ def set_manual_strategy_RSI(df, params=None):
 
     # Invested [in, out] from signals
     df['invested'] = df['signal'].replace({'bullish': 1, 'bearish': 0, '': np.nan})
-    df['invested'] = df['invested'].ffill().fillna(0)
+    df['invested'] = df['invested'].ffill()#.fillna(0)
 
     return df

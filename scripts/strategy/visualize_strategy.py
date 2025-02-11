@@ -25,7 +25,7 @@ Check new strategy with run_type = 1
 import sys
 import os
 ws_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")) # Workspace
-sys.path.append(ws_dir) # add ws to sys-path to run py-file in separate cmd
+sys.path.insert(0, ws_dir) # add ws to sys-path to run py-file in separate cmd
 
 import matplotlib.pyplot as plt
 
@@ -163,6 +163,7 @@ class VisualizeStrategy:
         """
         self._load_symbol()
         self._manual_strategy() # calculate df_invested
+        evaluate_strategy(self.df_invested[['close', 'invested']])
         if self.show_plot or self.save_plot:
             self._plot()
             if self.show_plot:
@@ -255,7 +256,7 @@ if __name__ == "__main__":
     - (set plot type to define which plots are in the fig (only course, course + indicator): self.plot_type = [1-3])
     """
 
-    strategy = 'MACD'     # MACD, BB, RSI
+    strategy = 'BB'     # MACD, BB, RSI
     run_type = 1      # Program flow [1-4]
 
     match run_type:
