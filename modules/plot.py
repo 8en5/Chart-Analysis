@@ -72,6 +72,7 @@ def ax_background_colored_signals(ax, df):
         raise ValueError(f'Column name {allowed_col} not in: {df.columns}')
 
     colors = {
+        None: 'grey',
         # Signal - One event [buy, sell]
         'buy': 'lime',
         'sell': 'red',
@@ -84,7 +85,7 @@ def ax_background_colored_signals(ax, df):
     }
     for i in range(0, len(df)-1):
         evaluation = df.iloc[i][col]
-        if evaluation == '' or str(evaluation).lower() == "nan": # special case str(nan), because the entire column df[invested] is type float and df[signal] string - you can't use math.isnan(x) because of this
+        if evaluation == '':
             continue
         if evaluation not in colors:
             print(f'Warning: evaluation "{evaluation}" not in color_status"')
@@ -92,7 +93,7 @@ def ax_background_colored_signals(ax, df):
             # Vertical Line - concrete calculated signal
             color = colors[evaluation]
             ax.axvline(x=df.index[i], color=color, linestyle='-', linewidth=2)
-        elif evaluation in ['bullish', 'bearish', 1, 0]:
+        elif evaluation in ['bullish', 'bearish', 1, 0, None]:
             # Background color - general trend
             color = colors[evaluation]
             ax.axvspan(df.index[i], df.index[i+1], color=color, alpha=0.3)

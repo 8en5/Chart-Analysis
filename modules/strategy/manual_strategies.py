@@ -4,7 +4,7 @@ import numpy as np
 from modules.plot import *
 from modules.indicators import *
 from modules.functional_analysis import *
-
+from modules.utils import pandas_print_all
 
 params_study_dict = {
     'BB' : {
@@ -55,6 +55,21 @@ def _set_param_variation(params_study: dict[str,list[int]|tuple[int]]) -> dict[s
     return params_study
 
 
+def _calc_invested_from_signal(df):
+    """ Calculate status 'invested' from signal
+    :param df: df['signal']
+    :return: df['invested']
+    """
+    if df['signal'].eq('bullish').any():
+        df['invested'] = df['signal'].replace({'bullish': 1, 'bearish': 0, '': None})
+    elif df['signal'].eq('buy').any():
+        df['invested'] = df['signal'].replace({'buy': 1, 'sell': 0, '': None})
+
+    # shift everything 1 day later (because percentage changes only apply to the next day)
+    df['invested'] = df['invested'].shift(1)
+    df['invested'] = df['invested'].ffill() #.fillna(0)
+    return df
+
 #------------------------ BB ------------------------#
 def set_manual_strategy_BB(df, params=None):
     if params is None:
@@ -78,8 +93,7 @@ def set_manual_strategy_BB(df, params=None):
     df['signal'] = np.select(conditions, values, default='')
 
     # Invested [in, out] from signals
-    df['invested'] = df['signal'].replace({'bullish': 1, 'bearish': 0, '': np.nan})
-    df['invested'] = df['invested'].ffill()#.fillna(0)
+    df = _calc_invested_from_signal(df)
     #print(df)
     return df
 
@@ -106,13 +120,11 @@ def set_manual_strategy_MACD(df, params=None):
         (df[col_crossing] == 'up'),    # Buy, if MACD crosses the signal line from bottom to top
         (df[col_crossing] == 'down')   # Sell, if MACD crosses the signal line from top to bottom
     ]
-
     values = ['buy', 'sell']
     df['signal'] = np.select(conditions, values, default='')
 
     # Invested [in, out] from signals
-    df['invested'] = df['signal'].replace({'buy': 1, 'sell': 0, '': np.nan})
-    df['invested'] = df['invested'].ffill()#.fillna(0)
+    df =_calc_invested_from_signal(df)
     return df
 
 
@@ -140,7 +152,6 @@ def set_manual_strategy_RSI(df, params=None):
     df['signal'] = np.select(conditions, values, default='')
 
     # Invested [in, out] from signals
-    df['invested'] = df['signal'].replace({'bullish': 1, 'bearish': 0, '': np.nan})
-    df['invested'] = df['invested'].ffill()#.fillna(0)
+    df =_calc_invested_from_signal(df)
 
     return df

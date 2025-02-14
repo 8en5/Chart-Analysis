@@ -24,6 +24,9 @@ Check new strategy with run_type = 1
 
 import sys
 import os
+
+from pandas.core.computation.expressions import evaluate
+
 ws_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")) # Workspace
 sys.path.insert(0, ws_dir) # add ws to sys-path to run py-file in separate cmd
 
@@ -32,7 +35,7 @@ import matplotlib.pyplot as plt
 from modules.strategy.manual_strategies import *
 from modules.file_handler import *
 from modules.plot import *
-from modules.strategy.eval_strategy import *
+from modules.strategy.evaluate_strategy import EvaluateStrategy
 
 pd.set_option('future.no_silent_downcasting', True) # if values are converted down (value to nan - when calculating df[invested] based on df[signal])
 
@@ -163,7 +166,13 @@ class VisualizeStrategy:
         """
         self._load_symbol()
         self._manual_strategy() # calculate df_invested
-        evaluate_strategy(self.df_invested[['close', 'invested']])
+
+        pandas_print_all()
+        df = self.df_invested[['close', 'invested']]
+        result = EvaluateStrategy.get_statistics(df)
+        print(result)
+        exit()
+
         if self.show_plot or self.save_plot:
             self._plot()
             if self.show_plot:
@@ -256,7 +265,7 @@ if __name__ == "__main__":
     - (set plot type to define which plots are in the fig (only course, course + indicator): self.plot_type = [1-3])
     """
 
-    strategy = 'BB'     # MACD, BB, RSI
+    strategy = 'MACD'     # MACD, BB, RSI
     run_type = 1      # Program flow [1-4]
 
     match run_type:
