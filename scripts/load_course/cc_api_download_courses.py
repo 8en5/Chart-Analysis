@@ -13,9 +13,9 @@ Each downloaded symbol is controlled in the object of the class DownloadManagerC
 """
 
 import sys
-import os
-ws_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")) # Workspace
-sys.path.append(ws_dir) # add ws to sys-path to run py-file in separate cmd
+from pathlib import Path
+ws_dir = (Path(__file__).parent / ".." / "..").resolve()  # Workspace
+sys.path.insert(0, str(ws_dir))                    # add ws to sys-path to run py-file in separate cmd
 
 import requests
 import yaml
@@ -123,21 +123,21 @@ class DownloadManagerCC:
         # Save Errors in Log file
         folder_path = get_path('course_cc')
         file_name = f'_Error-Log_{source}.txt'
-        file_path = os.path.join(folder_path, file_name)
-        with open(file_path, 'w') as f:
+        file_path = folder_path / file_name
+        with file_path.open('w', encoding='utf-8') as f:
             f.write(output)
         print(f'Save Error-Log in {file_path}')
 
 
     # Instance methods
-    def __init__(self, symbol, folder_path):
-        self.symbol = symbol            # symbol
-        self.folder_path = folder_path  # folder to save all symbols
+    def __init__(self, symbol:str, folder_path:Path):
+        self.symbol = symbol                    # symbol
+        self.folder_path = Path(folder_path)    # folder to save all symbols
 
-        self.allow_update = True        # bool, whether updates are allowed if file with old data exists (if False, always full download)
+        self.allow_update = True                # bool, whether updates are allowed if file with old data exists (if False, always full download)
 
         # Initialize variables, value assigned at runtime
-        self.df = pd.DataFrame()        # requested data (summarized if multiple requests needed)
+        self.df = pd.DataFrame()                # requested data (summarized if multiple requests needed)
 
 
     def run(self):
@@ -145,9 +145,9 @@ class DownloadManagerCC:
         """
         try:
             # Check, if data is available for the symbol
-            file_path = get_file_in_folder(self.folder_path, self.symbol) # None, if file does not exist
+            file_path = self.folder_path / f'{self.symbol}.csv'      # Calculate filepath name and check if it exists
             # Get new data - <Update> or <Full>
-            if file_path and self.allow_update:
+            if file_path.exists() and self.allow_update:
                 # Update data
                 self._routine_update_available_course(file_path)
             else:
@@ -228,25 +228,24 @@ def _load_symbols_from_yaml():
     """
     # Load yaml with symbols
     file_name = 'cc_symbols_selected.yaml' # file in same dir
-    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_name)
-    with open(file_path, 'r', encoding="utf-8") as f:
+    file_path = Path(__file__).parent / file_name
+    with file_path.open('r', encoding="utf-8") as f:
         data = yaml.safe_load(f)
-    symbols = data['active']
-    return symbols
+    return data.get('active')
 
 def _load_symbols_from_api_csv(order=0, n=None):
     """
     :param n: amount of symbols
     :return: list of symbols
     """
-    if n == None:
+    if n is None:
         n = -1 # all data
 
     # Load api csv with symbols
     folder_path = get_path('course_cc')
     file_name = 'cc_symbols_api.csv'
-    file_path = os.path.join(folder_path, file_name)
-    if not os.path.exists(file_path):
+    file_path = folder_path / file_name
+    if not file_path.exists():
         raise FileNotFoundError(f'File "{file_name}" does not exist -> run cc_load_symbols.py')
     df = pd.read_csv(file_path)
     if n > len(df)-2:
@@ -298,7 +297,7 @@ if __name__ == "__main__":
             raise ValueError(f'Wrong source: {source}')
 
     # Storage location
-    folder_path = str(os.path.join(get_path('course_cc'), source))
+    folder_path = get_path('course_cc') / source
 
     # Download symbols from list
     for index, symbol in enumerate(symbols):

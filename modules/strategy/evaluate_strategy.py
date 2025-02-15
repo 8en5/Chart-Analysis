@@ -180,7 +180,7 @@ class EvaluateStrategy:
 
 
     @staticmethod
-    def run_evaluation_multiple_cycles(df):
+    def _run_evaluation_multiple_cycles(df):
         """ Run evaluation multiple times in different periods and summarize the result
         :return: df_summary -> df[start, end, days, amount_transactions, in+, in, out+, out-, Buy and Hold, Strategy without fee, Strategy with fee, diff_benchmark]
         """
@@ -206,7 +206,7 @@ class EvaluateStrategy:
         :return:
         """
         # Summarize all Evaluations in one df
-        df_summary = EvaluateStrategy.run_evaluation_multiple_cycles(df)
+        df_summary = EvaluateStrategy._run_evaluation_multiple_cycles(df)
         print(df_summary)
 
         # Extract the most important data for further calculation

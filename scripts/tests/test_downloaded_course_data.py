@@ -7,7 +7,7 @@ def check_course_all_dates(file_path):
         and not duplicated
     """
 
-    symbol = get_filename_from_path(file_path)
+    symbol = file_path.stem
 
     # Load course
     df = load_pandas_from_file_path(file_path)

@@ -6,6 +6,9 @@ from modules.indicators import *
 from modules.functional_analysis import *
 from modules.utils import pandas_print_all
 
+pd.set_option('future.no_silent_downcasting', True) # if values are converted down (value to nan - when calculating df[invested] based on df[signal])
+
+
 params_study_dict = {
     'BB' : {
         'bb_l': (1, 8, 2), #[5, 6, 8, 10, 15, 20, 30],
@@ -69,6 +72,7 @@ def _calc_invested_from_signal(df):
     df['invested'] = df['invested'].shift(1)
     df['invested'] = df['invested'].ffill() #.fillna(0)
     return df
+
 
 #------------------------ BB ------------------------#
 def set_manual_strategy_BB(df, params=None):

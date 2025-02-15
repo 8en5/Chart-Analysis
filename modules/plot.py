@@ -7,7 +7,6 @@ def ax_course(ax, df):
     ax.plot(df.index, df['close'], linestyle='-', color='black', label='Course')         # linear
     #ax.semilogy(df.index, df['close'], linestyle='-', color='black', label='Course')    # log
 
-
 def ax_percentage(ax, df):
     # ['percentage_D']
     col_perc = get_indicator_col_names(df, 'perc')

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 
 from modules.plot import *
 from test import *
-from modules.strategy.evaluate_strategy import run_evaluation_strategy
+from modules.strategy.evaluate_strategy import *
 
 
 
