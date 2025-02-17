@@ -199,33 +199,6 @@ class EvaluateStrategy:
         return df_summary
 
 
-    @staticmethod
-    def get_statistics(df):
-        """ Calculate mean and std of the most important key figures from the evaluation
-        :param df: df[close, invested] (full df)
-        :return:
-        """
-        # Summarize all Evaluations in one df
-        df_summary = EvaluateStrategy._run_evaluation_multiple_cycles(df)
-        print(df_summary)
-
-        # Extract the most important data for further calculation
-        statistics_dict = {
-            'strategy': df_summary['Strategy without fee'],
-            'diff_benchmark': df_summary['diff_benchmark']
-        }
-
-        # Print result
-        print()
-        print('Strategy with fee:')
-        print('\tMean:', statistics_dict['strategy'].mean())
-        print('\tStd:', statistics_dict['strategy'].std())
-        print('Diff_benchmark:')
-        print('\tMean:', statistics_dict['diff_benchmark'].mean())
-        print('\tStd:', statistics_dict['diff_benchmark'].std())
-        exit()
-
-
 
 def _get_intervals(data_length):
     """ Calculate intervals with fixed length
@@ -246,3 +219,32 @@ def _get_intervals(data_length):
         intervals.append((start, start + window_size))
         start += (window_size - overlap)
     return intervals
+
+
+def get_evaluation_statistics(df):
+    """ Calculate mean and std of the most important key figures from the evaluation
+    :param df: df[close, invested] (full df)
+    :return:
+    """
+    # Summarize all Evaluations in one df
+    df_summary = EvaluateStrategy._run_evaluation_multiple_cycles(df)
+    #print(df_summary)
+
+    # Extract the most important data for further calculation
+    statistics_dict = {
+        'strategy': df_summary['Strategy without fee'],
+        'diff_benchmark': df_summary['diff_benchmark']
+    }
+
+    # Print result
+    bool_print = False
+    if bool_print:
+        print()
+        print('Strategy with fee:')
+        print('\tMean:', statistics_dict['strategy'].mean())
+        print('\tStd:', statistics_dict['strategy'].std())
+        print('Diff_benchmark:')
+        print('\tMean:', statistics_dict['diff_benchmark'].mean())
+        print('\tStd:', statistics_dict['diff_benchmark'].std())
+
+    return statistics_dict

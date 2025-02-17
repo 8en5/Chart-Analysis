@@ -111,13 +111,15 @@ def load_pandas_from_file_path(file_path:Path):
     return df
 
 
-def save_pandas_to_file(df: pd.DataFrame, folder_path: Path, name: str, extension: str = 'csv') -> None:
+def save_pandas_to_file(df:pd.DataFrame, folder_path:Path, name:str, extension:str='csv') -> None:
     """ Saves a Pandas DataFrame to a file.
     :param df: Pandas DataFrame to save
     :param folder_path: Directory where the file should be saved
     :param name: File name without extension
     :param extension: File extension (default: 'csv')
     """
+    folder_path = Path(folder_path)  # Make sure path is a Path object
+
     # Create folder if it doesn't exist
     create_dir(folder_path)
 
@@ -134,19 +136,29 @@ def save_pandas_to_file(df: pd.DataFrame, folder_path: Path, name: str, extensio
     print(f'Saved {file_name} to {relative_folder}')
 
 
-def save_matplotlib_figure(fig: plt.Figure, folder_path: Path, name: str, extension: str = 'png') -> None:
+def save_matplotlib_figure(fig:plt.Figure, folder_path:Path, name:str, extension:str='png') -> None:
     """ Saves a Matplotlib figure to a file.
     :param fig: Matplotlib figure to save
     :param folder_path: Directory where the figure should be saved
     :param name: File name without extension
     :param extension: File format (default: 'png')
     """
+    folder_path = Path(folder_path)  # Make sure path is a Path object
+
     # Create folder if it doesn't exist
     create_dir(folder_path)
 
     # Calculate absolute file path
     file_name = f'{name}.{extension}'
     file_path = folder_path / file_name
+
+    # Check if file exists, and append a number if it does
+    counter = 1
+    while file_path.exists():
+        # Create new file name with a number appended
+        file_name = f'{name}_{counter}.{extension}'
+        file_path = folder_path / file_name
+        counter += 1
 
     # Calculate relative path from workspace
     ws_folder = get_path('ws')

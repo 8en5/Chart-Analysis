@@ -15,7 +15,7 @@ def test_plot():
 
     # Plot 1 (Course)
     ax_course(ax[0], df)
-    ax_graph_elements(ax[0], symbol)
+    ax_default_properties(ax[0], symbol)
 
     # Plot 2 (Indicators)
 
@@ -35,7 +35,7 @@ def test_plot():
     #ax_percentage(ax[1], df_perc)
     #ax_percentage_freq(ax[1], df_perc)
 
-    ax_graph_elements(ax[1], 'Indicator')
+    ax_default_properties(ax[1], 'Indicator')
     plt.show()
 
 

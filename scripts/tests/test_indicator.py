@@ -27,7 +27,7 @@ def test_perc():
     print(df_test)
 
     ax_percentage_freq(ax, df_test)
-    ax_graph_elements(ax)
+    ax_default_properties(ax)
     plt.show()
 
 

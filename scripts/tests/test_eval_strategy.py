@@ -23,7 +23,7 @@ def test_eval_strategy():
     fig, ax = plt.subplots(1, 1, sharex=True, sharey=True)
     ax_background_colored_signals(ax, df)  # Evaluation In, Out
     ax_course(ax, df)  # Course
-    ax_graph_elements(ax, 'Test')  # Labels
+    ax_default_properties(ax, 'Test')  # Labels
     plt.show()
 
 

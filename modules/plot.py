@@ -107,10 +107,51 @@ def ax_ylim_threshold(values, ax, lower=0.05, upper=99.95):
     ax.set_ylim(lower_threshold, upper_threshold)
 
 
-def ax_graph_elements(ax, title='', ylabel='Chart'):
+def ax_default_properties(ax, title='', ylabel='Chart'):
     # Graph elements
     ax.set_title(title)
     #ax.set_xlabel('Date')
     #ax.set_ylabel(ylabel)
     ax.grid()
     ax.legend()
+
+
+def ax_set_properties(ax, **kwargs):
+    """ Sets multiple properties of a Matplotlib Axes object at once with default values.
+    :param ax: The Axes object to modify.
+    :param kwargs: dict, optional
+        Keyword arguments specifying properties to set. Supported properties:
+        - 'title' (str): Title of the plot (default: 'Default Title').
+        - 'xlabel' (str): Label for the X-axis (default: 'Default X-Axis').
+        - 'ylabel' (str): Label for the Y-axis (default: 'Default Y-Axis').
+        - 'grid' (bool): Whether to display grid lines (default: True).
+
+    Example:
+    fig, ax = plt.subplots()
+    set_ax_properties(ax, title='{symbol}', xlabel='Date', ylabel='Chart')
+    plt.show()
+    """
+    defaults = {
+        'title': '',
+        'xlabel': '',
+        'ylabel': '',
+        'grid': True,
+        'legend': True
+    }
+
+    # Update defaults with provided values
+    for key, value in defaults.items():
+        kwargs.setdefault(key, value)
+
+    # Mapping of attribute names to methods
+    mapping = {
+        'title': ax.set_title,
+        'xlabel': ax.set_xlabel,
+        'ylabel': ax.set_ylabel,
+        'grid': ax.grid,
+        'legend': ax.legend
+    }
+
+    for key, value in kwargs.items():
+        if key in mapping:
+            mapping[key](value)  # Call the method with the value

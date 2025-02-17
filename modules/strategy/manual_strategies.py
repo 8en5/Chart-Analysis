@@ -11,8 +11,8 @@ pd.set_option('future.no_silent_downcasting', True) # if values are converted do
 
 params_study_dict = {
     'BB' : {
-        'bb_l': (1, 8, 2), #[5, 6, 8, 10, 15, 20, 30],
-        'bb_std': [1] #[1.5, 1.8, 2.0, 2.2, 2.5]
+        'bb_l': [6], #[5, 6, 8, 10, 15, 20, 30],
+        'bb_std': [1.5, 2.5] #[1.5, 1.8, 2.0, 2.2, 2.5]
     },
 
     'MACD': {
@@ -27,6 +27,35 @@ params_study_dict = {
             'bu': [60, 7, 90]
     },
 }
+
+def get_func_manual_strategy(strategy_name, *args):
+    """ Call function set_manual_strategy_{strategy_name}()
+    :param strategy_name: name for the strategy defined in this file
+    :param args: *args for the func
+    :return: set_manual_strategy_{strategy_name}
+    """
+    func_name = f'set_manual_strategy_{strategy_name}'
+    # Check
+    func = globals().get(func_name)
+    if not callable(func):
+        raise ValueError(f'The function "{func_name}" does not exist - define it in manual_strategies.py')
+    # Return called function
+    return func(*args)
+
+def get_func_plot(strategy_name, *args):
+    """
+    :param strategy_name: name for the strategy defined in this file
+    :param args: *args for the func
+    :return: set_manual_plot_{strategy_name}
+    """
+    func_name = f'set_manual_plot_{strategy_name}'
+    # Check
+    func = globals().get(func_name)
+    if not callable(func):
+        raise ValueError(f'The function "{func_name}" does not exist - define it in manual_strategies.py')
+    # Return called function
+    return func(*args)
+    # specified in 'manual_strategies.py'
 
 def get_all_combinations_from_params_study(name):
     """ Return params_study defined in params_study_dict
