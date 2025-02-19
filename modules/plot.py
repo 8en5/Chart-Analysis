@@ -1,6 +1,7 @@
 import numpy as np
 
 from modules.indicators import get_indicator_col_names
+from modules.utils import pandas_print_all
 
 
 def ax_course(ax, df):
@@ -32,6 +33,7 @@ def ax_percentage_freq(ax, df):
 def ax_BB(ax, df):
     # ['BBL_5_2.0', 'BBM_5_2.0', 'BBU_5_2.0', 'BBB_5_2.0', 'BBP_5_2.0'] - [Low, SMA, Up, Bandwith, Percentage]
     col_l, col_m, col_u = get_indicator_col_names(df, 'BB')
+    ax_course(ax, df)
     ax.plot(df.index, df[col_m], label=col_m, color='orange', linestyle='-')
     ax.fill_between(df.index, df[col_l], df[col_u], color="darkviolet", alpha=0.3, label="Bollinger Bands")
 

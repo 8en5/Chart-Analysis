@@ -92,14 +92,16 @@ def _calc_invested_from_signal(df):
     :param df: df['signal']
     :return: df['invested']
     """
-    if df['signal'].eq('bullish').any():
+    df['invested'] = 0
+    if df['signal'].isin(['bullish', 'bearish']).any():
         df['invested'] = df['signal'].replace({'bullish': 1, 'bearish': 0, '': None})
-    elif df['signal'].eq('buy').any():
+    elif df['signal'].isin(['buy', 'sell']).any():
         df['invested'] = df['signal'].replace({'buy': 1, 'sell': 0, '': None})
 
     # shift everything 1 day later (because percentage changes only apply to the next day)
     df['invested'] = df['invested'].shift(1)
     df['invested'] = df['invested'].ffill() #.fillna(0)
+    df['invested'] = df['invested'].replace({np.nan: None}) # to be sure there is no nan (sometimes in first line because of shift)
     return df
 
 

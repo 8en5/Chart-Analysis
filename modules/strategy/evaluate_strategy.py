@@ -1,20 +1,3 @@
-"""
-            close  invested  trade_occurred  close_perc strategy_status
-date
-2023-01-01      1         0           False         NaN
-2023-01-02      2         1            True    1.000000            out+
-2023-01-03      4         1           False    1.000000             in+
-2023-01-04      3         0            True   -0.250000             in-
-2023-01-05      6         0           False    1.000000            out+
-2023-01-06      8         0           False    0.333333            out+
-2023-01-07      5         0           False   -0.375000            out-
-2023-01-08      4         1            True   -0.200000            out-
-2023-01-09      3         1           False   -0.250000             in-
-2023-01-10      4         1           False    0.333333             in+
-2023-01-11      8         1           False    1.000000             in+
-2023-01-12     12         1           False    0.500000             in+
-2023-01-13     10         1           False   -0.166667             in-
-"""
 
 import numpy as np
 import pandas as pd
@@ -22,6 +5,27 @@ import pandas as pd
 from modules.utils import *
 
 pandas_print_width()
+
+
+def _get_intervals(data_length):
+    """ Calculate intervals with fixed length
+    :param data_length: len(df)
+    :return: intervals -> [(start1, end1), (start2, end2), ...]
+    """
+    window_size = 350   # const period days
+    overlap = 100       # periods overlapping
+    intervals = []      # save all intervals
+
+    # Return only 1 interval, if length < window_size
+    if data_length < window_size:
+        return [(0, data_length)]
+
+    # Start iterating
+    start = 0
+    while start + window_size <= data_length:
+        intervals.append((start, start + window_size))
+        start += (window_size - overlap)
+    return intervals
 
 
 class EvaluateStrategy:
@@ -200,27 +204,6 @@ class EvaluateStrategy:
 
 
 
-def _get_intervals(data_length):
-    """ Calculate intervals with fixed length
-    :param data_length: len(df)
-    :return: intervals -> [(start1, end1), (start2, end2), ...]
-    """
-    window_size = 350   # const period days
-    overlap = 100       # periods overlapping
-    intervals = []      # save all intervals
-
-    # Return only 1 interval, if length < window_size
-    if data_length < window_size:
-        return [(0, data_length)]
-
-    # Start iterating
-    start = 0
-    while start + window_size <= data_length:
-        intervals.append((start, start + window_size))
-        start += (window_size - overlap)
-    return intervals
-
-
 def get_evaluation_statistics(df):
     """ Calculate mean and std of the most important key figures from the evaluation
     :param df: df[close, invested] (full df)
@@ -230,21 +213,9 @@ def get_evaluation_statistics(df):
     df_summary = EvaluateStrategy._run_evaluation_multiple_cycles(df)
     #print(df_summary)
 
-    # Extract the most important data for further calculation
-    statistics_dict = {
-        'strategy': df_summary['Strategy without fee'],
-        'diff_benchmark': df_summary['diff_benchmark']
-    }
+    # Statistics
+    stats = df_summary.select_dtypes(include=['number']).agg(['mean', 'std'])   # mean and std from all number columns
+    #print(stats)
+    #exit()
 
-    # Print result
-    bool_print = False
-    if bool_print:
-        print()
-        print('Strategy with fee:')
-        print('\tMean:', statistics_dict['strategy'].mean())
-        print('\tStd:', statistics_dict['strategy'].std())
-        print('Diff_benchmark:')
-        print('\tMean:', statistics_dict['diff_benchmark'].mean())
-        print('\tStd:', statistics_dict['diff_benchmark'].std())
-
-    return statistics_dict
+    return stats

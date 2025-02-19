@@ -21,7 +21,7 @@ def test_create_dir():
     workspace_path = get_path()
     tests = [
         workspace_path / 'data',                        # folder exists
-        str(workspace_path),                        # type string
+        str(workspace_path),                            # type string
         workspace_path / 'data/analyse/new_test',       # new folder
         workspace_path.parents[0] / 'not_in_workspace'  # folder not in workspace (1 folder structure above)
     ]

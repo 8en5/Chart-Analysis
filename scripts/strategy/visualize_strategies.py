@@ -7,6 +7,29 @@ sys.path.insert(0, str(ws_dir))                # add ws to sys-path to run py-fi
 from modules.strategy.manual_strategies import *
 from modules.file_handler import *
 from modules.strategy.visualize_strategy import VisualizeStrategy
+from modules.strategy.evaluate_strategy import get_evaluation_statistics
+
+
+def _calc_folder_path(strategy_name, source, symbol, param_study):
+    base_folder_path = get_path('ws') / 'data/analyse' / strategy_name
+    if param_study:
+        folder_path = base_folder_path / 'parameter_study' / symbol
+    else:
+        folder_path = base_folder_path / 'symbols' / source
+    return folder_path
+
+def _calc_file_name(index, symbol, params):
+    # Set file name - '{counter}_{symbol}_param1-value1_param2-value2'
+    file_name = f'{index}_{symbol}'  # # 1_ETH
+    if params is not None:
+        for key, value in params.items():  # e.g. '1_ETH_bb_l-5_bb_std-1.5'
+            file_name += f'_{key}-{value}'
+    return file_name
+
+def _calc_title_from_evaluation(df_stat):
+    swf = df_stat.loc['mean', 'Strategy with fee']
+    diff_bench = df_stat.loc['mean', 'diff_benchmark']
+    return f'SwF = {swf:.2f} | Diff_BaH = {diff_bench:.2f}'
 
 
 if __name__ == "__main__":
@@ -22,10 +45,12 @@ if __name__ == "__main__":
         - strategy name / symbol / params - for calculating the file name
     """
 
-    strategy_name = 'BB'                            # MACD, BB, RSI
-    run_type = 2                                    # Program flow [1-4]
-    folder_path = get_path('course_cc') / 'yaml'    # [yaml, api]
+    strategy_name = 'BB'                                    # MACD, BB, RSI
+    run_type = 3                                            # Program flow [1-4]
+    source = 'yaml'                                         # [yaml, api]
 
+
+    folder_path_course = get_path('course_cc') / source     # load symbols in this folder
 
     match run_type:
         case 1: # [F,F] plot one symbol with default params (for testing or specific analysis)
@@ -51,11 +76,11 @@ if __name__ == "__main__":
     # Symbol study
     if symbol_study:
         # Symbol study (all symbols in folder)
-        symbol_study_file_paths = list_file_paths_in_folder(folder_path, '.csv')
+        symbol_study_file_paths = list_file_paths_in_folder(folder_path_course, '.csv')
     else:
         # Default symbol
         default_symbol = 'BTC'
-        symbol_study_file_paths = [folder_path / f'{default_symbol}.csv']
+        symbol_study_file_paths = [folder_path_course / f'{default_symbol}.csv']
 
     # Params study
     if param_study:
@@ -84,9 +109,12 @@ if __name__ == "__main__":
             # Run routine
             df = load_pandas_from_file_path(symbol_file_path)
             df = get_func_manual_strategy(strategy_name, df, params)
+            evaluation = get_evaluation_statistics(df)
             vs = VisualizeStrategy(df)
-            vs.init_analysis(strategy_name, symbol, params)
-            #vs.init(show_plot=True, save_plot=False)
+            vs.init(strategy_name=strategy_name, plot_type=2)
+            vs.init(folder_path=_calc_folder_path(strategy_name, source, symbol, param_study), filename=_calc_file_name(i, symbol, params))
+            vs.init(title=_calc_title_from_evaluation(evaluation))
+            #vs.init(show_plot=True, save_plot=False)       # init for: show and no save
             vs.run()
 
             # Next cycle

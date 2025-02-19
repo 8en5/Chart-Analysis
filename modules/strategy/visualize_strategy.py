@@ -27,25 +27,28 @@ class VisualizeStrategy:
     """ Visualize strategies and save or show plots
     """
 
+    # Default folder path and file name (if not available)
     folder_path = None                              # [Path] storage location for saving all plots (is defined in the first call)
     counter = 1                                     # [int] counter for numbering the plots (+1 for each plot)
 
     def __init__(self, df):
         """
         :param df: df[close, invested, (<indicators>, signal)]
+        :param folder_path: directory
+        :param filename: name
         """
         self.df = df                                # [df] data for the plot
-        self.evaluation = None                      # [df] evaluation (statistics)
 
         # Default values
-            # Strategy - only to calculate the file name
-        self.strategy_name = ''                     # [str] strategy name (e.g. BB, MACD, RCI)
-        self.symbol = ''                            # [str] coin or share (e.g. BTC)
-        self.params = None                          # [dict[str,list]] all params for the strategy (has values only in param study | else None)
+            # Strategy
+        self.strategy_name = None                   # [str] strategy name
             # Plot
         self.plot_type = 1                          # [mapping] Plot type: 0 (only course) | 1 (course + indicator)
         self.show_plot = False                      # [bool] if true show plot - plt.show()
         self.save_plot = True                       # [bool] if true save plot
+        self.title = None                           # [df] title -> evaluation (statistics)
+        self.folder_path = None                     # [Path] for saving the plot
+        self.filename = None                        # [str] for saving the plot
 
 
     def init(self, **kwargs):
@@ -59,14 +62,6 @@ class VisualizeStrategy:
                 raise AttributeError(f'"{key}" is not a valid attribute of this class')
 
 
-    def init_analysis(self, strategy_name, symbol, params):
-        self.strategy_name = strategy_name
-        self.symbol = symbol
-        self.params = params
-        self.plot_type = 2
-        self.save_plot = True
-
-
     def run(self):
         """ Main routine to plot (show and/or save) the strategy
         """
@@ -78,7 +73,6 @@ class VisualizeStrategy:
         if not self.show_plot and not self.save_plot:
             raise AssertionError('Warning Abort: Check control parameters -> show and save is False')
 
-        self.evaluation = 'TODO evaluation'  # EvaluateStrategy.get_statistics(self.df)
 
         match self.plot_type:                   # Plot type
             case 1:                             # default
@@ -95,8 +89,6 @@ class VisualizeStrategy:
         if self.show_plot:
             plt.show()
 
-        VisualizeStrategy.counter += 1
-
 
     def _plot_type1_default(self):
         """ Default plot
@@ -107,7 +99,7 @@ class VisualizeStrategy:
          # Plot 1 (Course)
         ax_background_colored_signals(ax, self.df[['invested']])              # df['invested'] -> [in,out]
         ax_course(ax, self.df)                                                # Course
-        ax_default_properties(ax, self.evaluation)                            # Labels
+        ax_default_properties(ax, self.title)                                 # Labels
 
     def _plot_type2_indicator(self):
         """ Plot indicator
@@ -125,7 +117,7 @@ class VisualizeStrategy:
         # Plot 1 (Course)
         ax_background_colored_signals(ax[0], self.df[['invested']])           # df['invested'] -> [in,out]
         ax_course(ax[0], self.df)                                             # Course
-        ax_default_properties(ax[0], self.evaluation)                         # Labels
+        ax_default_properties(ax[0], self.title)                              # Labels
         # Plot 2 (Indicator)
         ax_background_colored_signals(ax[1], self.df[['signal']])             # df['signal'] -> [buy, sell, bullish, bearish]
         func_ax_indicator = globals()[f'ax_{self.strategy_name}']             # e.g. ax_BB
@@ -146,23 +138,21 @@ class VisualizeStrategy:
         Calculate file name (from global counter, symbol and params | default counter
         """
 
-        # Set folder path with time stamp in the first call for all other plots
-        if not VisualizeStrategy.folder_path:
-            base_folder = get_path('ws') / 'data/analyse'
-            if self.strategy_name != '':
-                # path separated by strategy name
-                VisualizeStrategy.folder_path = base_folder / self.strategy_name / pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")
+        # Set default folder path, if not defined
+        if not self.folder_path:
+            # Calculate default folder the very first time - then use this default folder for all other plots
+            if not VisualizeStrategy.folder_path:
+                # Set folder path with time stamp
+                self.folder_path = get_path('ws') / 'data/analyse/temp' / pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")
+                VisualizeStrategy.folder_path = self.folder_path
             else:
-                # default folder path
-                VisualizeStrategy.folder_path = base_folder / 'temp' / pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")
+                self.folder_path = VisualizeStrategy.folder_path
 
-        # Set file name - '{counter}_{symbol}_param1-value1_param2-value2'
-        file_name = f'{VisualizeStrategy.counter}'      # 1
-        if self.symbol != '':
-            file_name += f'_{self.symbol}'              # 1_ETH
-        if self.params is not None:
-            for key, value in self.params.items():      # e.g. '1_ETH_bb_l-5_bb_std-1.5'
-                file_name += f'_{key}-{value}'
+        # Set default file name, if not defined
+        if not self.filename:
+            # Simple counter
+            self.filename = VisualizeStrategy.counter
+            VisualizeStrategy.counter += 1
 
         # Save plot
-        save_matplotlib_figure(self.fig, VisualizeStrategy.folder_path, file_name)
+        save_matplotlib_figure(self.fig, self.folder_path, self.filename)
