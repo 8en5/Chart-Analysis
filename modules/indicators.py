@@ -15,6 +15,28 @@ COL_NAMES = {
     'perc_change': [r'perc.*'],
 }
 
+def func_indicator(indicator_name:str, *args):
+    """
+    :param indicator_name: name for the indicator defined in this file
+    :param args: *args for the func
+    :return: indicator_{indicator_name}
+    """
+    func_name = f'indicator_{indicator_name}'
+    # Check if function is defined
+    func = globals().get(func_name)
+    if not callable(func):
+        raise ValueError(f'The function "{func_name}" does not exist - define it in indicators.py')
+    # Return called function
+    try:
+        return func(*args)
+    except TypeError:
+        """ TypeError if df has too little data
+        Indicators need a certain amount of data before they generate signals. Before that they are only None
+        The indicator in the library pandas_pa runs immediately Error if there is too little data:
+            TypeError: unsupported operand type(s) for -: 'float' and 'NoneType'
+        """
+        print(f'There are too few values in the df')
+
 def get_indicator_col_names(df, indicator:str):
     # Check
     if indicator not in COL_NAMES:
@@ -51,6 +73,7 @@ def get_period(freq='D'):
     return periods
 
 
+# TODO: für jeden Indikator gibt es eine Mindestanzahl an Daten -> Check in Funktion (sonst nur None und Berechnungen gehen Krachen)
 
 #------------- Own calculated Indicators -------------#
 

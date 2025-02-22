@@ -129,7 +129,7 @@ class VisualizeStrategy:
         Call specific plot defined in manual_strategies.py
         """
         # Specific
-        get_func_plot(self.df)                                                # func defined in  manual_strategies.py
+        func_plot(self.df)                                                # func defined in  manual_strategies.py
 
 
     def _save_fig(self):

@@ -27,7 +27,7 @@ def _calc_file_name(index, symbol, params):
     return file_name
 
 def _calc_title_from_evaluation(df_stat):
-    swf = df_stat.loc['mean', 'Strategy with fee']
+    swf = df_stat.loc['mean', 'Strategy_with_fee']
     diff_bench = df_stat.loc['mean', 'diff_benchmark']
     return f'SwF = {swf:.2f} | Diff_BaH = {diff_bench:.2f}'
 
@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
             # Run routine
             df = load_pandas_from_file_path(symbol_file_path)
-            df = get_func_manual_strategy(strategy_name, df, params)
+            df = func_manual_strategy(strategy_name, df[['close']], params)
             evaluation = get_evaluation_statistics(df)
             vs = VisualizeStrategy(df)
             vs.init(strategy_name=strategy_name, plot_type=2)

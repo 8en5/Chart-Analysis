@@ -30,7 +30,7 @@ def _get_intervals(data_length):
 
 class EvaluateStrategy:
     def __init__(self, df):
-        self.df = df.copy().replace({None: 0})
+        self.df = df[['close', 'invested']].copy().replace({None: 0})
 
         # General information
         self.start_date = df.index.min()
@@ -53,7 +53,7 @@ class EvaluateStrategy:
         """
 
         # Calculate amount of transaction (buy, sell)
-        self._calc_amount_transactions()
+        #self._calc_amount_transactions()
 
         # Calculate daily perc change from course
         self.df['close_perc'] = self.df['close'].pct_change(periods=1)  # * 100
@@ -72,31 +72,19 @@ class EvaluateStrategy:
 
 
     def get_result(self):
-        """
-        # Variant 1
         result_dict = {
-            'start': self.start_date,
-            'end': self.end_date,
-            'days': self.days_total,
-            'amount_transactions': self.amount_transactions,
-            'portions_dict': [self.portions_dict],
-            'total_return_dict': [self.total_return_dict]
-        }
-        """
-        # Variant 2
-        result_dict = {
-            'start': self.start_date,
-            'end': self.end_date,
-            'days': self.days_total,
-            'transactions': self.amount_transactions,
-            'in+': self.portions_dict['in+'],
-            'in-': self.portions_dict['in-'],
-            'out+': self.portions_dict['out+'],
-            'out-': self.portions_dict['out-'],
-            'Buy and Hold': self.total_return_dict['Buy and Hold'],
-            'Strategy without fee': self.total_return_dict['Strategy without fee'],
-            'Strategy with fee': self.total_return_dict['Strategy with fee'],
-            'diff_benchmark': self.total_return_dict['Strategy with fee'] - self.total_return_dict['Buy and Hold']
+            #'start': self.start_date,
+            #'end': self.end_date,
+            #'days': self.days_total,
+            #'transactions': self.amount_transactions,
+            #'in+': self.portions_dict['in+'],
+            #'in-': self.portions_dict['in-'],
+            #'out+': self.portions_dict['out+'],
+            #'out-': self.portions_dict['out-'],
+            'Buy_and_Hold': self.total_return_dict['Buy_and_Hold'],
+            #'Strategy without fee': self.total_return_dict['Strategy without fee'],
+            'Strategy_with_fee': self.total_return_dict['Strategy_with_fee'],
+            'diff_benchmark': self.total_return_dict['Strategy_with_fee'] - self.total_return_dict['Buy_and_Hold']
         }
         df_result = pd.DataFrame(result_dict, index=[0])
         return df_result
@@ -151,7 +139,7 @@ class EvaluateStrategy:
         :param n: 0 - Buy and Hold | 1 - Strategy without fee | 2 - Strategy with fee
         :return: df['factor', 'accumulate']
         """
-        df = self.df[['close', 'close_perc', 'invested']].copy()
+        df = self.df.copy()
 
         match n:
             case 0:
@@ -176,9 +164,9 @@ class EvaluateStrategy:
 
     def _calc_total_accumulated_perc(self):
         total_return = {
-            'Buy and Hold': self._calc_accumulated_perc(0)['accumulate'].iloc[-1],
-            'Strategy without fee': self._calc_accumulated_perc(1)['accumulate'].iloc[-1],
-            'Strategy with fee': self._calc_accumulated_perc(2)['accumulate'].iloc[-1]
+            'Buy_and_Hold': self._calc_accumulated_perc(0)['accumulate'].iloc[-1],
+            #'Strategy without fee': self._calc_accumulated_perc(1)['accumulate'].iloc[-1],
+            'Strategy_with_fee': self._calc_accumulated_perc(2)['accumulate'].iloc[-1]
         }
         self.total_return_dict = total_return
 
@@ -188,9 +176,12 @@ class EvaluateStrategy:
         """ Run evaluation multiple times in different periods and summarize the result
         :return: df_summary -> df[start, end, days, amount_transactions, in+, in, out+, out-, Buy and Hold, Strategy without fee, Strategy with fee, diff_benchmark]
         """
-        df = df.copy()
-        df = df.dropna(subset=['invested'])
-        df['invested'] = df['invested'].astype(int)
+        df = df[['close', 'invested']].copy()
+
+        df = df.dropna(subset=['invested']) # remove all rows, where df[invested] is None (until the strategy delivers signals)
+        if df.empty: # all entries are None
+            raise ValueError(f'df[invested] only None values -> handle it earlier') # TODO weiß noch nicht wie ich damit umgehe (an welcher Stelle abfangen)
+        df['invested'] = df['invested'].astype(int) # because there is no None value, set the column to int
 
         intervals = _get_intervals(len(df))
         df_summary = pd.DataFrame()
@@ -198,6 +189,7 @@ class EvaluateStrategy:
             start = df.index[interval[0]]
             end = df.index[interval[1]]
             eval_strategy = EvaluateStrategy(df[start:end])
+            # TODO df_summary in Schleife als dict umsetzten und erst das fertige dict als pd.DataFrame speichern (Rechenleistung)
             df_summary = pd.concat([df_summary, eval_strategy.get_result()], ignore_index=True) # ignore_index=True set new ongoing index
 
         return df_summary

@@ -5,15 +5,21 @@ from modules.indicators import *
 from modules.plot import *
 
 
-def test_indicator(indicator:str):
-    values = pd.Series(np.random.randint(1, 100, size=300))
+def test_indicator(indicator_name:str):
+    values = pd.Series(np.random.randint(1, 100, size=50))
     df = get_df_from_list(values)
 
-    func_str = globals()[f'indicator_{indicator}']
-    df = func_str(df)
+    pandas_print_all()
+    func_str = globals()[f'indicator_{indicator_name}']
+    df = func_indicator(indicator_name, df)
     print(df)
-    col = get_indicator_col_names(df, indicator)
+    col = get_indicator_col_names(df, indicator_name)
     print(col)
+
+    # Leading None for every column
+    print()
+    leading_nans = df.apply(lambda col: col.isna().cumprod().sum())
+    print(leading_nans)
 
 
 def test_perc():
@@ -40,8 +46,7 @@ def test_col_names():
 
 
 if __name__ == "__main__":
-
-    test_indicator('BB')
+    test_indicator('MACD')
 
     #test_percentage()
 
