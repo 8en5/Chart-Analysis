@@ -1,5 +1,4 @@
 import re
-
 import pandas as pd
 import pandas_ta as ta
 
@@ -60,17 +59,21 @@ def get_indicator_col_names(df, indicator:str):
         return matching_columns
 
 
-def get_period(freq='D'):
-    match freq:
-        case 'D': periods = 1
-        case '3D': periods = 3
-        case 'W': periods = 7
-        case 'ME': periods = 30
-        case 'QE': periods = 91
-        case 'YE': periods = 365
+def get_period(period='D'):
+    """
+    :param period: [D, 3D, W, ME, QE, YE]
+    :return:
+    """
+    match period:
+        case 'D': freq = 1      # Day
+        case '3D': freq = 3     # 3 Days
+        case 'W': freq = 7      # Week
+        case 'ME': freq = 30    # Month
+        case 'QE': freq = 91    # Quarter
+        case 'YE': freq = 365   # Year
         case _: # else
-            raise ValueError(f'Warning: Wrong frequent: {freq}')
-    return periods
+            raise ValueError(f'Warning: Wrong frequent: {period}')
+    return freq
 
 
 # TODO: für jeden Indikator gibt es eine Mindestanzahl an Daten -> Check in Funktion (sonst nur None und Berechnungen gehen Krachen)
