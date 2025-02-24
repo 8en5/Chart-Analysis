@@ -23,6 +23,7 @@ import json
 import re
 
 from modules.file_handler import *
+from modules.error_handling import ErrorHandling
 
 
 def API_request_course(symbol:str, to_ts=None, limit=2000):
@@ -77,59 +78,6 @@ class DownloadManagerCC:
     This class tracks errors across all instances (in class methods). They are categorizing in new and known errors.
     """
 
-    # Class methods concerning all instances
-    # Error management across all instances of the class
-    error_dict = {
-        'new_errors': {},
-        'known_errors': {}
-    }
-    known_errors = ['CCCAGG market does not exist for this coin pair',  # Coin par is invalid (symbol to USD)
-                    'limit is smaller than min value.']                 # if limit = 0
-
-    @classmethod
-    def _append_error(cls, symbol, error_msg):
-        # Decide existing or new error
-        for known_error in cls.known_errors:
-            if known_error in error_msg:
-                if known_error in cls.error_dict['known_errors']:
-                    cls.error_dict['known_errors'][known_error].append(symbol)
-                else:
-                    cls.error_dict['known_errors'][known_error] = [symbol]
-                return
-        # Append Error to dict
-        if error_msg in cls.error_dict['new_errors']:
-            cls.error_dict['new_errors'][error_msg].append(symbol)
-        else:
-            cls.error_dict['new_errors'][error_msg] = [symbol]
-
-
-    @classmethod
-    def show_errors(cls, source):
-        # Check if there are Errors
-        if len(cls.error_dict['known_errors']) == 0 and len(cls.error_dict['new_errors']) == 0:
-            # no Errors
-            return
-
-        # Prepare output format (list without new line - basic json.dump makes many line breaks
-        output = json.dumps(cls.error_dict, indent=4)
-        output = re.sub(r'",\s+', '", ', output) # https://stackoverflow.com/questions/48969984/python-json-dump-how-to-make-inner-array-in-one-line
-
-        # Print in Terminal
-        print('\n')
-        print('-' * 70)
-        print('Error evaluation:', '\n')
-        print(output)
-
-        # Save Errors in Log file
-        folder_path = get_path('course_cc')
-        file_name = f'_Error-Log_{source}.txt'
-        file_path = folder_path / file_name
-        with file_path.open('w', encoding='utf-8') as f:
-            f.write(output)
-        print(f'Save Error-Log in {file_path}')
-
-
-    # Instance methods
     def __init__(self, symbol:str, folder_path:Path):
         self.symbol = symbol                    # symbol
         self.folder_path = Path(folder_path)    # folder to save all symbols
@@ -158,10 +106,7 @@ class DownloadManagerCC:
             if not self.df.empty:
                 save_pandas_to_file(self.df, self.folder_path, self.symbol)
         except Exception as e:
-            error_msg = str(e)
-            # Append Error to error_dict
-            self.__class__._append_error(self.symbol, error_msg)
-            print(error_msg)
+            error_handling.log_error(e, self.symbol)
 
 
     def _routine_request_full_course(self):
@@ -284,7 +229,7 @@ if __name__ == "__main__":
     - (if existing symbols should be requested completely new (overwrite) and should not only be updated: set self.allow_update = False)
     """
 
-    source = 'yaml' # [yaml, api]
+    source = 'api' # [yaml, api]
 
     match source:
         case 'yaml':        # self-defined coins in the yaml file
@@ -299,6 +244,9 @@ if __name__ == "__main__":
     # Storage location
     folder_path = get_path('course_cc') / source
 
+    # Error Handling
+    error_handling = ErrorHandling()
+
     # Download symbols from list
     for index, symbol in enumerate(symbols):
         # Print
@@ -309,7 +257,7 @@ if __name__ == "__main__":
         print()
 
     # Error Log
-    DownloadManagerCC.show_errors(source) # print and save Errors
+    error_handling.save_summary() # print and save Errors
 
 
 
