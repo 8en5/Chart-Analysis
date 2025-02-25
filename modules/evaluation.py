@@ -23,7 +23,7 @@ def get_intervals(data_length):
 
     # Start iterating
     start = 0
-    while start + window_size <= data_length:
+    while start + window_size < data_length:
         intervals.append((start, start + window_size))
         start += (window_size - overlap)
     return intervals

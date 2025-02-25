@@ -28,7 +28,7 @@ def _calc_file_name(index, symbol, params):
 
 def _calc_title_from_evaluation(df_stat):
     swf = df_stat.loc['mean', 'Strategy_with_fee']
-    diff_bench = df_stat.loc['mean', 'diff_benchmark']
+    diff_bench = df_stat.loc['mean', 'factor_benchmark']
     return f'SwF = {swf:.2f} | Diff_BaH = {diff_bench:.2f}'
 
 

@@ -19,8 +19,6 @@ sys.path.insert(0, str(ws_dir))                    # add ws to sys-path to run p
 
 import requests
 import yaml
-import json
-import re
 
 from modules.file_handler import *
 from modules.error_handling import ErrorHandling

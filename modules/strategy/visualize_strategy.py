@@ -4,9 +4,11 @@ Visualize strategies (systematically)
 Show graphically the effectiveness of a specific strategy
 
 Input: df
-- min: df[close, invested]
+- min:
+    - df[close, invested]
 - extended:
-    - plot_type = 2: df[<indicators>, signal]
+    - plot_type = 2:
+        - df[<indicators>, signal]
 - optional (defined in init() or init_analysis()):
     - folder_path: strategy_name (else temp)
     - file_name: symbol, params (else only counter)
@@ -20,8 +22,6 @@ import matplotlib.pyplot as plt
 from modules.strategy.manual_strategies import *
 from modules.file_handler import *
 from modules.plot import *
-from modules.strategy.evaluate_strategy import EvaluateStrategy
-
 
 class VisualizeStrategy:
     """ Visualize strategies and save or show plots
@@ -34,8 +34,6 @@ class VisualizeStrategy:
     def __init__(self, df):
         """
         :param df: df[close, invested, (<indicators>, signal)]
-        :param folder_path: directory
-        :param filename: name
         """
         self.df = df                                # [df] data for the plot
 

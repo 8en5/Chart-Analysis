@@ -14,20 +14,20 @@ COL_NAMES = {
     'perc_change': [r'perc.*'],
 }
 
-def func_indicator(indicator_name:str, *args):
+def func_indicator(indicator_name:str, *args, **kwargs):
     """
     :param indicator_name: name for the indicator defined in this file
     :param args: *args for the func
     :return: indicator_{indicator_name}
     """
-    func_name = f'indicator_{indicator_name}'
+    func_name = f'_indicator_{indicator_name}'
     # Check if function is defined
     func = globals().get(func_name)
     if not callable(func):
         raise ValueError(f'The function "{func_name}" does not exist - define it in indicators.py')
     # Return called function
     try:
-        return func(*args)
+        return func(*args, **kwargs)
     except TypeError:
         """ TypeError if df has too little data
         Indicators need a certain amount of data before they generate signals. Before that they are only None
@@ -80,15 +80,6 @@ def get_period(period='D'):
 
 #------------- Own calculated Indicators -------------#
 
-def indicator_CMA(df):
-    """ Cumulative Moving Average (CMA)
-    :return: df['CMA']
-    """
-    df = df.copy()
-    df['CMA'] = df['close'].expanding().mean()
-    return df
-
-
 def perc_change(df, freq='D'):
     """ Percentage Change df['close']
     :param freq: over how many samples
@@ -104,9 +95,18 @@ def perc_change(df, freq='D'):
     return df[[col_perc]]
 
 
+def _indicator_CMA(df):
+    """ Cumulative Moving Average (CMA)
+    :return: df['CMA']
+    """
+    df = df.copy()
+    df['CMA'] = df['close'].expanding().mean()
+    return df
+
+
 #------------- Indicators from pandas_ta -------------#
 
-def indicator_BB(df, length=6, std=2.0):
+def _indicator_BB(df, length=6, std=2.0):
     """ Bollinger Bands (BB)
     :param length: SMA samples
     :param std: factor, by which the standard deviation for the bandwidth is multiplied
@@ -121,7 +121,7 @@ def indicator_BB(df, length=6, std=2.0):
     return df
 
 
-def indicator_EMA(df, length=2):
+def _indicator_EMA(df, length=2):
     """ Exponential Moving Average (EMA)
     :param length: samples
     :return: df['EMA_200']
@@ -131,7 +131,7 @@ def indicator_EMA(df, length=2):
     return df
 
 
-def indicator_MACD(df, fast=12, slow=26, signal=9):
+def _indicator_MACD(df, fast=12, slow=26, signal=9):
     """ Moving Average Convergence Divergence (MACD)
     :param fast: fast moving average (typically a short-term EMA)
     :param slow: slow moving average (typically a long-term EMA)
@@ -147,7 +147,7 @@ def indicator_MACD(df, fast=12, slow=26, signal=9):
     return df
 
 
-def indicator_RSI(df, length=14, lower_border=30, upper_border=70):
+def _indicator_RSI(df, length=14, lower_border=30, upper_border=70):
     """ Relative Strength Index (RSI)
     :param length: samples
     :return: df['RSI_14', 'border_lower_30', 'border_upper_70'] - col_RSI, col_bl, col_bu
@@ -162,7 +162,7 @@ def indicator_RSI(df, length=14, lower_border=30, upper_border=70):
     return df
 
 
-def indicator_SMA(df, length=200):
+def _indicator_SMA(df, length=200):
     """ Simple Moving Average (SMA)
     :param length: samples
     :return: df['SMA_200']

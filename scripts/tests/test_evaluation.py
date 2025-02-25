@@ -1,9 +1,10 @@
-from modules.utils import pandas_print_width
+from modules.utils import *
 from test import *
-from modules.evaluation import *
 
 
 #------------------------- evaluation.py -------------------------#
+from modules.evaluation import *
+
 def test_get_intervals():
     test_data_lengths = [2, 50, 400, 1000, 2000, 5000]
     for data_length in test_data_lengths:
@@ -12,7 +13,7 @@ def test_get_intervals():
 
 
 def test_calc_amount_transactions():
-    df = get_dummy_data_2()
+    df = get_dummy_data_random()
     """
     len(df) = 365
     transactions = 188
@@ -25,7 +26,7 @@ def test_calc_amount_transactions():
 
 
 def test_calc_all_investment_states():
-    df = get_dummy_data_strategy()
+    df = get_dummy_data_course()
     #print(df)
     states = calc_all_investment_states(df)
     print(states)
@@ -38,14 +39,14 @@ def test_calc_accumulated_perc():
         'Buy_and_Hold': 0,
         'Strategy_without fees': 1,
         'Strategy_with_fees': 2,
-        #'Strategy_with_fees_and_tax': 3
+        #'Strategy_with_fees_and_tax': 3 # TODO: Inbetriebnahme
     }
     for key, value in test_dict.items():
-        df = get_dummy_data_strategy()
-        df = calc_accumulated_perc(df[20:], value)  # df[20:0] to skip none values
+        df = get_dummy_data_course('BB', 'BTC')
+        df = calc_accumulated_perc(df, value)
         print(key)
         print(df)
-        print('Total:', calc_total_accumulated_perc(df[20:], value))
+        print('Total:', calc_total_accumulated_perc(df, value))
         print('\n')
 
 
@@ -54,7 +55,7 @@ def test_calc_accumulated_perc():
 from modules.strategy.evaluate_strategy import get_evaluation_statistics
 
 def test_get_evaluation_statistics():
-    df = get_dummy_data_strategy()
+    df = get_dummy_data_course()
     df_summary = get_evaluation_statistics(df)
     print(df_summary)
 
@@ -62,9 +63,11 @@ def test_get_evaluation_statistics():
 
 if __name__ == "__main__":
 
+    # evaluation.py
     #test_get_intervals()
     #test_calc_amount_transactions()
     #test_calc_all_investment_states()
-    #test_calc_accumulated_perc()
+    test_calc_accumulated_perc()
 
-    test_get_evaluation_statistics()
+    # evaluate_strategy.py
+    #test_get_evaluation_statistics()

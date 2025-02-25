@@ -1,5 +1,6 @@
 import itertools
 import numpy as np
+from fontTools.merge.util import first
 
 from modules.plot import *
 from modules.indicators import *
@@ -11,7 +12,7 @@ pd.set_option('future.no_silent_downcasting', True) # if values are converted do
 
 params_study_dict = {
     'BB' : {
-        # Min
+        # Visualize
         #'bb_l': [6],
         #'bb_std': [1.5, 2.5]
         # detailed
@@ -20,9 +21,9 @@ params_study_dict = {
     },
 
     'MACD': {
-            'm_fast': [10, 14, 18],
-            'm_slow': [20, 30, 40],
-            'm_signal': [7, 9, 12, 30, 90]  # m_signal accidentally set to 90 (copy from rsi) -> really good param
+            'm_fast': [10, 18],
+            'm_slow': [20, 40],
+            'm_signal': [30, 90]  # m_signal accidentally set to 90 (copy from rsi) -> really good param
     },
 
     'RSI': {
@@ -153,7 +154,10 @@ def _calc_invested_from_signal(df):
     """
     df_leading_nans = df.loc[:,df.columns!='invested'].apply(lambda col: col.isna().cumprod().sum()) # lists all none values of all columns (except invested)
     max_leading_nans = df_leading_nans.max() # largest number of leading None values (from there on signals could deliver values)
-    first_value = df['signal'][df['signal'] != ''].index[0] # index when signal delivers the first value
+    if (df['signal'] != '').any():
+        first_value = df['signal'][df['signal'] != ''].index[0] # index when signal delivers the first value
+    else:
+        first_value = df.index[-1]
     df.loc[df.index[max_leading_nans]:first_value, 'invested'] = 0
 
     #print(df)
@@ -171,7 +175,7 @@ def set_manual_strategy_BB(df, params=None):
     df = df.copy()
 
     # Indicator
-    df = indicator_BB(df, length=params['bb_l'], std=params['bb_std'])
+    df = func_indicator('BB', df, length=params['bb_l'], std=params['bb_std'])
     col_l, col_m, col_u = get_indicator_col_names(df, 'BB')
 
     # Signals
@@ -200,7 +204,7 @@ def set_manual_strategy_MACD(df, params=None):
     df = df.copy()
 
     # Indicator
-    df = indicator_MACD(df, fast=params['m_fast'], slow=params['m_slow'], signal=params['m_signal'])
+    df = func_indicator('MACD', df, fast=params['m_fast'], slow=params['m_slow'], signal=params['m_signal'])
     col_MACD, coll_diff, col_signal = get_indicator_col_names(df, 'MACD')
 
     # Signals
@@ -230,7 +234,7 @@ def set_manual_strategy_RSI(df, params=None):
     df = df.copy()
 
     # Indicator
-    df = indicator_RSI(df, params['rsi_l'], params['bl'], params['bu'])
+    df = func_indicator('RSI', df, params['rsi_l'], params['bl'], params['bu'])
     col_RSI, col_bl, col_bu = get_indicator_col_names(df, 'RSI')
 
     # Signals

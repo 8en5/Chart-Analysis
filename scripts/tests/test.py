@@ -25,7 +25,7 @@ def get_df_from_list(list_data, col='close'):
     return df
 
 
-def get_dummy_data_1():
+def get_dummy_data_manual():
     close = [10, 10, 1, 2, 4, 3, 6, 8, 5, 4, 3, 4, 8, 12, 10]
     invested = [None, None, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1]
     df = get_df_from_list(close)
@@ -33,23 +33,23 @@ def get_dummy_data_1():
     return df
 
 
-def get_dummy_data_2():
+def get_dummy_data_random():
     np.random.seed(40)      # for reproducible results
     close = np.random.randint(1, 20, size=365).tolist()  # 365 random values between 1 and 20
     none_count = np.random.randint(2, 20)  # Number of initial None values
     invested = [None] * none_count + np.random.choice([0, 1], size=365 - none_count).tolist()
-
     df = get_df_from_list(close)
     df['invested'] = invested
     return df
 
 
-def get_dummy_data_strategy():
-    symbol = 'BTC'
-    strategy_name = 'BB'
+def get_dummy_data_course(strategy_name='BB', symbol='BTC'):
+    strategy_name = strategy_name
+    symbol = symbol
     path = get_path('course_cc') / 'yaml' / f'{symbol}.csv'
     df = load_pandas_from_file_path(path)
     df = func_manual_strategy(strategy_name, df)
+    df = df.dropna(subset=['invested'])  # remove all rows in the beginning, where df[invested] is None
     df['close_perc'] = df['close'].pct_change(periods=1)
     df = df[['close', 'invested', 'close_perc']]
     return df
