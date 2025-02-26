@@ -4,18 +4,33 @@ from modules.indicators import get_indicator_col_names
 from modules.utils import pandas_print_all
 
 
+def func_ax_indicator(indicator_name:str, *args):
+    """
+    :param indicator_name: name for the indicator defined in this file
+    :param args: *args for the func
+    :return: _ax_{indicator_name}
+    """
+    func_name = f'ax_{indicator_name}'
+    # Check if function is defined
+    func = globals().get(func_name)
+    if not callable(func):
+        raise ValueError(f'The function "{func_name}" does not exist - define it in plot.py')
+    # Return called function
+    return func(*args)
+
+
 def ax_course(ax, df):
     ax.plot(df.index, df['close'], linestyle='-', color='black', label='Course')         # linear
     #ax.semilogy(df.index, df['close'], linestyle='-', color='black', label='Course')    # log
 
-def ax_percentage(ax, df):
+def ax_perc(ax, df):
     # ['percentage_D']
     col_perc = get_indicator_col_names(df, 'perc')
     ax_ylim_threshold(df[col_perc], ax)
     ax.plot(df.index, df[col_perc], label=col_perc, color='blue', linestyle='-')                # Line Percentage
     #ax.bar(df.index, df[name_perc], color='blue', label=name_perc)                             # Bar Percentage
 
-def ax_percentage_freq(ax, df):
+def ax_perc_bar(ax, df):
     # ['percentage_D']
     col_perc = get_indicator_col_names(df, 'perc')
     # Frequency
@@ -53,8 +68,10 @@ def ax_RSI(ax, df):
     ax.plot(df.index, df[col_lower], label=col_lower, color='green', linestyle='--')
 
 def ax_SMA(ax, df):
-    # ['SMA_200']
+    # ['SMA_200', 'SMA_50]
     cols_SMA = get_indicator_col_names(df, 'SMA')
+    if not isinstance(cols_SMA, list):
+        cols_SMA = [cols_SMA]
     for col_SMA in cols_SMA:
         ax.plot(df.index, df[col_SMA], label=col_SMA, color='orange', linestyle='-')
 

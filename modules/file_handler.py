@@ -153,12 +153,14 @@ def save_matplotlib_figure(fig:plt.Figure, folder_path:Path, name:str, extension
     file_path = folder_path / file_name
 
     # Check if file exists, and append a number if it does
+    """
     counter = 1
     while file_path.exists():
         # Create new file name with a number appended
         file_name = f'{name}_{counter}.{extension}'
         file_path = folder_path / file_name
         counter += 1
+    """
 
     # Calculate relative path from workspace
     ws_folder = get_path('ws')

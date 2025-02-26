@@ -10,7 +10,6 @@ def test_indicator(indicator_name:str):
     df = get_df_from_list(values)
 
     pandas_print_all()
-    func_str = globals()[f'indicator_{indicator_name}']
     df = func_indicator(indicator_name, df)
     print(df)
     col = get_indicator_col_names(df, indicator_name)
@@ -20,6 +19,14 @@ def test_indicator(indicator_name:str):
     print()
     leading_nans = df.apply(lambda col: col.isna().cumprod().sum())
     print(leading_nans)
+
+
+def test_col_names(indicator_name):
+    values = pd.Series(np.random.randint(1, 100, size=30))
+    df = get_df_from_list(values)
+    df = func_indicator(indicator_name, df)
+    col_rsi = get_indicator_col_names(df, indicator_name)
+    print(col_rsi)
 
 
 def test_perc():
@@ -32,20 +39,17 @@ def test_perc():
     df_test = perc_change(df_test, '3D')
     print(df_test)
 
-    ax_percentage_freq(ax, df_test)
+    ax_perc_bar(ax, df_test)
     ax_default_properties(ax)
     plt.show()
 
 
-def test_col_names():
-    values = pd.Series(np.random.randint(1, 100, size=30))
-    df = get_df_from_list(values)
-    df = indicator_RSI(df)
-    col_rsi = get_indicator_col_names(df, 'RSI')
-    print(col_rsi)
+
 
 
 if __name__ == "__main__":
+    indicator_names = ['BB', 'MACD', 'RSI']
+
     test_indicator('MACD')
 
     #test_percentage()

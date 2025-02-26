@@ -11,14 +11,14 @@ COL_NAMES = {
     'RSI': [r'RSI.*', '.*lower.*', '.*upper.*'], # ['RSI_14', 'border_lower_30', 'border_upper_70']
     'SMA': [r'SMA.*'], # multiple return allowed ['SMA_200', 'SMA_50']
 
-    'perc_change': [r'perc.*'],
+    'perc': [r'perc.*'],
 }
 
 def func_indicator(indicator_name:str, *args, **kwargs):
     """
     :param indicator_name: name for the indicator defined in this file
     :param args: *args for the func
-    :return: indicator_{indicator_name}
+    :return: _indicator_{indicator_name}
     """
     func_name = f'_indicator_{indicator_name}'
     # Check if function is defined
@@ -78,12 +78,14 @@ def get_period(period='D'):
 
 # TODO: für jeden Indikator gibt es eine Mindestanzahl an Daten -> Check in Funktion (sonst nur None und Berechnungen gehen Krachen)
 
+# TODO: df.copy entfernen -> direkt auf einem df arbeiten
+
 #------------- Own calculated Indicators -------------#
 
 def perc_change(df, freq='D'):
     """ Percentage Change df['close']
     :param freq: over how many samples
-    :return: df['percentage_D']
+    :return: df['perc_D']
     """
     allowed_freq = ['D', '3D', 'W', 'ME', 'QE', 'YE']
     if freq not in allowed_freq:
@@ -92,7 +94,7 @@ def perc_change(df, freq='D'):
     # percentage change
     col_perc = f'perc_{freq}'
     df[col_perc] = df['close'].pct_change(periods=periods) * 100
-    return df[[col_perc]]
+    return df
 
 
 def _indicator_CMA(df):

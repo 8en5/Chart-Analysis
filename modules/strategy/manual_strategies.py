@@ -164,6 +164,7 @@ def _calc_invested_from_signal(df):
     return df
 
 
+
 #------------------------ BB ------------------------#
 def set_manual_strategy_BB(df, params=None):
     if params is None:
