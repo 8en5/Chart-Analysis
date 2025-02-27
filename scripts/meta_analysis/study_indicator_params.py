@@ -34,11 +34,14 @@ def eval_param_with_symbol_study(strategy_name, params:dict):
     """
     # Constants
     offset = 400    # cut data from df so that all parameter variations start with the same day (each param has a different startup time before they deliver signals)
+    source = 'crypto_stage1'
 
     # Loop over all symbols and calculate meta evaluation
-    source = 'yaml'
-    folder_path_course = get_path('course_cc') / source  # load symbols in this folder
-    symbol_study_file_paths = list_file_paths_in_folder(folder_path_course, '.csv')
+    folder_path_courses = get_path() / 'data/course' / source  # load symbols in this folder
+    if not folder_path_courses.exists():
+        print(f'Error: Folder "{folder_path_courses}" does not exist')
+        sys.exit()
+    symbol_study_file_paths = list_file_paths_in_folder(folder_path_courses, '.csv')
     summary_dict = {}
     for index, symbol_file_path in enumerate(symbol_study_file_paths):
         #print(f'{index + 1}/{len(symbol_study_file_paths)}: {symbol_file_path.stem}')
@@ -107,7 +110,7 @@ def main():
                     summary_dict[key] = []
                 summary_dict[key].append(value)
             # Save intermediate results
-            if index % 10 == 0:
+            if index % 50 == 0:
                 _save_results(summary_dict, folder_path, file_name)
         except Exception as e:
             print(f'Error occurred, currently no error handling - param: {params}')

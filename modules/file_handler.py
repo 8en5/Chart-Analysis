@@ -40,10 +40,22 @@ def create_dir(folder_path:Path) -> None:
         print(f'Make directory {folder_path}')
 
 
+def get_relative_folder(folder_path:Path) -> Path:
+    """ Return relative folder path to workspace
+    :param folder_path: e.g. C:/Users/bense/PycharmProjects/Chart-Analysis/data/course/cryptocompare/api
+    :return: relative folder path - e.g. data/course/cryptocompare/api
+    """
+    folder_path = Path(folder_path)  # Make sure path is a Path object
+    ws = get_path()
+    folder_rel = folder_path.relative_to(ws)
+    return folder_rel
+
+
+
 def find_file_in_directory(folder_path:Path, filename:str) -> Path:
     folder_path = Path(folder_path)         # Make sure path is a Path object
     for root in folder_path.rglob('*'):     # rglob searches for all files recursively
-        if root.name == filename:
+        if root.name == filename or root.stem == filename:
             return root
     raise FileNotFoundError(f'File "{filename}" not in directory "{folder_path}"')
 
