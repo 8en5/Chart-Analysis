@@ -14,8 +14,8 @@ Each downloaded symbol is controlled in the object of the class DownloadManagerC
 
 import sys
 from pathlib import Path
-ws_dir = (Path(__file__).parent / ".." / "..").resolve()  # Workspace
-sys.path.insert(0, str(ws_dir))                    # add ws to sys-path to run py-file in separate cmd
+ws_dir = (Path(__file__).parent / "../../../..").resolve()  # Workspace
+sys.path.insert(0, str(ws_dir))                      # add ws to sys-path to run py-file in separate cmd
 
 import requests
 import yaml
@@ -170,7 +170,7 @@ def _load_symbols_from_yaml():
     :return: list of symbols
     """
     # Load yaml with symbols
-    file_name = 'cc_symbols_selected.yaml' # file in same dir
+    file_name = 'cc_symbols_selected.yaml'  # file in same dir
     file_path = Path(__file__).parent / file_name
     with file_path.open('r', encoding="utf-8") as f:
         data = yaml.safe_load(f)

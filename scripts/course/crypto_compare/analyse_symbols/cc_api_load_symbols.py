@@ -4,7 +4,9 @@ from modules.file_handler import *
 
 
 def request_symbols():
-    """ Download df with all offered coins (symbols) and the corresponding information from CryptoCompare
+    """ Request all available coins (plus information) from CryptoCompare
+    Get all available coins (symbols) and the corresponding information from CryptoCompare and return it as df
+
     :return: df with all symbols (and information to each symbol)
     """
     # API: https://developers.cryptocompare.com/documentation/data-api/asset_v1_summary_list
