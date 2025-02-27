@@ -34,7 +34,7 @@ def test_plot_indicator(strategy_name):
     save = True
     show = False
     if save:
-        folder_path = get_path() / 'data/indicators'
+        folder_path = get_path() / 'data/analyse/all_indicators'
         save_matplotlib_figure(fig, folder_path, strategy_name)
     if show:
         plt.show()
@@ -71,7 +71,7 @@ def test_plot_perc(freq='ME'):
     save = True
     show = False
     if save:
-        folder_path = get_path() / 'data/indicators'
+        folder_path = get_path() / 'data/all_indicators'
         save_matplotlib_figure(fig, folder_path, f'perc_{freq}')
     if show:
         plt.show()

@@ -30,7 +30,7 @@ def get_intervals(data_length):
 
 
 
-#------------------------- Evaluation -------------------------#
+#------------------------- Evaluation of df[invested] -------------------------#
 """
 Input: df[close, invested, close_perc]
 """

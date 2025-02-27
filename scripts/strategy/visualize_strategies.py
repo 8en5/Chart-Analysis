@@ -1,4 +1,5 @@
 
+# 4 lines of code, to run this file in a separate cmd over a bat script
 import sys
 from pathlib import Path
 ws_dir = (Path(__file__).parent / "../..").resolve()  # Workspace
@@ -11,7 +12,7 @@ from modules.strategy.evaluate_strategy import get_evaluation_statistics
 
 
 def _calc_folder_path(strategy_name, source, symbol, param_study):
-    base_folder_path = get_path('ws') / 'data/analyse' / strategy_name
+    base_folder_path = get_path('ws') / 'data/analyse/visualize' / strategy_name
     if param_study:
         folder_path = base_folder_path / 'parameter_study' / symbol
     else:
@@ -26,10 +27,8 @@ def _calc_file_name(index, symbol, params):
             file_name += f'_{key}-{value}'
     return file_name
 
-def _calc_title_from_evaluation(df_stat):
-    swf = df_stat.loc['mean', 'Strategy_with_fee']
-    diff_bench = df_stat.loc['mean', 'factor_benchmark']
-    return f'SwF = {swf:.2f} | Diff_BaH = {diff_bench:.2f}'
+def _calc_title_from_evaluation(result):
+    return f'S = {result['stage_strategy_mean']:.2f} | Diff_BaH = {result['stage_diff_benchmark_mean']:.2f}'
 
 
 if __name__ == "__main__":
@@ -85,7 +84,7 @@ if __name__ == "__main__":
     # Params study
     if param_study:
         # Param study (get all param combinations from strategy name
-        params_study = get_all_combinations_from_params_study(strategy_name)
+        params_study = get_all_combinations_from_params_study(strategy_name, 'visualize')
     else:
         params_study = [None]
 
@@ -114,7 +113,7 @@ if __name__ == "__main__":
             vs.init(strategy_name=strategy_name, plot_type=2)
             vs.init(folder_path=_calc_folder_path(strategy_name, source, symbol, param_study), filename=_calc_file_name(i, symbol, params))
             vs.init(title=_calc_title_from_evaluation(evaluation))
-            #vs.init(show_plot=True, save_plot=False)       # init for: show and no save
+            #vs.init(show_plot=True, save_plot=False)       # init for show and no save
             vs.run()
 
             # Next cycle

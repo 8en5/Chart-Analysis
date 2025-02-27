@@ -12,18 +12,27 @@ pd.set_option('future.no_silent_downcasting', True) # if values are converted do
 
 params_study_dict = {
     'BB' : {
-        # Visualize
-        #'bb_l': [6],
-        #'bb_std': [1.5, 2.5]
-        # detailed
-        'bb_l':(5, 30, 3),
-        'bb_std': (1.5, 2.5, 0.1)
+        'visualize': {
+            'bb_l': [6],
+            'bb_std': [1.5, 2.5]
+        },
+        'param_study': {
+            'bb_l':(5, 30, 5),
+            'bb_std': (1.5, 2.5, 0.3)
+        }
     },
 
     'MACD': {
+        'visualize': {
             'm_fast': [10, 18],
             'm_slow': [20, 40],
             'm_signal': [30, 90]  # m_signal accidentally set to 90 (copy from rsi) -> really good param
+        },
+        'param_study': {
+            'm_fast': (2, 80, 5),
+            'm_slow': (15, 120, 5),
+            'm_signal': (1, 3, 0.5)
+        }
     },
 
     'RSI': {
@@ -62,15 +71,18 @@ def func_plot(strategy_name, *args):
     return func(*args)
 
 
-def get_all_combinations_from_params_study(name):
+def get_all_combinations_from_params_study(name, variant):
     """ Return params_study defined in params_study_dict
     :param name: strategy name (key in dict)
+    :param variant: which params to use: [visualize, param_study]
     :return: list of all params variations
     """
     if name not in params_study_dict:
-        raise ValueError(f'name "{name}" not in {params_study_dict}')
+        raise ValueError(f'key "{name}" not in {params_study_dict}')
+    if variant not in params_study_dict[name]:
+        raise ValueError(f'key "{variant}" not in {params_study_dict[name]}')
     # Get raw params and prepare it
-    params_study = params_study_dict[name]
+    params_study = params_study_dict[name][variant]
     params_study = _set_param_variation(params_study)
     # Calculate all combinations
     keys = params_study.keys()
@@ -103,16 +115,16 @@ def _calc_invested_from_signal(df):
     """ Input                                                                                             Output
                   close  BBL_5_1.5  BBM_5_1.5  BBU_5_1.5   BBB_5_1.5  BBP_5_1.5   signal                invested
     date                                                                                
-    2017-10-01  0.02519        NaN        NaN        NaN         NaN        NaN                             None    (leading None until indicator has only no None values)
+    2017-10-01  0.02519        NaN        NaN        NaN         NaN        NaN                             None    <- (leading None until indicator has only no None values)
     2017-10-02  0.02588        NaN        NaN        NaN         NaN        NaN                             None
     2017-10-03  0.02084        NaN        NaN        NaN         NaN        NaN                             None
     2017-10-04  0.02189        NaN        NaN        NaN         NaN        NaN                             None
     2017-10-05  0.02152   0.019978   0.023064   0.026150         NaN        NaN                             None
     2017-10-06  0.01849   0.018138   0.021724   0.025310   33.017230        NaN                             None
-    2017-10-07  0.02080   0.018933   0.020708   0.022483   17.143734   0.525915                                0    (fill col with 0 until first signal - this is the first column where the signal could deliver values)
+    2017-10-07  0.02080   0.018933   0.020708   0.022483   17.143734   0.525915                                0    <- this is the first row where the signal could deliver values (fill column with 0 starting from here until first signal)
     2017-10-08  0.02052   0.018869   0.020644   0.022419   17.193739   0.465065                                0
-    2017-10-09  0.02207   0.018846   0.020680   0.022514   17.736032   0.878973  bullish                       0
-    2017-10-10  0.02148   0.018846   0.020672   0.022498   17.664475   0.721273                                1    (buy and sell signals one day later, because percentage change you see on the next day)
+    2017-10-09  0.02207   0.018846   0.020680   0.022514   17.736032   0.878973  bullish                       0    <- first signal (fill column with 0 until this row)
+    2017-10-10  0.02148   0.018846   0.020672   0.022498   17.664475   0.721273                                1    <- (buy and sell signals one day later, because percentage change you see on the next day)
     2017-10-11  0.02253   0.020351   0.021480   0.022609   10.515934   0.964844                                1
     2017-10-12  0.02635   0.019595   0.022590   0.025585   26.512972   1.127788  bearish                       1
     2017-10-13  0.03354   0.018431   0.025194   0.031957   53.687847   1.117029                                0

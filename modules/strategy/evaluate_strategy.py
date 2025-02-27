@@ -41,6 +41,7 @@ class EvaluateStrategy:
                 #'perc_benchmark': (S - BaH) / BaH,
                 #'factor_benchmark': 1 + (S - BaH) / BaH if S > BaH else -(1 + (BaH - S) / S) if S < BaH else 1
                 #'factor_benchmark': (S - BaH) / BaH if S > BaH else -(BaH - S) / S if S < BaH else 1
+                'transactions': calc_amount_transactions(self.df, ''),
             }
         else:
             # General information
@@ -188,10 +189,12 @@ def get_evaluation_statistics(df) -> dict[str,float]:
     
     # Prepare result dict (change df to dict)
     result_dict = {
+        'Buy_and_Hold': df_stats.loc['mean', 'Buy_and_Hold'],
         'strategy_mean': df_stats.loc['mean', 'Strategy_with_fee'],
         'strategy_std': df_stats.loc['std', 'Strategy_with_fee'],
         'diff_benchmark_mean': df_stats.loc['mean', 'diff_benchmark'],
         'diff_benchmark_std': df_stats.loc['std', 'diff_benchmark'],
+        'transactions_mean': df_stats.loc['std', 'transactions'],
     }
     #print(result_dict)
 
