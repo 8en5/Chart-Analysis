@@ -1,5 +1,3 @@
-import matplotlib.pyplot as plt
-import pandas_ta as ta
 
 from modules.file_handler import *
 from modules.indicators import *
@@ -8,11 +6,15 @@ from test import *
 from modules.plot import *
 
 
+def all_indicators():
+    strategy_names = ['BB', 'MACD', 'RSI', 'SMA']
+    for strategy_name in strategy_names:
+        print(strategy_name)
+        _plot_indicator(strategy_name)
+        print()
 
 
-def test_plot_indicator(strategy_name):
-    symbol = 'BTC'
-
+def _plot_indicator(strategy_name):
     # Load course and indicator
     df = load_pandas_from_symbol(symbol)
     df = func_indicator(strategy_name, df)
@@ -26,14 +28,18 @@ def test_plot_indicator(strategy_name):
     func_ax_indicator(strategy_name, ax[1], df)
     ax_default_properties(ax[1], 'Indicator')
 
-    # Show
-    plt.show()
+    # Save plot
+    save_matplotlib_figure(fig, folder_path, strategy_name)
 
 
+def all_perc():
+    freqs = ['D', '3D', 'W', 'ME', 'QE', 'YE']
+    for freq in freqs:
+        print(freq)
+        _plot_perc(freq)
+        print()
 
-def test_plot_perc(freq='ME'):
-    symbol = 'BTC'
-
+def _plot_perc(freq='ME'):
     # Load course and indicator
     df = load_pandas_from_symbol(symbol)
     df['close_perc'] = df['close'].pct_change(periods=1)
@@ -52,41 +58,17 @@ def test_plot_perc(freq='ME'):
     ax_perc_bar(ax[2], df)
     ax_default_properties(ax[2], 'Indicator')
 
-    # Show
-    plt.show()
-
-
-def test_ax_background_colored_evaluation():
-    data = [1,2,2,2,4,4,4,5,5]
-    df = get_df_from_list(data)
-    df['evaluation'] = ''
-    df.loc[df.index[1], 'evaluation'] = 'buy'
-    df.loc[df.index[3], 'evaluation'] = 'sell'
-    df.loc[df.index[5], 'evaluation'] = 'bullish'
-    df.loc[df.index[7], 'evaluation'] = 'bearish'
-    print(df)
-
-    # Figure
-    fig, ax = plt.subplots(1, 1)
-    ax_course(ax, df)
-    ax_background_colored_signals(ax, df)
-
-    # Show
-    plt.show()
-
+    # Save
+    save_matplotlib_figure(fig, folder_path, f'perc_{freq}')
 
 
 
 if __name__ == "__main__":
+    """
+    Save all plots of the different indicators to a folder
+    """
+    symbol = 'BTC'
+    folder_path = get_path() / 'data/analyse/all_indicators'
 
-    # Indicator
-    test_plot_indicator('BB') # ['BB', 'MACD', 'RSI', 'SMA']
-
-    # Percentage
-    #test_plot_perc('d') # ['D', '3D', 'W', 'ME', 'QE', 'YE']
-
-    # Background colored evaluation
-    #test_ax_background_colored_evaluation()
-
-
-
+    all_indicators()
+    all_perc()

@@ -176,9 +176,11 @@ def _load_symbols_from_yaml():
         data = yaml.safe_load(f)
     return data.get('active')
 
-def _load_symbols_from_api_csv(order=0, n=None):
+def _load_symbols_from_api_csv(n=None, asset_type=None, order=0):
     """
     :param n: amount of symbols
+    :param asset_type: [BLOCKCHAIN, TOKEN, FIAT, INDEX]
+    :param order: [0 - default, 1 - newest, 2 - oldest]
     :return: list of symbols
     """
     if n is None:
@@ -196,7 +198,12 @@ def _load_symbols_from_api_csv(order=0, n=None):
 
     # Prepare df
     df['date'] = pd.to_datetime(df['LAUNCH_DATE'], unit='s')
-    #df = df[df['ASSET_TYPE'] == 'BLOCKCHAIN']                  # e.g. only BLOCKCHAIN (or TOKEN, INDEX, ...)
+    if asset_type:
+        allowed_asset_type = ['BLOCKCHAIN', 'TOKEN', 'FIAT', 'INDEX']
+        if asset_type not in allowed_asset_type:
+            raise ValueError(f'Asset type "{asset_type}" not in {allowed_asset_type}')
+        df = df[df['ASSET_TYPE'] == asset_type]                  # e.g. only BLOCKCHAIN (or TOKEN, INDEX, ...)
+
     match order:
         case 0:                 # default order
             df = df.iloc[0:n]
@@ -232,10 +239,11 @@ if __name__ == "__main__":
     match source:
         case 'yaml':        # self-defined coins in the yaml file
             symbols = _load_symbols_from_yaml()
-        case 'api':         # symbols from crypto compare saved in a csv
-            order = 0   # [0 - default, 1 - newest, 2 - oldest]
-            n = 20      # amount symbols for api calls (None if download all)
-            symbols = _load_symbols_from_api_csv(order, n)
+        case 'api':                     # symbols from crypto compare saved in a csv
+            n = 100                     # amount symbols for api calls (None if download all)
+            asset_type = 'BLOCKCHAIN'   # asset_type [None - all, 'BLOCKCHAIN', 'TOKEN', 'FIAT', 'INDEX']
+            order = 0                   # [0 - default, 1 - newest, 2 - oldest]
+            symbols = _load_symbols_from_api_csv(n, asset_type, order)
         case _:
             raise ValueError(f'Wrong source: {source}')
 
@@ -246,6 +254,8 @@ if __name__ == "__main__":
     error_handling = ErrorHandling()
 
     # Download symbols from list
+    print(f'Start downloading ...')
+    print(symbols)
     for index, symbol in enumerate(symbols):
         # Print
         print(f'\r[{index + 1}/{len(symbols)}] - {symbol}')

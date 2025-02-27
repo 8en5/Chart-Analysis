@@ -6,7 +6,7 @@ from modules.plot import *
 
 
 def test_indicator(indicator_name:str):
-    values = pd.Series(np.random.randint(1, 100, size=50))
+    values = pd.Series(np.random.randint(1, 100, size=200))
     df = get_df_from_list(values)
 
     pandas_print_all()

@@ -73,12 +73,24 @@ def eval_param_with_symbol_study(strategy_name, params:dict):
 
 
 
+def _save_results(summary_dict, folder_path, file_name):
+    # Summaries all results in one df
+    df = pd.DataFrame(summary_dict)
+    # Sort dict
+    df_sorted = df.sort_values(by='stage_strategy_mean', ascending=False)
+    # Save result to file
+    save_pandas_to_file(df_sorted, folder_path, file_name, 'txt')
 
 
 def main():
     strategy_name = 'MACD'
     params_study = get_all_combinations_from_params_study(strategy_name, 'param_study')
 
+    # Location results
+    folder_path = get_path() / 'data/analyse/study_indicator_params' / strategy_name
+    file_name = pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    # Run study
     summary_dict = {}
     for index, params in enumerate(params_study):
         try:
@@ -94,6 +106,9 @@ def main():
                 if key not in summary_dict:
                     summary_dict[key] = []
                 summary_dict[key].append(value)
+            # Save intermediate results
+            if index % 10 == 0:
+                _save_results(summary_dict, folder_path, file_name)
         except Exception as e:
             print(f'Error occurred, currently no error handling - param: {params}')
             print(str(e))
@@ -101,12 +116,7 @@ def main():
     # Summaries all results
     df = pd.DataFrame(summary_dict)
     print(df)
-    # Sort dict
-    df_sorted = df.sort_values(by='stage_strategy_mean', ascending=False)
-    # Save result to file
-    folder_path = get_path() / 'data/analyse/study_indicator_params' / strategy_name
-    file_name = pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")
-    save_pandas_to_file(df_sorted, folder_path, file_name)
+    _save_results(summary_dict, folder_path, file_name)
 
 
 if __name__ == "__main__":
