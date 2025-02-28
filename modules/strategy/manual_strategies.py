@@ -1,4 +1,6 @@
 import itertools
+from pickletools import optimize
+
 import numpy as np
 from fontTools.merge.util import first
 
@@ -16,7 +18,7 @@ params_study_dict = {
             'bb_l': [6],
             'bb_std': [1.5, 2.5]
         },
-        'param_study': {
+        'brute_force': {
             'bb_l':(5, 30, 5),
             'bb_std': (1.5, 2.5, 0.3)
         }
@@ -28,10 +30,15 @@ params_study_dict = {
             'm_slow': [20, 40],
             'm_signal': [30, 90]  # m_signal accidentally set to 90 (copy from rsi) -> really good param
         },
-        'param_study': {
-            'm_fast': (2, 80, 5),
-            'm_slow': (15, 120, 5),
-            'm_signal': (1, 3, 0.5)
+        'brute_force': {
+            'm_fast': (2, 50, 3),
+            'm_slow': (15, 200, 5),
+            'm_signal': (1, 3, 0.2)
+        },
+        'optimization': {
+            'm_fast': [2, 5, 15, 25],
+            'm_slow': [15, 25, 50, 80, 100],
+            'm_signal': [10, 30, 60, 90, 120]
         }
     },
 
@@ -71,18 +78,18 @@ def func_plot(strategy_name, *args):
     return func(*args)
 
 
-def get_all_combinations_from_params_study(name, variant):
+def get_all_combinations_from_params_study(strategy_name, variant):
     """ Return params_study defined in params_study_dict
-    :param name: strategy name (key in dict)
-    :param variant: which params to use: [visualize, param_study]
+    :param strategy_name: strategy name (key in dict)
+    :param variant: which params to use: [visualize, brute_force]
     :return: list of all params variations
     """
-    if name not in params_study_dict:
-        raise ValueError(f'key "{name}" not in {params_study_dict}')
-    if variant not in params_study_dict[name]:
-        raise ValueError(f'key "{variant}" not in {params_study_dict[name]}')
+    if strategy_name not in params_study_dict:
+        raise ValueError(f'key "{strategy_name}" not in {params_study_dict}')
+    if variant not in params_study_dict[strategy_name]:
+        raise ValueError(f'key "{variant}" not in {params_study_dict[strategy_name]}')
     # Get raw params and prepare it
-    params_study = params_study_dict[name][variant]
+    params_study = params_study_dict[strategy_name][variant]
     params_study = _set_param_variation(params_study)
     # Calculate all combinations
     keys = params_study.keys()
