@@ -1,8 +1,5 @@
 import itertools
-from pickletools import optimize
-
 import numpy as np
-from fontTools.merge.util import first
 
 from modules.plot import *
 from modules.indicators import *
@@ -19,7 +16,7 @@ params_study_dict = {
             'bb_std': [1.5, 2.5]
         },
         'brute_force': {
-            'bb_l':(5, 30, 5),
+            'bb_l': (5, 30, 5),
             'bb_std': (1.5, 2.5, 0.3)
         }
     },

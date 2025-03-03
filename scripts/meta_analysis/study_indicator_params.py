@@ -10,14 +10,13 @@ import numpy as np
 from scipy.optimize import minimize
 
 from modules.file_handler import *
-from modules.strategy.manual_strategies import func_manual_strategy, get_all_combinations_from_params_study, \
-    params_study_dict
+from modules.strategy.manual_strategies import *
 from modules.strategy.evaluate_strategy import get_evaluation_statistics
 
 
 #---------------------- Evaluate Param over multiple courses ----------------------#
 
-def eval_param_with_symbol_study(params:dict):
+def eval_param_with_symbol_study(strategy_name, params:dict):
     """ Evaluate one param variation of an indicator over multiple courses
     Calculate 'EvaluateStrategy' (= Evaluation of one param variation with one symbol) over multiple courses (defined in
       stages). Then summarize the results over the multiple courses and calculate mean and std as meta result
@@ -132,11 +131,11 @@ def study_brute_force():
 
 def _cost_function(p:list):
     params = convert_params_list_in_dict(p)
-    cost = eval_param_with_symbol_study(params)['stage_diff_benchmark_mean'] # cost function = diff to benchmark
+    cost = eval_param_with_symbol_study(strategy_name, params)['stage_diff_benchmark_mean'] # cost function = diff to benchmark
     # Print
     p = [round(float(x), 2) for x in p]
     print(f'{p} \t\t {cost:.2f}')
-    return cost
+    return -cost
 
 
 def convert_params_list_in_dict(values:list):
@@ -171,7 +170,8 @@ def optimization(method, initial_params):
 
 
 def study_optimization():
-    method ='Nelder-Mead'
+    # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+    method = 'Nelder-Mead'
 
     # Save results
     folder_path = get_path() / 'data/analyse/optimization' / strategy_name
@@ -184,6 +184,13 @@ def study_optimization():
 
 
     for index, initial_params in enumerate(list_initial_params):
+
+        initial_params = {
+            'm_fast': 12,
+            'm_slow': 26,
+            'm_signal': 90 # 9
+        }
+
         log = f'{index+1}/{len(list_initial_params)}: {initial_params}'
         with open(file_path, "a") as file:
             file.write(log + '\n')
@@ -198,6 +205,7 @@ def study_optimization():
             file.write(log + '\n\n')
         print(log, '\n')
 
+        exit()
 
 
 if __name__ == "__main__":
