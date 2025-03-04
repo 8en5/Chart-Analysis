@@ -53,11 +53,33 @@ def get_relative_folder(folder_path:Path) -> Path:
 
 
 def find_file_in_directory(folder_path:Path, filename:str) -> Path:
+    """ Find file in directory
+    :param folder_path: folder
+    :param filename: name (extension doesn't matter)
+    :return: founded file path in the folder (else raise Error)
+    """
     folder_path = Path(folder_path)         # Make sure path is a Path object
-    for root in folder_path.rglob('*'):     # rglob searches for all files recursively
-        if root.name == filename or root.stem == filename:
-            return root
-    raise FileNotFoundError(f'File "{filename}" not in directory "{folder_path}"')
+    found_files = [file for file in folder_path.rglob('*') if file.name == filename or file.stem == filename]
+
+    # Evaluate search
+    if not found_files:
+        raise FileNotFoundError(f'File "{filename}" not found in directory "{folder_path}"')
+    if len(found_files) > 1:
+        raise ValueError(f'Multiple files named "{filename}" found in directory "{folder_path}": {found_files}')
+
+    return found_files[0]
+
+
+def find_files_in_directory(folder_path:Path, filename_list:list) -> list[Path]:
+    """ Check if a list of files are all in directory, then return True (else False)
+    :param folder_path: folder
+    :param filename_list: name (extension doesn't matter)
+    :return: list of all founded file paths
+    """
+    found_file_paths = []
+    for filename in filename_list:
+        found_file_paths.append(find_file_in_directory(folder_path, filename))
+    return found_file_paths
 
 
 def list_file_paths_in_folder(folder_path:Path, filter:str='') -> list[Path]:

@@ -4,7 +4,7 @@ ws_dir = (Path(__file__).parent / "../../../..").resolve()  # Workspace
 sys.path.insert(0, str(ws_dir))                      # add ws to sys-path to run py-file in separate cmd
 
 from modules.course import *
-from modules.api.crypto_compare.download_courses import main_routine_download_course_list
+from modules.api.crypto_compare.download_courses import main_routine_download_course_list_cc
 
 if __name__ == "__main__":
     """ # Explanation
@@ -22,21 +22,20 @@ if __name__ == "__main__":
     - (if existing symbols should be requested completely new (overwrite) and should not only be updated: set self.allow_update = False)
     """
 
-    source = 'yaml' # [yaml, api]
+    source = 'api' # [list, api]
 
     match source:
-        case 'yaml':                    # self-defined coins in the yaml file
-            selection = 'default'
-            symbols = get_symbols_list_from_yaml(selection)
+        case 'list':                    # self-defined in a list
+            symbols = ['BTC', 'ETH', 'ADA', 'LINK']
         case 'api':                     # symbols from crypto compare saved in a csv
-            n = 20                     # amount symbols for api calls (None if download all)
+            n = 20                      # amount symbols for api calls (None if download all)
             asset_type = 'BLOCKCHAIN'   # asset_type [None - all, 'BLOCKCHAIN', 'TOKEN', 'FIAT', 'INDEX']
             order = 0                   # [0 - default, 1 - newest, 2 - oldest]
-            symbols = get_symbols_from_api_csv(n, asset_type, order)
+            symbols = get_symbols_list_from_api_csv_cc(n, asset_type, order)
         case _:
             raise ValueError(f'Wrong source: {source}')
 
-    main_routine_download_course_list(symbols)
+    main_routine_download_course_list_cc(symbols)
 
 
 

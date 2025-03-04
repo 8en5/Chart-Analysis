@@ -160,9 +160,9 @@ class DownloadManagerCC:
 
 
 
-def main_routine_download_course_list(symbols:list) -> None:
+def main_routine_download_course_list_cc(symbols:list) -> None:
     # Download symbols from list
-    print(symbols)
+    print(f'Request: {symbols}')
     print(f'Start downloading ...', '\n')
     for index, symbol in enumerate(symbols):
         # Print

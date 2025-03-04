@@ -1,3 +1,7 @@
+"""
+Download a csv file with information to all symbols
+"""
+
 import requests
 
 from modules.file_handler import *
@@ -19,7 +23,7 @@ def API_request_available_symbols():
     data = response.json()
 
     amount_assets = data['Data']['STATS']['TOTAL_ASSETS']
-    print(f'Asset amount: {amount_assets}')
+    #print(f'Asset amount: {amount_assets}')
 
     df = pd.DataFrame(data['Data']['LIST'])
     pandas_print_width()
