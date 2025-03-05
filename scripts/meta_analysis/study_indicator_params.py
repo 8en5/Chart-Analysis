@@ -5,66 +5,18 @@ from pathlib import Path
 ws_dir = (Path(__file__).parent / "../..").resolve()  # Workspace
 sys.path.insert(0, str(ws_dir))                # add ws to sys-path to run py-file in separate cmd
 
-import pandas as pd
-import numpy as np
+
 from scipy.optimize import minimize
 
 from modules.file_handler import *
 from modules.strategy.manual_strategies import *
-from modules.strategy.evaluate_strategy import get_evaluation_statistics
-
-
-#---------------------- Evaluate Param over multiple courses ----------------------#
 
 
 
-
-def _save_results(summary_dict, folder_path, file_name):
-    # Summaries all results in one df
-    df = pd.DataFrame(summary_dict)
-    # Sort dict
-    df_sorted = df.sort_values(by='stage_strategy_mean', ascending=False)
-    # Save result to file
-    save_pandas_to_file(df_sorted, folder_path, file_name, 'txt')
 
 
 #---------------------- Study 1 - Brute Force ----------------------#
 
-def study_brute_force():
-    #strategy_name = strategy_name
-    params_study = get_all_combinations_from_params_study(strategy_name, 'brute_force')
-
-    # Location results
-    folder_path = get_path() / 'data/analyse/study_indicator_params' / strategy_name
-    file_name = pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")
-
-    # Run study
-    summary_dict = {}
-    for index, params in enumerate(params_study):
-        try:
-            result = eval_param_with_symbol_study(strategy_name, params)
-            result['params'] = params
-            print(
-                f'{index + 1}/{len(params_study)}: {params} \t\t'
-                f'S: {result['stage_strategy_mean']:.2f} \t\t'
-                f'diff: {result['stage_diff_benchmark_mean']:.2f}'
-            )
-            # Append all results in one dict
-            for key, value in result.items():
-                if key not in summary_dict:
-                    summary_dict[key] = []
-                summary_dict[key].append(value)
-            # Save intermediate results
-            if index % 50 == 0:
-                _save_results(summary_dict, folder_path, file_name)
-        except Exception as e:
-            print(f'Error occurred, currently no error handling - param: {params}')
-            print(str(e))
-
-    # Summaries all results
-    df = pd.DataFrame(summary_dict)
-    print(df)
-    _save_results(summary_dict, folder_path, file_name)
 
 
 

@@ -75,18 +75,26 @@ def func_plot(strategy_name, *args):
     return func(*args)
 
 
-def get_all_combinations_from_params_study(strategy_name, variant):
-    """ Return params_study defined in params_study_dict
-    :param strategy_name: strategy name (key in dict)
-    :param variant: which params to use: [visualize, brute_force]
-    :return: list of all params variations
+def get_params_from_dict(strategy_name, variant):
+    """ Return params defined in params_study_dict
+    :param strategy_name: dict[key]
+    :param variant: dict[strategy_name][key]
+    :return: dict of params
     """
     if strategy_name not in params_study_dict:
         raise ValueError(f'key "{strategy_name}" not in {params_study_dict}')
     if variant not in params_study_dict[strategy_name]:
         raise ValueError(f'key "{variant}" not in {params_study_dict[strategy_name]}')
+    return params_study_dict[strategy_name][variant]
+
+def get_all_combinations_from_params_study(strategy_name, variant):
+    """ Return list of all params variations
+    :param strategy_name: dict[key]
+    :param variant: dict[strategy_name][key]
+    :return: list of all params variations
+    """
     # Get raw params and prepare it
-    params_study = params_study_dict[strategy_name][variant]
+    params_study = get_params_from_dict(strategy_name, variant)
     params_study = _set_param_variation(params_study)
     # Calculate all combinations
     keys = params_study.keys()

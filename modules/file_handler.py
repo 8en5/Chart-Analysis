@@ -120,6 +120,14 @@ def get_file_in_folder(folder_path:Path, file_name:str) -> Path | None:
     return None
 
 
+def get_names_from_paths(list_file_paths:list) -> list[str]:
+    """ Return list of file names based on a list of file paths
+    :param list_file_paths: list of file paths
+    :return: list of file names
+    """
+    return [Path(path).stem for path in list_file_paths]
+
+
 def load_pandas_from_symbol(symbol:str) -> pd.DataFrame:
     # Find file path from symbol in folder
     folder_path = get_path('course_cc')
@@ -166,7 +174,7 @@ def save_pandas_to_file(df:pd.DataFrame, folder_path:Path, name:str, extension:s
     relative_folder = file_path.relative_to(ws_folder) if file_path.is_relative_to(ws_folder) else file_path
 
     # Save file
-    df.to_csv(file_path)
+    df.to_csv(file_path, float_format='%.3f')
     print(f'Saved {file_name} to {relative_folder}')
 
 
