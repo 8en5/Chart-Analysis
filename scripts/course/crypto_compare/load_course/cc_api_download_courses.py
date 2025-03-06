@@ -28,7 +28,7 @@ if __name__ == "__main__":
         case 'list':                    # self-defined in a list
             symbols = ['BTC', 'ETH', 'ADA', 'LINK']
         case 'api':                     # symbols from crypto compare saved in a csv
-            n = 20                      # amount symbols for api calls (None if download all)
+            n = 10                      # amount symbols for api calls (None if download all)
             asset_type = 'BLOCKCHAIN'   # asset_type [None - all, 'BLOCKCHAIN', 'TOKEN', 'FIAT', 'INDEX']
             order = 0                   # [0 - default, 1 - newest, 2 - oldest]
             symbols = get_symbols_list_from_api_csv_cc(n, asset_type, order)

@@ -8,14 +8,19 @@ Output:
 """
 
 import requests
+import json
+import re
 
 from modules.file_handler import *
 from modules.error_handling import ErrorHandling
 
 
-
-# Error Handling TODO, anders lösen
-error_handling = ErrorHandling()
+# Errors occur when downloading some symbols and should be ignored
+ACCEPTED_ERRORS_LIST = [
+    'CCCAGG market does not exist for this coin pair',  # Coin par is invalid (symbol to USD)
+    'limit is smaller than min value.'                  # if limit = 0
+]
+ACCEPTED_ERRORS = {}
 
 
 def API_request_course(symbol:str, to_ts=None, limit=2000):
@@ -70,8 +75,9 @@ class DownloadManagerCC:
     This class tracks errors across all instances (in class methods). They are categorizing in new and known errors.
     """
 
-    def __init__(self, symbol:str):
+    def __init__(self, symbol:str, error_handling):
         self.symbol = symbol                                     # symbol
+        self.error_handling = error_handling                     # Error handling
 
         self.folder_path = get_path('course_cc') / 'download'    # folder to save all symbols
         self.allow_update = True                                 # bool, whether updates are allowed if file with old data exists (if False, always full download)
@@ -98,7 +104,16 @@ class DownloadManagerCC:
             if not self.df.empty:
                 save_pandas_to_file(self.df, self.folder_path, self.symbol)
         except Exception as e:
-            error_handling.log_error(e, self.symbol)
+            # Append error (with symbol) to dict, if error in ACCEPTED_ERRORS_LIST
+            for accepted_error in ACCEPTED_ERRORS_LIST:
+                if accepted_error in str(e):
+                    if accepted_error in ACCEPTED_ERRORS:
+                        ACCEPTED_ERRORS[accepted_error].append(self.symbol)
+                    else:
+                        ACCEPTED_ERRORS[accepted_error] = []
+                    return
+            # Call error handler, if error_msg is not in ACCEPTED_ERRORS
+            self.error_handling.log_error(e)
 
 
     def _routine_request_full_course(self):
@@ -161,6 +176,9 @@ class DownloadManagerCC:
 
 
 def main_routine_download_course_list_cc(symbols:list) -> None:
+    # Error handling
+    error_handling = ErrorHandling()
+
     # Download symbols from list
     print(f'Request: {symbols}')
     print(f'Start downloading ...', '\n')
@@ -168,9 +186,11 @@ def main_routine_download_course_list_cc(symbols:list) -> None:
         # Print
         print(f'\r[{index + 1}/{len(symbols)}] - {symbol}')
         # Download each symbol
-        dm = DownloadManagerCC(symbol)
+        dm = DownloadManagerCC(symbol, error_handling)
         dm.run()
         print()
 
-    # Error Log
-    error_handling.save_summary()  # print and save Errors
+    # Print known errors
+    output = json.dumps(ACCEPTED_ERRORS, indent=4)
+    output = re.sub(r'",\s+', '", ', output)  # https://stackoverflow.com/questions/48969984/python-json-dump-how-to-make-inner-array-in-one-line
+    print(output)

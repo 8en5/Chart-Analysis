@@ -83,6 +83,9 @@ class ResultManager:
 
 
     def save_intermediate_result(self):
+        """ Save intermediate result
+        summary_dict -> df -> sort -> file
+        """
         # Summaries all results in one df
         df = pd.DataFrame(self.summary_dict)
         # Sort dict
@@ -92,6 +95,9 @@ class ResultManager:
 
 
     def finish(self):
+        """ Save study result (meeta information + best strategy)
+        dict with result -> df -> append to summary file
+        """
         # Save meta information to this study
         finish_dict = {
             'strategy_name': self.strategy_name,
@@ -125,7 +131,7 @@ class BruteForce(ResultManager):
     def __init__(self, strategy_name, key_course_selection):
         super().__init__(strategy_name, key_course_selection)
         self.params_dict = get_params_from_dict(strategy_name, 'brute_force')
-        self.params_variations = get_all_combinations_from_params_study(strategy_name, 'optimization')
+        self.params_variations = get_all_combinations_from_params_study(strategy_name, 'brute_force')
         self.total_tests = len(self.params_variations)
 
         self.folder_path = get_path() / 'data/analyse/study_indicator_params/brute_force'
