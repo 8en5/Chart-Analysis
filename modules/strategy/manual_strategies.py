@@ -40,9 +40,16 @@ params_study_dict = {
     },
 
     'RSI': {
+        'visualize': {
             'rsi_l': [10, 14, 18],
             'bl': [20, 30, 40],
-            'bu': [60, 7, 90]
+            'bu': [60, 70, 90]
+        },
+        'brute_force': {
+            'rsi_l': (5, 100, 3),
+            'bl': (10, 40, 2),
+            'bu': (50, 95, 2)
+        },
     },
 }
 
@@ -197,8 +204,6 @@ def set_manual_strategy_BB(df, params=None):
             'bb_std': 2.0
         }
 
-    df = df.copy()
-
     # Indicator
     df = func_indicator('BB', df, length=params['bb_l'], std=params['bb_std'])
     col_l, col_m, col_u = get_indicator_col_names(df, 'BB')
@@ -225,8 +230,6 @@ def set_manual_strategy_MACD(df, params=None):
             'm_slow': 26,
             'm_signal': 90 # 9
         }
-
-    df = df.copy()
 
     # Indicator
     df = func_indicator('MACD', df, fast=params['m_fast'], slow=params['m_slow'], signal=params['m_signal'])
@@ -255,8 +258,6 @@ def set_manual_strategy_RSI(df, params=None):
             'bl': 30,
             'bu': 70
         }
-
-    df = df.copy()
 
     # Indicator
     df = func_indicator('RSI', df, params['rsi_l'], params['bl'], params['bu'])

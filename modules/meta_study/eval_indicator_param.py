@@ -34,8 +34,8 @@ def eval_param_with_symbol_study(strategy_name, params:dict, symbols_paths):
     summary_dict = {}
     for index, symbol_file_path in enumerate(symbols_paths):
         #print(f'{index + 1}/{len(symbol_study_file_paths)}: {symbol_file_path.stem}')
-        df = load_pandas_from_file_path(symbol_file_path)
-        df = func_manual_strategy(strategy_name, df[['close']], params)
+        df = load_pandas_from_file_path(symbol_file_path)[['close']]
+        df = func_manual_strategy(strategy_name, df, params)
         df = df[['close', 'invested']] # Cut df to the minimal relevant data
         if len(df) < 600:
             raise AssertionError(f'The data of the course "{symbol_file_path.stem}" is too short: "{len(df)}". Remove it from the analysis')
@@ -43,7 +43,7 @@ def eval_param_with_symbol_study(strategy_name, params:dict, symbols_paths):
         if df['invested'].isna().any(): # Observation, if there are any None values in df[invested]
             # if there are None Values in df[invested] this means, that there are no signals -> increase offset
             raise AssertionError(f'Warning for param {params}: Check offset, there should be no None vales in df[invested]: {df}')
-        evaluation = get_evaluation_statistics(df[['close', 'invested']])
+        evaluation = get_evaluation_statistics(df)
         # Append all results in one dict
         for key, value in evaluation.items():
             if key not in summary_dict:
@@ -168,4 +168,4 @@ class BruteForce(ResultManager):
         self.finish()
 
 
-rm = BruteForce('MACD', 'default')
+rm = BruteForce('RSI', 'default')

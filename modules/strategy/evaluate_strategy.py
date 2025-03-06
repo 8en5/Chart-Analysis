@@ -23,7 +23,7 @@ class EvaluateStrategy:
     """
 
     def __init__(self, df):
-        self.df = df[['close', 'invested']].copy().replace({None: 0})
+        self.df = df.replace({None: 0})
 
         # Calculate daily perc change from course
         self.df['close_perc'] = self.df['close'].pct_change(periods=1)  # * 100
@@ -133,7 +133,10 @@ def run_evaluation_multiple_cycles(df) -> pd.DataFrame:
         8      2.031768           1.018231       -1.013536
         9      1.778987           0.713761       -1.065226
     """
-    df = df[['close', 'invested']].copy()
+    # Check min columns
+    minimal_columns = ['close', 'invested']
+    if not set(minimal_columns).issubset(df.columns):
+        raise AssertionError(f'Min requirement failed: not all columns {minimal_columns} in {df.columns}')
 
     # Remove all columns where df[invested] is None
     """

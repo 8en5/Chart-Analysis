@@ -76,8 +76,6 @@ def get_period(period='D'):
     return freq
 
 
-# TODO: für jeden Indikator gibt es eine Mindestanzahl an Daten -> Check in Funktion (sonst nur None und Berechnungen gehen Krachen)
-
 # TODO: df.copy entfernen -> direkt auf einem df arbeiten
 
 #------------- Own calculated Indicators -------------#
@@ -101,7 +99,6 @@ def _indicator_CMA(df):
     """ Cumulative Moving Average (CMA)
     :return: df['CMA']
     """
-    df = df.copy()
     df['CMA'] = df['close'].expanding().mean()
     return df
 
@@ -128,7 +125,6 @@ def _indicator_EMA(df, length=2):
     :param length: samples
     :return: df['EMA_200']
     """
-    df = df.copy()
     df[f'EMA_{length}'] = ta.ema(df['close'], length=length)
     return df
 
@@ -158,7 +154,6 @@ def _indicator_RSI(df, length=14, lower_border=30, upper_border=70):
     sell: RSI >= upper border -> too high -> sell | crossing from above under 70
     buy: RSI <= lower border -> too low -> buy | crossing from below over 30
     """
-    df = df.copy()
     df[f'RSI_{length}'] = ta.rsi(df['close'], length=length)
     df[['border_lower_30', 'border_upper_70']] = [lower_border, upper_border]
     return df
@@ -169,6 +164,5 @@ def _indicator_SMA(df, length=200):
     :param length: samples
     :return: df['SMA_200']
     """
-    df = df.copy()
     df[f'SMA_{length}'] = ta.sma(df['close'], length=length)
     return df

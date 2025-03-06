@@ -131,7 +131,7 @@ def calc_accumulated_perc(df, n=2):
     if df['invested'].isna().any(): # if None or NaN in df[invested]
         raise ValueError(f'NaN or None in df[invested] - this will lead to errors in this function (take care of it beforehand)')
 
-    df = df.copy()
+    df = df.copy() # working on a copy, because this function is called 1 - 3 times per basic evaluation and the columns in the df are not needed
     match n:
         case 0:
             # Buy and Hold
