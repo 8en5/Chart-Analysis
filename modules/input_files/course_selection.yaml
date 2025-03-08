@@ -1,0 +1,2 @@
+default: [BTC, ETH, ADA, LINK]
+crypto_stage1: [BTC]

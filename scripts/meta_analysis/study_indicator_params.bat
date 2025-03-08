@@ -15,10 +15,10 @@ REM Back to ws
 cd ../..
 
 REM navigate to the python script
-cd scripts\strategy
+cd scripts\meta_analysis
 
 REM call python script
-python visualize_strategy.py
+python study_indicator_params.py
 
 REM Keep the cmd open
 cmd /k

@@ -3,44 +3,49 @@ from modules.file_handler import *
 
 
 def check_course_all_dates(file_path):
-    """ Go through all the downloaded course data and check if the date is complete from start to finish
-        and not duplicated
+    """
+    Load course from file and check, that all dates are available and not duplicated
     """
 
-    symbol = get_filename_from_path(file_path)
+    symbol = file_path.stem
 
     # Load course
     df = load_pandas_from_file_path(file_path)
-    #print(df.index)
+    # print(df.index)
+
+    # Check validity
+    if not 'close' in df.columns:
+        print(f'\tFile "{symbol}" is not a course')
+        return
 
     # Comparison
     comparison_dates = pd.date_range(df.index.min(), df.index.max())
     #print(comparison_dates)
 
-    # Difference
+    # Get all differences
     missing_dates = comparison_dates.difference(df.index)
-    duplicates  = df.index[df.index.duplicated()]
+    duplicates = df.index[df.index.duplicated()]
     #print(missing_dates)
     #print(duplicates)
     #print(difference_dates)
 
     if not missing_dates.empty or not duplicates.empty:
         error_dict[symbol] = (missing_dates, duplicates)
-        print(f'Dates not correct for "{symbol}"')
+        print(f'\tDates not correct for "{symbol}"')
 
 
 def routine_checking_all_dates():
+    """
+    Go through all downloaded courses in a directory and check the data
+    """
     directory = get_path('course_cc')
-    for root, dirs, files in os.walk(directory):
-        if root == directory:  # skip directory (temp files), only sub folders
-            continue
-        #print(root, dirs, files)
-        print(f'Folder: {root}')
-        for file in files:
-            if file.endswith('.csv'):   # only csv files
-                file_path = os.path.join(root, file)
-                #print(file_path)
-                check_course_all_dates(file_path)
+    for file in directory.rglob('*'):
+        if file.is_dir():
+            print(f'Folder: {file}')
+        elif file.is_file() and file.suffix == '.csv':
+            #print(f'File: {file}')
+            check_course_all_dates(file)
+
 
 
 if __name__ == "__main__":

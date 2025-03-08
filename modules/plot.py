@@ -1,21 +1,36 @@
 import numpy as np
 
 from modules.indicators import get_indicator_col_names
+from modules.utils import pandas_print_all
+
+
+def func_ax_indicator(indicator_name:str, *args):
+    """
+    :param indicator_name: name for the indicator defined in this file
+    :param args: *args for the func
+    :return: _ax_{indicator_name}
+    """
+    func_name = f'ax_{indicator_name}'
+    # Check if function is defined
+    func = globals().get(func_name)
+    if not callable(func):
+        raise ValueError(f'The function "{func_name}" does not exist - define it in plot.py')
+    # Return called function
+    return func(*args)
 
 
 def ax_course(ax, df):
     ax.plot(df.index, df['close'], linestyle='-', color='black', label='Course')         # linear
     #ax.semilogy(df.index, df['close'], linestyle='-', color='black', label='Course')    # log
 
-
-def ax_percentage(ax, df):
+def ax_perc(ax, df):
     # ['percentage_D']
     col_perc = get_indicator_col_names(df, 'perc')
     ax_ylim_threshold(df[col_perc], ax)
     ax.plot(df.index, df[col_perc], label=col_perc, color='blue', linestyle='-')                # Line Percentage
     #ax.bar(df.index, df[name_perc], color='blue', label=name_perc)                             # Bar Percentage
 
-def ax_percentage_freq(ax, df):
+def ax_perc_bar(ax, df):
     # ['percentage_D']
     col_perc = get_indicator_col_names(df, 'perc')
     # Frequency
@@ -33,6 +48,7 @@ def ax_percentage_freq(ax, df):
 def ax_BB(ax, df):
     # ['BBL_5_2.0', 'BBM_5_2.0', 'BBU_5_2.0', 'BBB_5_2.0', 'BBP_5_2.0'] - [Low, SMA, Up, Bandwith, Percentage]
     col_l, col_m, col_u = get_indicator_col_names(df, 'BB')
+    ax_course(ax, df)
     ax.plot(df.index, df[col_m], label=col_m, color='orange', linestyle='-')
     ax.fill_between(df.index, df[col_l], df[col_u], color="darkviolet", alpha=0.3, label="Bollinger Bands")
 
@@ -52,8 +68,10 @@ def ax_RSI(ax, df):
     ax.plot(df.index, df[col_lower], label=col_lower, color='green', linestyle='--')
 
 def ax_SMA(ax, df):
-    # ['SMA_200']
+    # ['SMA_200', 'SMA_50]
     cols_SMA = get_indicator_col_names(df, 'SMA')
+    if not isinstance(cols_SMA, list):
+        cols_SMA = [cols_SMA]
     for col_SMA in cols_SMA:
         ax.plot(df.index, df[col_SMA], label=col_SMA, color='orange', linestyle='-')
 
@@ -72,6 +90,7 @@ def ax_background_colored_signals(ax, df):
         raise ValueError(f'Column name {allowed_col} not in: {df.columns}')
 
     colors = {
+        None: 'grey',
         # Signal - One event [buy, sell]
         'buy': 'lime',
         'sell': 'red',
@@ -92,7 +111,7 @@ def ax_background_colored_signals(ax, df):
             # Vertical Line - concrete calculated signal
             color = colors[evaluation]
             ax.axvline(x=df.index[i], color=color, linestyle='-', linewidth=2)
-        elif evaluation in ['bullish', 'bearish', 1, 0]:
+        elif evaluation in ['bullish', 'bearish', 1, 0, None]:
             # Background color - general trend
             color = colors[evaluation]
             ax.axvspan(df.index[i], df.index[i+1], color=color, alpha=0.3)
@@ -107,10 +126,51 @@ def ax_ylim_threshold(values, ax, lower=0.05, upper=99.95):
     ax.set_ylim(lower_threshold, upper_threshold)
 
 
-def ax_graph_elements(ax, title='', ylabel='Chart'):
+def ax_default_properties(ax, title='', ylabel='Chart'):
     # Graph elements
     ax.set_title(title)
     #ax.set_xlabel('Date')
     #ax.set_ylabel(ylabel)
     ax.grid()
     ax.legend()
+
+
+def ax_set_properties(ax, **kwargs):
+    """ Sets multiple properties of a Matplotlib Axes object at once with default values.
+    :param ax: The Axes object to modify.
+    :param kwargs: dict, optional
+        Keyword arguments specifying properties to set. Supported properties:
+        - 'title' (str): Title of the plot (default: 'Default Title').
+        - 'xlabel' (str): Label for the X-axis (default: 'Default X-Axis').
+        - 'ylabel' (str): Label for the Y-axis (default: 'Default Y-Axis').
+        - 'grid' (bool): Whether to display grid lines (default: True).
+
+    Example:
+    fig, ax = plt.subplots()
+    set_ax_properties(ax, title='{symbol}', xlabel='Date', ylabel='Chart')
+    plt.show()
+    """
+    defaults = {
+        'title': '',
+        'xlabel': '',
+        'ylabel': '',
+        'grid': True,
+        'legend': True
+    }
+
+    # Update defaults with provided values
+    for key, value in defaults.items():
+        kwargs.setdefault(key, value)
+
+    # Mapping of attribute names to methods
+    mapping = {
+        'title': ax.set_title,
+        'xlabel': ax.set_xlabel,
+        'ylabel': ax.set_ylabel,
+        'grid': ax.grid,
+        'legend': ax.legend
+    }
+
+    for key, value in kwargs.items():
+        if key in mapping:
+            mapping[key](value)  # Call the method with the value
