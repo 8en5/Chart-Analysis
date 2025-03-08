@@ -2,25 +2,26 @@
 # 4 lines of code, to run this file in a separate cmd over a bat script
 import sys
 from pathlib import Path
-ws_dir = (Path(__file__).parent / "../..").resolve()  # Workspace
+ws_dir = (Path(__file__).parent / '../..').resolve()  # Workspace
 sys.path.insert(0, str(ws_dir))                # add ws to sys-path to run py-file in separate cmd
 
-
-from scipy.optimize import minimize
-
-from modules.file_handler import *
-from modules.strategy.manual_strategies import *
+from modules.meta_study.eval_indicator_param import BruteForce
 
 
 
+def study_brute_force():
+    strategy_names = ['MACD']
+    course_selection_keys = ['default']
 
-
-#---------------------- Study 1 - Brute Force ----------------------#
+    BruteForce('MACD', 'default', True)
 
 
 
 
 #---------------------- Study 2 - Optimization algorithms ----------------------#
+
+'''
+from scipy.optimize import minimize
 
 def _cost_function(p:list):
     params = convert_params_list_in_dict(p)
@@ -99,10 +100,7 @@ def study_optimization():
         print(log, '\n')
 
         exit()
-
+'''
 
 if __name__ == "__main__":
-    strategy_name = 'MACD'
-
-    #study_brute_force()
-    study_optimization()
+    study_brute_force()

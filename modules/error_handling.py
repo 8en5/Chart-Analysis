@@ -10,6 +10,7 @@ class ErrorHandling:
 
     def __init__(self):
         self.errors = []
+
         # Save file
         folder = get_path() / 'data/errors'
         create_dir(folder)
@@ -17,7 +18,7 @@ class ErrorHandling:
         self.file_path = folder / file_name
 
 
-    def log_error(self, error:Exception):
+    def log_error(self, error:Exception, save=True):
         # Error info in log
         error_info = {
             'date': pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S"),
@@ -41,7 +42,8 @@ class ErrorHandling:
             log_message = f'{error_info['type']}: {error_info['message']}\n{error_info['traceback']}\n'
         print(log_message)
 
-        self.save_errors()
+        if save:
+            self.save_errors()
 
 
     def save_errors(self):

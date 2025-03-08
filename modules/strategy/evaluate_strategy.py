@@ -28,54 +28,42 @@ class EvaluateStrategy:
         # Calculate daily perc change from course
         self.df['close_perc'] = self.df['close'].pct_change(periods=1)  # * 100
 
+        # Main calculations
+        BaH = calc_total_accumulated_perc(self.df, 0)  # Buy_and_Hold
+        S = calc_total_accumulated_perc(self.df, 2)  # Strategy_with_fee
+
         min_calculations = True
         if min_calculations:
-            BaH = calc_total_accumulated_perc(self.df, 0)   # Buy_and_Hold
-            S = calc_total_accumulated_perc(self.df, 2)     # Strategy_with_fee
+            self.result_dict = {
+                'S': S,
+                'BaH': BaH,
+                'diff': S - BaH,
+            }
+        else:
+            # Calculate different states based on [{in, out}, {+, -}]
+            self.portions_dict = calc_all_investment_states(self.df)
 
             self.result_dict = {
-                'Buy_and_Hold': BaH,
-                'Strategy_with_fee': S,
+                    # Meta
+                'start': df.index.min(),
+                'end': df.index.max(),
+                'days': (df.index.min() - df.index.max()).days,
+                'transactions': calc_amount_transactions(self.df),
+                    # Evaluation
+                'in+': self.portions_dict['in+'],
+                'in-': self.portions_dict['in-'],
+                'out+': self.portions_dict['out+'],
+                'out-': self.portions_dict['out-'],
+                'Buy_and_Hold': calc_total_accumulated_perc(self.df, 0),
+                'Strategy_without_fee': calc_total_accumulated_perc(self.df, 1),
+                'Strategy_with_fee': calc_total_accumulated_perc(self.df, 2),
+                #'Strategy_with_fees_and_tax': calc_total_accumulated_perc(self.df, 3),
+                    # Comparability to the benchmark
                 'diff_benchmark': S - BaH,
                 #'ratio_benchmark': S / BaH,
                 #'perc_benchmark': (S - BaH) / BaH,
                 #'factor_benchmark': 1 + (S - BaH) / BaH if S > BaH else -(1 + (BaH - S) / S) if S < BaH else 1
                 #'factor_benchmark': (S - BaH) / BaH if S > BaH else -(BaH - S) / S if S < BaH else 1
-                'transactions': calc_amount_transactions(self.df, ''),
-            }
-        else:
-            # General information
-            self.start_date = df.index.min()
-            self.end_date = df.index.max()
-            self.days_total = (self.end_date - self.start_date).days
-
-            # Calculate amount of transactions
-            self.amount_transactions = calc_amount_transactions(self.df)
-
-            # Calculate different states based on [{in, out}, {+, -}]
-            self.portions_dict = calc_all_investment_states(self.df)
-
-            # Calculate accumulated percentages for benchmark (Buy and Hold), Strategy without fee and Strategy with fee
-            self.total_return_dict = {
-                'Buy_and_Hold': calc_total_accumulated_perc(self.df, 0),
-                'Strategy_without_fee': calc_total_accumulated_perc(self.df, 1),
-                'Strategy_with_fee': calc_total_accumulated_perc(self.df, 2),
-                #'Strategy_with_fees_and_tax': calc_total_accumulated_perc(self.df, 3)
-            }
-
-            # Summarize result
-            self.result_dict = {
-                'start': self.start_date,
-                'end': self.end_date,
-                'days': self.days_total,
-                'transactions': self.amount_transactions,
-                'in+': self.portions_dict['in+'],
-                'in-': self.portions_dict['in-'],
-                'out+': self.portions_dict['out+'],
-                'out-': self.portions_dict['out-'],
-                'Buy_and_Hold': self.total_return_dict['Buy_and_Hold'],
-                'Strategy_without_fee': self.total_return_dict['Strategy_without_fee'],
-                'Strategy_with_fee': self.total_return_dict['Strategy_with_fee'],
             }
 
             self.plot = False
@@ -185,20 +173,12 @@ def get_evaluation_statistics(df) -> dict[str,float]:
           Buy_and_Hold  Strategy_with_fee  diff_benchmark
     mean      2.862849           1.229129       -1.633720
     std       4.463157           1.417515        3.346977
-    """
     df_stats = df_summary.select_dtypes(include=['number']).agg(['mean', 'std'])
-    #print(df_stats)
+    print(df_stats)
+    """
 
-    
-    # Prepare result dict (change df to dict)
-    result_dict = {
-        'Buy_and_Hold': df_stats.loc['mean', 'Buy_and_Hold'],
-        'strategy_mean': df_stats.loc['mean', 'Strategy_with_fee'],
-        'strategy_std': df_stats.loc['std', 'Strategy_with_fee'],
-        'diff_benchmark_mean': df_stats.loc['mean', 'diff_benchmark'],
-        'diff_benchmark_std': df_stats.loc['std', 'diff_benchmark'],
-        'transactions_mean': df_stats.loc['std', 'transactions'],
-    }
+    # Mean of all numeric columns (standard deviation currently not because I don't know how to use it for the evaluation)
+    result_dict = df_summary.select_dtypes(include=['number']).mean().to_dict()
     #print(result_dict)
 
     return result_dict
