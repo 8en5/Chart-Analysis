@@ -62,7 +62,7 @@ def test_multiple_function():
 
 if __name__ == "__main__":
 
-    #test_path()
+    test_path()
     #test_create_dir()
     #test_find_file_in_directory()
-    test_multiple_function()
+    #test_multiple_function()
