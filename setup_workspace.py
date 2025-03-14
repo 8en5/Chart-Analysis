@@ -7,7 +7,7 @@ import subprocess
 def create_venv():
     """ Create virtual environment (venv) if it does not exist
     """
-    print('Virtual Environment ...')
+    print('1) Virtual Environment ...')
     if not os.path.exists('.venv'):
         print('Create virtual environment (venv) ...')
         print('python -m venv .venv') # command in terminal
@@ -20,16 +20,17 @@ def create_venv():
 def install_requirements():
     """ Install requirements.txt
     """
-    print('Install (only missing) libraries from requirements.txt ...')
+    print('2) Install (only missing) libraries from requirements.txt ...')
+    # Path to pip from venv (not global)
     if platform.system() == 'Windows':
-        path_pip = '.venv/Scripts/pip'
+        venv_pip = '.venv/Scripts/pip.exe'
     elif platform.system() == 'Linux':
-        path_pip = '.venv/bin/pip'
+        venv_pip = '.venv/bin/pip'
     else:
         print(f'Platform not supported: "{platform.system()}"')
         return
     print('pip install -r requirements.txt') # command in terminal
-    subprocess.run([sys.executable, '-m', path_pip, 'install', '-r', 'requirements.txt'], check=True)
+    subprocess.run([venv_pip, 'install', '-r', 'requirements.txt'], check=True)
     print('\n')
 
 
@@ -39,6 +40,8 @@ def repair_import_error_pandas_ta():
     file: .venv/Lib/site-packages/pandas_ta/momentum/squeeze_pro.py
       line 2: replace `from numpy import NaN as npNaN` with `from numpy import nan as npNaN`
     """
+    print('3) Fix pandas_ta import error (NaN to nan) ...')
+
     # Path to the file with import errors: squeeze_pro.py
     if platform.system() == 'Windows':
         file_path = Path(__file__).parent / '.venv/Lib/site-packages/pandas_ta/momentum/squeeze_pro.py'
@@ -51,9 +54,8 @@ def repair_import_error_pandas_ta():
     target_string = 'from numpy import NaN as npNaN'        # wrong import
     replacement_string = 'from numpy import nan as npNaN'   # fixed import
 
-    print('Fix pandas_ta import error ...')
     if not file_path.exists():
-        raise ValueError(f'file path {file_path} does not exist - there was a problem installing the libraries from requirements.txt')
+        raise ValueError(f'file path {file_path} does not exist - there was a problem installing the libraries from requirements.txt (probably global and not in the .venv folder)')
 
     with open(file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
