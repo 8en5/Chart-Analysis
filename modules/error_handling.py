@@ -35,11 +35,11 @@ class ErrorHandling:
             if e['message'] == error_info['message']:
                 e['count'] += 1
                 new = False
-                log_message = f'{error_info['type']}: {error_info['message']}'
+                log_message = f"{error_info['type']}: {error_info['message']}"
                 break
         if new:
             self.errors.append(error_info)
-            log_message = f'{error_info['type']}: {error_info['message']}\n{error_info['traceback']}\n'
+            log_message = f"{error_info['type']}: {error_info['message']}\n{error_info['traceback']}\n"
         print(log_message)
 
         if save:

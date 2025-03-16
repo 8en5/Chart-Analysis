@@ -48,7 +48,7 @@ def API_request_course(symbol:str, to_ts=None, limit=2000):
 
     # Check for errors in the API response
     if data['Response'] != 'Success':
-        raise Exception(f'{data['Message']}')
+        raise Exception(f"{data['Message']}")
 
     # Convert the data to a DataFrame
     df = pd.DataFrame(data['Data']['Data']) # df = ['time', 'high', 'low', 'open', 'volumefrom', 'volumeto', 'close', 'conversionType', 'conversionSymbol']

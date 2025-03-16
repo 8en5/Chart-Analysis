@@ -28,7 +28,7 @@ def _calc_file_name(index, symbol, params):
     return file_name
 
 def _calc_title_from_evaluation(result):
-    return f'S = {result['stage_strategy_mean']:.2f} | Diff_BaH = {result['stage_diff_benchmark_mean']:.2f}'
+    return f"S = {result['stage_strategy_mean']:.2f} | Diff_BaH = {result['stage_diff_benchmark_mean']:.2f}"
 
 
 if __name__ == "__main__":
