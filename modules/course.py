@@ -1,8 +1,4 @@
 
-from pathlib import Path
-import yaml
-from scipy.constants import value
-
 from modules.file_handler import *
 from modules.api.crypto_compare.download_csv_symbols import main_routine_download_available_symbols
 from modules.api.crypto_compare.download_courses import main_routine_download_course_list_cc
@@ -91,8 +87,7 @@ def get_file_paths_of_course_selection(key_course_selection='default') -> list[P
     # Load yaml with course selection (symbols)
     file_name = 'input_files/course_selection.yaml'
     file_path = Path(__file__).parent / file_name
-    with file_path.open('r', encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+    data = load_yaml_from_file_path(file_path)
 
     # Check key
     if key_course_selection not in data:

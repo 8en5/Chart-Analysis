@@ -1,22 +1,74 @@
+import pandas as pd
+import json
 
-# 4 lines of code, to run this file in a separate cmd over a bat script
-import sys
-from pathlib import Path
-ws_dir = (Path(__file__).parent / '../..').resolve()  # Workspace
-sys.path.insert(0, str(ws_dir))                # add ws to sys-path to run py-file in separate cmd
-
+from modules.file_handler import get_path
 from modules.meta_study.eval_indicator_param import BruteForce
-
 
 
 def study_brute_force():
     strategy_names = ['MACD', 'BB', 'RSI']
     course_selection_keys = ['default']
+    file_path = get_path() / 'data' / f'running_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 
-    BruteForce('MACD', 'default', True)
+    # Real-time metadata of the study
+    meta_dict = {
+        'meta': {
+            'start': pd.Timestamp.now().strftime("%Y/%m/%d %H:%M:%S"),
+            'time_estimated [h]': 0,
+            'end': '',
+            'time_real [h]': ''
+        },
+        'study': {
+            #'indicator/course_selection': {
+             #   'time_per_step [s]': '',
+             #   'total_combinations': '',
+             #   'time_estimated [h]': '',
+             #   'start': '',
+             #   'end': '',
+             #   'time_real [h]': ''
+            #}
+        }
+    }
 
+    # Calculate the estimated study time
+    n_test_samples = 9
+    for strategy_name in strategy_names:
+        for course_selection_key in course_selection_keys:
+            print(f'Test: {strategy_name} - {course_selection_key }')
+            bf = BruteForce(strategy_name, course_selection_key, False) # no saving
+            time_one_iteration = bf.test_time_per_iteration(n_test_samples) / n_test_samples
+            time_estimated = time_one_iteration * len(bf.params_variations) / 3600
+            meta_dict['study'][f'{strategy_name}/{course_selection_key}'] = {
+                'time_one_iteration [s]': time_one_iteration,
+                'total_combinations': len(bf.params_variations),
+                'time_estimated [h]': time_estimated,
+                'start': '',
+                'end': '',
+                'time_real [h]': ''
+            }
+            meta_dict['meta']['time_estimated [h]'] += time_estimated
 
+    with open(file_path, 'w') as file:
+        file.write(json.dumps(meta_dict, indent=4))
 
+    # Run study
+    for strategy_name in strategy_names:
+        for course_selection_key in course_selection_keys:
+            d = meta_dict['study'][f'{strategy_name}/{course_selection_key}']
+            d['start'] = pd.Timestamp.now().strftime("%Y/%m/%d %H:%M:%S")
+            bf = BruteForce(strategy_name, course_selection_key, True)
+            bf.run()
+            d['end'] = pd.Timestamp.now().strftime("%Y/%m/%d %H:%M:%S")
+            d['time_real [h]'] = (pd.to_datetime(d['end'],format="%Y/%m/%d %H:%M:%S") - pd.to_datetime(d['start'],format="%Y/%m/%d %H:%M:%S")).total_seconds() / 3600
+
+            with open(file_path, 'w') as file:
+                file.write(json.dumps(meta_dict, indent=4))
+
+    # Finish
+    meta_dict['meta']['end'] = pd.Timestamp.now().strftime("%Y/%m/%d %H:%M:%S")
+    meta_dict['meta']['time_real [h]'] = str((pd.to_datetime(meta_dict['meta']['end'], format="%Y/%m/%d %H:%M:%S") - pd.to_datetime(meta_dict['meta']['start'], format="%Y/%m/%d %H:%M:%S")).total_seconds() / 3600)
+    with open(file_path, 'w') as file:
+        file.write(json.dumps(meta_dict, indent=4))
 
 #---------------------- Study 2 - Optimization algorithms ----------------------#
 

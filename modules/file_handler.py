@@ -1,6 +1,7 @@
 
 from pathlib import Path
 import matplotlib.pyplot as plt
+import yaml
 
 from modules.utils import *
 
@@ -51,7 +52,7 @@ def get_relative_folder(folder_path:Path) -> Path:
     return folder_rel
 
 
-
+#---------------------- Files and names in directory ----------------------#
 def find_file_in_directory(folder_path:Path, filename:str) -> Path:
     """ Find file in directory
     :param folder_path: folder
@@ -128,6 +129,7 @@ def get_names_from_paths(list_file_paths:list) -> list[str]:
     return [Path(path).stem for path in list_file_paths]
 
 
+#---------------------- Pandas ----------------------#
 def load_pandas_from_symbol(symbol:str) -> pd.DataFrame:
     # Find file path from symbol in folder
     folder_path = get_path('course_cc')
@@ -178,6 +180,7 @@ def save_pandas_to_file(df:pd.DataFrame, folder_path:Path, name:str, extension:s
     print(f'Saved {file_name} to {relative_folder}')
 
 
+#---------------------- Matplotlib ----------------------#
 def save_matplotlib_figure(fig:plt.Figure, folder_path:Path, name:str, extension:str='png') -> None:
     """ Saves a Matplotlib figure to a file.
     :param fig: Matplotlib figure to save
@@ -212,3 +215,15 @@ def save_matplotlib_figure(fig:plt.Figure, folder_path:Path, name:str, extension
     fig.set_size_inches((8, 6))
     fig.savefig(file_path, format=extension, dpi=300)
     print(f'Saved {file_name} to {relative_folder}')
+
+
+#---------------------- Yaml ----------------------#
+def load_yaml_from_file_path(file_path:Path) -> dict:
+    file_path = Path(file_path)  # Make sure path is a Path object
+    # Check, if folder_path is valid
+    if not file_path.exists():
+        raise FileNotFoundError(f'File "{file_path}" does not exist')
+
+    with file_path.open('r', encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+        return data

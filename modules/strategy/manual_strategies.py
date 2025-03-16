@@ -1,6 +1,7 @@
 import itertools
-import numpy as np
+import ast
 
+from modules.file_handler import get_path, load_yaml_from_file_path
 from modules.plot import *
 from modules.indicators import *
 from modules.functional_analysis import *
@@ -8,50 +9,6 @@ from modules.utils import pandas_print_all
 
 pd.set_option('future.no_silent_downcasting', True) # if values are converted down (value to nan - when calculating df[invested] based on df[signal])
 
-
-params_study_dict = {
-    'BB' : {
-        'visualize': {
-            'bb_l': [6],
-            'bb_std': [1.5, 2.5]
-        },
-        'brute_force': {
-            'bb_l': (2, 30, 1),
-            'bb_std': (1.0, 3.0, 0.2)
-        }
-    },
-
-    'MACD': {
-        'visualize': {
-            'm_fast': [10, 18],
-            'm_slow': [20, 40],
-            'm_signal': [30, 90]  # m_signal accidentally set to 90 (copy from rsi) -> really good param
-        },
-        'brute_force': {
-            'm_fast': (2, 100, 2),
-            'm_slow': (15, 200, 2),
-            'm_signal': (1, 3, 0.2)
-        },
-        'optimization': {
-            'm_fast': [2, 5, 15, 25],
-            'm_slow': [15, 25, 50, 80, 100],
-            'm_signal': [10, 30, 60, 90, 120]
-        }
-    },
-
-    'RSI': {
-        'visualize': {
-            'rsi_l': [10, 14, 18],
-            'bl': [20, 30, 40],
-            'bu': [60, 70, 90]
-        },
-        'brute_force': {
-            'rsi_l': (1, 150, 1),
-            'bl': (10, 50, 2),
-            'bu': (50, 95, 2)
-        },
-    },
-}
 
 def func_manual_strategy(strategy_name, *args):
     """ Call function set_manual_strategy_{strategy_name}()
@@ -83,16 +40,45 @@ def func_plot(strategy_name, *args):
 
 
 def get_params_from_dict(strategy_name, variant):
-    """ Return params defined in params_study_dict
+    """ Return params defined in indicator_params.yaml
     :param strategy_name: dict[key]
     :param variant: dict[strategy_name][key]
     :return: dict of params
     """
+    file_path = get_path() / 'modules/input_files/indicator_params.yaml'
+    params_study_dict = load_yaml_from_file_path(file_path)
+
     if strategy_name not in params_study_dict:
         raise ValueError(f'key "{strategy_name}" not in {params_study_dict}')
     if variant not in params_study_dict[strategy_name]:
         raise ValueError(f'key "{variant}" not in {params_study_dict[strategy_name]}')
-    return params_study_dict[strategy_name][variant]
+    if not params_study_dict[strategy_name][variant]:
+        raise ValueError(f'{strategy_name}[{variant}] is None - define it in the yaml "indicator_params.yaml"')
+
+    result = params_study_dict[strategy_name][variant]
+    for key, value in result.items():
+        if isinstance(value, (list, tuple)):
+            continue
+        else:
+            try:
+                print(type(value))
+                result[key] = ast.literal_eval(value)
+            except:
+                raise ValueError(f'Wrong format (no list or tuple) for {strategy_name}[{variant}] - {key}: "{value}"')
+    return result
+
+def _set_param_variation(params_study: dict[str, list[float] | tuple[float, float, float]]) -> dict[str, list]:
+    """ If present, converts a tuple (range) parameter set into a list.
+
+    :param params_study: {key: [x,x,x], key: (start, end, step)}
+    :return: dict all in format {key: [x,x,x]}
+    """
+    for key, value in params_study.items():
+        if isinstance(value, tuple) and len(value) == 3:
+            start, end, step = float(value[0]), float(value[1]), float(value[2])
+            params_study[key] = [round(start + i * step, 10) for i in range(int((end - start) / step) + 1)]
+
+    return params_study
 
 def get_all_combinations_from_params_study(strategy_name, variant):
     """ Return list of all params variations
@@ -109,20 +95,6 @@ def get_all_combinations_from_params_study(strategy_name, variant):
     combination = list(itertools.product(*values))
     combinations_list = [dict(zip(keys, combi)) for combi in combination]  # combination_list = [{self.params1}, {self.params2}, ... ]
     return combinations_list
-
-
-def _set_param_variation(params_study: dict[str, list[float] | tuple[float, float, float]]) -> dict[str, list]:
-    """ If present, converts a tuple (range) parameter set into a list.
-
-    :param params_study: {key: [x,x,x], key: (start, end, step)}
-    :return: dict all in format {key: [x,x,x]}
-    """
-    for key, value in params_study.items():
-        if isinstance(value, tuple) and len(value) == 3:
-            start, end, step = float(value[0]), float(value[1]), float(value[2])
-            params_study[key] = [round(start + i * step, 10) for i in range(int((end - start) / step) + 1)]
-
-    return params_study
 
 
 def _calc_invested_from_signal(df):

@@ -61,18 +61,18 @@ def eval_param_with_symbol_study(strategy_name, params:dict, symbols_paths):
 
 
 class ResultManager:
-    def __init__(self, strategy_name, key_course_selection, save=True):
+    def __init__(self, strategy_name, course_selection_key, save=True):
         self.strategy_name = strategy_name
-        self.course_selection_paths = get_file_paths_of_course_selection(key_course_selection)
+        self.course_selection_paths = get_file_paths_of_course_selection(course_selection_key)
 
-        param_selection = 'brute_force' # [visualize, brute_force, optimization]
+        param_selection = 'visualize' # [visualize, brute_force, optimization]
         self.params_variations = get_all_combinations_from_params_study(strategy_name, param_selection)
         self.total_tests = len(self.params_variations)
 
         # Save results
         self.save = save
         self.folder_path = get_path() # overwrite in child
-        self.file_name = f'{strategy_name}_{key_course_selection}_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}'
+        self.file_name = f'{strategy_name}_{course_selection_key}_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 
         # Meta information for the study
         self.params_dict = get_params_from_dict(strategy_name, param_selection)
@@ -126,25 +126,45 @@ class ResultManager:
           # Combine all dicts
         result_dict = {**result_dict_meta, **result_dict_row, **result_dict_end}
 
+        # Print result
+        print(result_dict)
+
         # Save to summary file
+        if not self.save:
+            return
         df = pd.DataFrame([result_dict])
         file = self.folder_path / '_summary.csv'
+        print(f'{self.strategy_name} finished - save results to {file} \n')
         if not file.exists():
             df.to_csv(file, mode='w', header=True, float_format='%.3f', index=False)
         else:
             df.to_csv(file, mode='a', header=False, float_format='%.3f', index=False)
 
-        # Print result
-        print(f'Study finished - save results to {file}:')
-        print(result_dict, '\n\n')
 
 
 class BruteForce(ResultManager):
-    def __init__(self, strategy_name, key_course_selection, save):
-        super().__init__(strategy_name, key_course_selection, save)
+    def __init__(self, strategy_name, course_selection_key, save):
+        super().__init__(strategy_name, course_selection_key, save)
 
         self.folder_path = get_path() / 'data/analyse/study_indicator_params/brute_force'
-        self.run()
+
+
+    def test_time_per_iteration(self, n) -> float:
+        """ Calculates the average calculation time of one iteration
+        :param n: number of samples to calculate average iteration time
+        :return: average time per iteration
+        """
+        start = pd.Timestamp.now()
+        for index, params in enumerate(self.params_variations[0:n]):
+            result = eval_param_with_symbol_study(self.strategy_name, params, self.course_selection_paths)
+            result['params'] = params
+            print(
+                f'Test + iteration time \t\t'
+                f'{index + 1}/{len(self.params_variations)}: \t\t'  # index
+                f'{[round(v, 2) if isinstance(v, (int, float)) else v for v in result.values()]}' # print result dict in one line ->    1/11776: [1.04, 5.06, -4.02, {'rsi_l': 5.0, 'bl': 10.0, 'bu': 50.0}]
+            )
+        end = pd.Timestamp.now()
+        return (end - start).total_seconds()
 
 
     def run(self):
