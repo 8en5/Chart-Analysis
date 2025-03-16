@@ -83,7 +83,7 @@ class EvaluateStrategy:
         Currently plots are saved under default folder and default name
         """
         vs = VisualizeStrategy(self.df)
-        title = f'{self.result_dict['Strategy_with_fee']:.2f} | {self.result_dict['factor_benchmark']:.2f}'
+        title = f"{self.result_dict['Strategy_with_fee']:.2f} | {self.result_dict['factor_benchmark']:.2f}"
         vs.init(title=title)
         vs.run()
 

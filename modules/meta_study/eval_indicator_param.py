@@ -163,7 +163,7 @@ class BruteForce(ResultManager):
                         summary_dict[key] = []
                     summary_dict[key].append(value)
                 # Save intermediate results
-                if index % 50 == 0:
+                if index % 200 == 0:
                     self.summary_dict = summary_dict
                     self.save_intermediate_result()
             except Exception as e:

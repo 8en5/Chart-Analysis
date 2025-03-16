@@ -16,8 +16,8 @@ params_study_dict = {
             'bb_std': [1.5, 2.5]
         },
         'brute_force': {
-            'bb_l': (5, 30, 5),
-            'bb_std': (1.5, 2.5, 0.3)
+            'bb_l': (2, 30, 1),
+            'bb_std': (1.0, 3.0, 0.2)
         }
     },
 
@@ -28,8 +28,8 @@ params_study_dict = {
             'm_signal': [30, 90]  # m_signal accidentally set to 90 (copy from rsi) -> really good param
         },
         'brute_force': {
-            'm_fast': (2, 50, 3),
-            'm_slow': (15, 200, 5),
+            'm_fast': (2, 100, 2),
+            'm_slow': (15, 200, 2),
             'm_signal': (1, 3, 0.2)
         },
         'optimization': {
@@ -46,8 +46,8 @@ params_study_dict = {
             'bu': [60, 70, 90]
         },
         'brute_force': {
-            'rsi_l': (5, 100, 3),
-            'bl': (10, 40, 2),
+            'rsi_l': (1, 150, 1),
+            'bl': (10, 50, 2),
             'bu': (50, 95, 2)
         },
     },

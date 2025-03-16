@@ -10,7 +10,7 @@ from modules.meta_study.eval_indicator_param import BruteForce
 
 
 def study_brute_force():
-    strategy_names = ['MACD']
+    strategy_names = ['MACD', 'BB', 'RSI']
     course_selection_keys = ['default']
 
     BruteForce('MACD', 'default', True)
