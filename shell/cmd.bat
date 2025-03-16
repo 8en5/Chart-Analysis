@@ -18,7 +18,7 @@ if exist "%VENV_ACTIVATE%" (
 )
 
 :: Step 3: Add workspace to PYTHONPATH
-echo set "PYTHONPATH=%PYTHONPATH%;%WORKSPACE%"
+echo PYTHONPATH set to %WORKSPACE%"
 set "PYTHONPATH=%PYTHONPATH%;%WORKSPACE%"
 
 REM Keep terminal open

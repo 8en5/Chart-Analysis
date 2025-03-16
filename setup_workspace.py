@@ -9,7 +9,7 @@ def create_venv():
     """
     print('1) Virtual Environment ...')
     if not os.path.exists('.venv'):
-        print('Create virtual environment (venv) ...')
+        print('Venv does not exist - create virtual environment ...')
         print('python -m venv .venv') # command in terminal
         subprocess.run([sys.executable, '-m', 'venv', '.venv'], check=True)
     else:
@@ -40,7 +40,7 @@ def repair_import_error_pandas_ta():
     file: .venv/Lib/site-packages/pandas_ta/momentum/squeeze_pro.py
       line 2: replace `from numpy import NaN as npNaN` with `from numpy import nan as npNaN`
     """
-    print('3) Fix pandas_ta import error (NaN to nan) ...')
+    print('3) Fix pandas_ta import error (file "squeeze_pro.py" line 2: NaN to nan) ...')
 
     # Path to the file with import errors: squeeze_pro.py
     if platform.system() == 'Windows':

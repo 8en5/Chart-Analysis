@@ -20,7 +20,3 @@ fi
 # Step 3: Add workspace to PYTHONPATH
 export PYTHONPATH="$PYTHONPATH:$WORKSPACE"
 echo "PYTHONPATH set to $PYTHONPATH"
-
-# Keep terminal open (optional)
-echo
-bash
