@@ -5,7 +5,7 @@ from pathlib import Path
 ws_dir = (Path(__file__).parent / "../..").resolve()  # Workspace
 sys.path.insert(0, str(ws_dir))                # add ws to sys-path to run py-file in separate cmd
 
-from modules.strategy.manual_strategies import *
+from modules.strategy.invested_strategies import *
 from modules.file_handler import *
 from modules.strategy.visualize_strategy import VisualizeStrategy
 from modules.strategy.evaluate_strategy import get_evaluation_statistics
@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
             # Run routine
             df = load_pandas_from_file_path(symbol_file_path)
-            df = func_manual_strategy(strategy_name, df[['close']], params)
+            df = func_get_invested_from_indicator(strategy_name, df[['close']], params)
             evaluation = get_evaluation_statistics(df)
             vs = VisualizeStrategy(df)
             vs.init(strategy_name=strategy_name, plot_type=2)

@@ -19,7 +19,7 @@ Output: Plot (save/show) that visualizes the strategy
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-from modules.strategy.manual_strategies import *
+from modules.strategy.invested_strategies import *
 from modules.file_handler import *
 from modules.plot import *
 
@@ -77,10 +77,8 @@ class VisualizeStrategy:
                 self._plot_type1_default()
             case 2:                             # indicator
                 self._plot_type2_indicator()
-            case 3:                             # specific
-                self._plot_type3_specific()
             case _:
-                raise ValueError(f'Wrong plot type [1-3]: {self.plot_type}')
+                raise ValueError(f'Wrong plot type [1-2]: {self.plot_type}')
 
         if self.save_plot:
             self._save_fig()
@@ -121,13 +119,6 @@ class VisualizeStrategy:
         func_ax_indicator = globals()[f'ax_{self.strategy_name}']             # e.g. ax_BB
         func_ax_indicator(ax[1], self.df)                                     # Indicator
         ax_default_properties(ax[1], self.strategy_name)                      # Labels
-
-    def _plot_type3_specific(self):
-        """ Plot specific
-        Call specific plot defined in manual_strategies.py
-        """
-        # Specific
-        func_plot(self.df)                                                # func defined in  manual_strategies.py
 
 
     def _save_fig(self):

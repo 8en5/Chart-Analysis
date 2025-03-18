@@ -1,103 +1,29 @@
-import itertools
-import ast
 
-from modules.file_handler import get_path, load_yaml_from_file_path
-from modules.plot import *
 from modules.indicators import *
 from modules.functional_analysis import *
-from modules.utils import pandas_print_all
+from modules.params import get_params_from_yaml
+
 
 pd.set_option('future.no_silent_downcasting', True) # if values are converted down (value to nan - when calculating df[invested] based on df[signal])
 
 
-def func_manual_strategy(strategy_name, *args):
+def func_get_invested_from_indicator(strategy_name, *args):
     """ Call function set_manual_strategy_{strategy_name}()
     :param strategy_name: name for the strategy defined in this file
     :param args: *args for the func
     :return: set_manual_strategy_{strategy_name}
     """
-    func_name = f'set_manual_strategy_{strategy_name}'
+    func_name = f'_get_invested_from_{strategy_name}'
     # Check
     func = globals().get(func_name)
     if not callable(func):
         raise ValueError(f'The function "{func_name}" does not exist - define it in manual_strategies.py')
     # Return called function
     return func(*args)
-
-def func_plot(strategy_name, *args):
-    """
-    :param strategy_name: name for the strategy defined in this file
-    :param args: *args for the func
-    :return: set_manual_plot_{strategy_name}
-    """
-    func_name = f'set_manual_plot_{strategy_name}'
-    # Check
-    func = globals().get(func_name)
-    if not callable(func):
-        raise ValueError(f'The function "{func_name}" does not exist - define it in manual_strategies.py')
-    # Return called function
-    return func(*args)
-
-
-def get_params_from_dict(strategy_name, variant):
-    """ Return params defined in indicator_params.yaml
-    :param strategy_name: dict[key]
-    :param variant: dict[strategy_name][key]
-    :return: dict of params
-    """
-    file_path = get_path() / 'modules/input_files/indicator_params.yaml'
-    params_study_dict = load_yaml_from_file_path(file_path)
-
-    if strategy_name not in params_study_dict:
-        raise ValueError(f'key "{strategy_name}" not in {params_study_dict}')
-    if variant not in params_study_dict[strategy_name]:
-        raise ValueError(f'key "{variant}" not in {params_study_dict[strategy_name]}')
-    if not params_study_dict[strategy_name][variant]:
-        raise ValueError(f'{strategy_name}[{variant}] is None - define it in the yaml "indicator_params.yaml"')
-
-    result = params_study_dict[strategy_name][variant]
-    for key, value in result.items():
-        if isinstance(value, (list, tuple)):
-            continue
-        else:
-            try:
-                result[key] = ast.literal_eval(value)
-            except:
-                raise ValueError(f'Wrong format (no list or tuple) for {strategy_name}[{variant}] - {key}: "{value}"')
-    return result
-
-def _set_param_variation(params_study: dict[str, list[float] | tuple[float, float, float]]) -> dict[str, list]:
-    """ If present, converts a tuple (range) parameter set into a list.
-
-    :param params_study: {key: [x,x,x], key: (start, end, step)}
-    :return: dict all in format {key: [x,x,x]}
-    """
-    for key, value in params_study.items():
-        if isinstance(value, tuple) and len(value) == 3:
-            start, end, step = float(value[0]), float(value[1]), float(value[2])
-            params_study[key] = [round(start + i * step, 10) for i in range(int((end - start) / step) + 1)]
-
-    return params_study
-
-def get_all_combinations_from_params_study(strategy_name, variant):
-    """ Return list of all params variations
-    :param strategy_name: dict[key]
-    :param variant: dict[strategy_name][key]
-    :return: list of all params variations
-    """
-    # Get raw params and prepare it
-    params_study = get_params_from_dict(strategy_name, variant)
-    params_study = _set_param_variation(params_study)
-    # Calculate all combinations
-    keys = params_study.keys()
-    values = params_study.values()
-    combination = list(itertools.product(*values))
-    combinations_list = [dict(zip(keys, combi)) for combi in combination]  # combination_list = [{self.params1}, {self.params2}, ... ]
-    return combinations_list
 
 
 def _calc_invested_from_signal(df):
-    """ Calculate status 'invested' from signal
+    """ Calculate status 'invested' from the signals of the indicators
     :param df: df['signal']
     :return: df['invested']
     """
@@ -168,12 +94,9 @@ def _calc_invested_from_signal(df):
 
 
 #------------------------ BB ------------------------#
-def set_manual_strategy_BB(df, params=None):
+def _get_invested_from_BB(df, params=None):
     if params is None:
-        params = {
-            'bb_l': 6,
-            'bb_std': 2.0
-        }
+        params = get_params_from_yaml('BB', 'default')
 
     # Indicator
     df = func_indicator('BB', df, length=params['bb_l'], std=params['bb_std'])
@@ -194,13 +117,9 @@ def set_manual_strategy_BB(df, params=None):
 
 
 #---------------------- MACD ----------------------#
-def set_manual_strategy_MACD(df, params=None):
+def _get_invested_from_MACD(df, params=None):
     if params is None:
-        params = {
-            'm_fast': 12,
-            'm_slow': 26,
-            'm_signal': 90 # 9
-        }
+        params = get_params_from_yaml('MACD', 'default')
 
     # Indicator
     df = func_indicator('MACD', df, fast=params['m_fast'], slow=params['m_slow'], signal=params['m_signal'])
@@ -222,13 +141,9 @@ def set_manual_strategy_MACD(df, params=None):
 
 
 #---------------------- RSI ----------------------#
-def set_manual_strategy_RSI(df, params=None):
+def _get_invested_from_RSI(df, params=None):
     if params is None:
-        params = {
-            'rsi_l': 14,
-            'bl': 30,
-            'bu': 70
-        }
+        params = get_params_from_yaml('RSI', 'default')
 
     # Indicator
     df = func_indicator('RSI', df, params['rsi_l'], params['bl'], params['bu'])
@@ -244,5 +159,4 @@ def set_manual_strategy_RSI(df, params=None):
 
     # Invested [in, out] from signals
     df =_calc_invested_from_signal(df)
-
     return df

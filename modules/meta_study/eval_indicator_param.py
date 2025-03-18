@@ -2,8 +2,9 @@
 import pandas as pd
 
 from modules.file_handler import *
-from modules.strategy.manual_strategies import *
+from modules.strategy.invested_strategies import *
 from modules.strategy.evaluate_strategy import get_evaluation_statistics
+from modules.params import *
 from modules.course import get_file_paths_of_course_selection
 from modules.error_handling import ErrorHandling
 
@@ -36,7 +37,7 @@ def eval_param_with_symbol_study(strategy_name, params:dict, symbols_paths):
     for index, symbol_file_path in enumerate(symbols_paths):
         #print(f'{index + 1}/{len(symbol_study_file_paths)}: {symbol_file_path.stem}')
         df = load_pandas_from_file_path(symbol_file_path)[['close']]
-        df = func_manual_strategy(strategy_name, df, params)
+        df = func_get_invested_from_indicator(strategy_name, df, params)
         df = df[['close', 'invested']] # Cut df to the minimal relevant data
         if len(df) < 600:
             raise AssertionError(f'The data of the course "{symbol_file_path.stem}" is too short: "{len(df)}". Remove it from the analysis')
@@ -75,7 +76,7 @@ class ResultManager:
         self.file_name = f'{strategy_name}_{course_selection_key}_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 
         # Meta information for the study
-        self.params_dict = get_params_from_dict(strategy_name, param_selection)
+        self.params_dict = get_params_from_yaml(strategy_name, param_selection)
         self.symbols = get_names_from_paths(self.course_selection_paths)
         self.time_start = pd.Timestamp.now()
 
