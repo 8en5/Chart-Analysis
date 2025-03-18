@@ -4,7 +4,7 @@ from modules.file_handler import *
 
 
 def test_path():
-    tests = [None, 'ws', 'course_cc', 'analyse_cc', 'wrong_key']
+    tests = [None, 'ws', 'cc', 'wrong_key']
     for index, test in enumerate(tests):
         print(f'{index}: {test}')
         try:
@@ -41,8 +41,8 @@ def test_find_file_in_directory():
         'wrong_symbol.csv'  # not finding
     ]
 
-    folder_path = get_path('course_cc')
-    #folder_path = str(get_path('course_cc'))   # test type string
+    folder_path = get_path('cc')
+    #folder_path = str(get_path('cc'))   # test type string
     for index, test in enumerate(tests):
         print(f'{index}: {test}')
         try:

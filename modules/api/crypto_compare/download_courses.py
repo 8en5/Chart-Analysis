@@ -79,7 +79,7 @@ class DownloadManagerCC:
         self.symbol = symbol                                     # symbol
         self.error_handling = error_handling                     # Error handling
 
-        self.folder_path = get_path('course_cc') / 'download'    # folder to save all symbols
+        self.folder_path = get_path('cc') / 'download'    # folder to save all symbols
         self.allow_update = True                                 # bool, whether updates are allowed if file with old data exists (if False, always full download)
 
         # Initialize variables, value assigned at runtime

@@ -11,7 +11,7 @@ def get_available_symbols_cc() -> pd.DataFrame:
     :return: df with all symbols
     """
     # Folder path
-    folder_path = get_path('course_cc')
+    folder_path = get_path('cc')
     file_name = 'cc_symbols_api.csv'
     file_path = folder_path / file_name
     if not file_path.exists():

@@ -7,14 +7,23 @@ from modules.utils import *
 
 
 def get_path(key:str='ws') -> Path:
+    """ Return selected paths to important folders or files
+    :param key: key for the specific path
+    :return:
+    """
     # Calculate workspace
     current_path = Path(__file__).resolve()   # location of this file
     workspace_path = current_path.parents[1]  # "../../"
 
     folder_dict = {
+        # Folders
         'ws': workspace_path,
-        'course_cc': workspace_path / "data/course/crypto_compare",
-        'analyse_cc': workspace_path / "data/analyse/crypto_compare",
+        'cc': workspace_path / 'data/course/crypto_compare',
+
+        # Files
+        'cc_symbols_api_csv': workspace_path / 'data/course/crypto_compare/cc_symbols_api.csv',
+        'course_selection_yaml': workspace_path / 'modules/input_files/course_selection.yaml',
+        'indicator_params_yaml': workspace_path / 'modules/input_files/indicator_params.yaml',
     }
 
     if key not in folder_dict:
@@ -24,6 +33,10 @@ def get_path(key:str='ws') -> Path:
 
 
 def create_dir(folder_path:Path) -> None:
+    """ Create folder, if folder does not exist
+    Folder must be in the workspace
+    :param folder_path: directory (which should be created)
+    """
     folder_path = Path(folder_path)  # Make sure path is a Path object
     if folder_path.exists():
         # Folder exists
@@ -31,7 +44,7 @@ def create_dir(folder_path:Path) -> None:
         return
     else:
         # Folder doesn't exist
-        # Create folder only, if folder in workspace
+        # Create folder only, if folder is in workspace
         workspace_path = get_path('ws')
         if not folder_path.is_relative_to(workspace_path):
             raise AssertionError(f'Folder {folder_path} not in workspace {workspace_path}')
@@ -132,7 +145,7 @@ def get_names_from_paths(list_file_paths:list) -> list[str]:
 #---------------------- Pandas ----------------------#
 def load_pandas_from_symbol(symbol:str) -> pd.DataFrame:
     # Find file path from symbol in folder
-    folder_path = get_path('course_cc')
+    folder_path = get_path('cc')
     file_name = f'{symbol}.csv'
     file_path = find_file_in_directory(folder_path, file_name)
 

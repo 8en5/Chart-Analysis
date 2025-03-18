@@ -65,7 +65,7 @@ class ResultManager:
         self.strategy_name = strategy_name
         self.course_selection_paths = get_file_paths_of_course_selection(course_selection_key)
 
-        param_selection = 'visualize' # [visualize, brute_force, optimization]
+        param_selection = 'brute_force' # [visualize, brute_force, optimization]
         self.params_variations = get_all_combinations_from_params_study(strategy_name, param_selection)
         self.total_tests = len(self.params_variations)
 

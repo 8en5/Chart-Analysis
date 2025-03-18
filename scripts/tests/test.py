@@ -46,7 +46,7 @@ def get_dummy_data_random():
 def get_dummy_data_course(strategy_name='BB', symbol='BTC'):
     strategy_name = strategy_name
     symbol = symbol
-    path = get_path('course_cc') / 'yaml' / f'{symbol}.csv'
+    path = get_path('cc') / 'download' / f'{symbol}.csv'
     df = load_pandas_from_file_path(path)
     df = func_manual_strategy(strategy_name, df)
     df = df.dropna(subset=['invested'])  # remove all rows in the beginning, where df[invested] is None

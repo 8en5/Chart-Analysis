@@ -49,7 +49,7 @@ if __name__ == "__main__":
     source = 'yaml'                                         # [yaml, api]
 
 
-    folder_path_course = get_path('course_cc') / source     # load symbols in this folder
+    folder_path_course = get_path('cc') / source     # load symbols in this folder
 
     match run_type:
         case 1: # [F,F] plot one symbol with default params (for testing or specific analysis)

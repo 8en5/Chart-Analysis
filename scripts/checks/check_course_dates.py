@@ -38,7 +38,7 @@ def routine_checking_all_dates():
     """
     Go through all downloaded courses in a directory and check the data
     """
-    directory = get_path('course_cc')
+    directory = get_path('cc')
     for file in directory.rglob('*'):
         if file.is_dir():
             print(f'Folder: {file}')

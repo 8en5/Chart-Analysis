@@ -61,7 +61,6 @@ def get_params_from_dict(strategy_name, variant):
             continue
         else:
             try:
-                print(type(value))
                 result[key] = ast.literal_eval(value)
             except:
                 raise ValueError(f'Wrong format (no list or tuple) for {strategy_name}[{variant}] - {key}: "{value}"')

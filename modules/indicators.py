@@ -3,7 +3,7 @@ import pandas as pd
 import pandas_ta as ta
 
 
-COL_NAMES = {
+INDICATOR_COL_NAMES = {
     'BB': [r'BBL.*', r'BBM.*', r'BBU.*'], # ['BBL_5_2.0', 'BBM_5_2.0', 'BBU_5_2.0', 'BBB_5_2.0', 'BBP_5_2.0'] - [Low, SMA, Up, Bandwith, Percentage]
     'CMA': ['CMA'], # ['CMA']
     'EMA': ['EMA.*'], # ['EMA_200']
@@ -38,11 +38,11 @@ def func_indicator(indicator_name:str, *args, **kwargs):
 
 def get_indicator_col_names(df, indicator:str):
     # Check
-    if indicator not in COL_NAMES:
-        raise ValueError(f'{indicator} not in {COL_NAMES.keys()}')
+    if indicator not in INDICATOR_COL_NAMES:
+        raise ValueError(f'{indicator} not in {INDICATOR_COL_NAMES.keys()}')
 
     # Calculate col names
-    regex_list = COL_NAMES[indicator]
+    regex_list = INDICATOR_COL_NAMES[indicator]
     matching_columns = []
     for regex in regex_list:
         matches = [element for element in df.columns if re.fullmatch(regex, element)]
@@ -76,7 +76,6 @@ def get_period(period='D'):
     return freq
 
 
-# TODO: df.copy entfernen -> direkt auf einem df arbeiten
 
 #------------- Own calculated Indicators -------------#
 

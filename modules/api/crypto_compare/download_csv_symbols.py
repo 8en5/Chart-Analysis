@@ -41,5 +41,5 @@ def main_routine_download_available_symbols():
 
     # Save data to a CSV file
     name = 'cc_symbols_api'
-    folder = get_path('course_cc')
+    folder = get_path('cc')
     save_pandas_to_file(df, folder, name)
