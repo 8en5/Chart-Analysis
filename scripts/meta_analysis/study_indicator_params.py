@@ -6,7 +6,7 @@ from modules.meta_study.eval_indicator_param import BruteForce
 
 
 def study_brute_force():
-    strategy_names = ['MACD', 'BB', 'RSI']
+    indicator_names = ['MACD', 'BB', 'RSI']
     course_selection_keys = ['default']
     file_path = get_path() / 'data' / f'running_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 
@@ -32,13 +32,13 @@ def study_brute_force():
 
     # Calculate the estimated study time
     n_test_samples = 9
-    for strategy_name in strategy_names:
+    for indicator_name in indicator_names:
         for course_selection_key in course_selection_keys:
-            print(f'Test: {strategy_name} - {course_selection_key }')
-            bf = BruteForce(strategy_name, course_selection_key, False) # no saving
+            print(f'Test: {indicator_name} - {course_selection_key }')
+            bf = BruteForce(indicator_name, course_selection_key, False) # no saving
             time_one_iteration = bf.test_time_per_iteration(n_test_samples) / n_test_samples
             time_estimated = time_one_iteration * len(bf.params_variations) / 3600
-            meta_dict['study'][f'{strategy_name}/{course_selection_key}'] = {
+            meta_dict['study'][f'{indicator_name}/{course_selection_key}'] = {
                 'time_one_iteration [s]': time_one_iteration,
                 'total_combinations': len(bf.params_variations),
                 'time_estimated [h]': time_estimated,
@@ -52,11 +52,11 @@ def study_brute_force():
         file.write(json.dumps(meta_dict, indent=4))
 
     # Run study
-    for strategy_name in strategy_names:
+    for indicator_name in indicator_names:
         for course_selection_key in course_selection_keys:
-            d = meta_dict['study'][f'{strategy_name}/{course_selection_key}']
+            d = meta_dict['study'][f'{indicator_name}/{course_selection_key}']
             d['start'] = pd.Timestamp.now().strftime("%Y/%m/%d %H:%M:%S")
-            bf = BruteForce(strategy_name, course_selection_key, True)
+            bf = BruteForce(indicator_name, course_selection_key, True)
             bf.run()
             d['end'] = pd.Timestamp.now().strftime("%Y/%m/%d %H:%M:%S")
             d['time_real [h]'] = (pd.to_datetime(d['end'],format="%Y/%m/%d %H:%M:%S") - pd.to_datetime(d['start'],format="%Y/%m/%d %H:%M:%S")).total_seconds() / 3600
@@ -77,7 +77,7 @@ from scipy.optimize import minimize
 
 def _cost_function(p:list):
     params = convert_params_list_in_dict(p)
-    cost = eval_param_with_symbol_study(strategy_name, params)['stage_diff_benchmark_mean'] # cost function = diff to benchmark
+    cost = eval_param_with_symbol_study(indicator_name, params)['stage_diff_benchmark_mean'] # cost function = diff to benchmark
     # Print
     p = [round(float(x), 2) for x in p]
     print(f'{p} \t\t {cost:.2f}')
@@ -95,7 +95,7 @@ def convert_params_list_in_dict(values:list):
         {'m_fast': np.float64(12.0), 'm_slow': np.float64(26.0), 'm_signal': np.float64(90.0)}
     """
     # Get keys from another dict
-    keys = params_study_dict[strategy_name]['brute_force'].keys()
+    keys = params_study_dict[indicator_name]['brute_force'].keys()
     if len(keys) != len(values):
         raise ValueError(f'list {values} and dict {keys} have different lengths')
     params = dict(zip(keys, values))
@@ -120,13 +120,13 @@ def study_optimization():
     method = 'Nelder-Mead'
 
     # Save results
-    folder_path = get_path() / 'data/analyse/optimization' / strategy_name
+    folder_path = get_path() / 'data/analyse/optimization' / indicator_name
     file_name = pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")
     create_dir(folder_path)
     file_path = folder_path / f'{file_name}.txt'
 
     # Multiple starting points for the optimization
-    list_initial_params = get_all_combinations_from_params_study(strategy_name, 'optimization')
+    list_initial_params = get_all_combinations_from_params_study(indicator_name, 'optimization')
 
 
     for index, initial_params in enumerate(list_initial_params):

@@ -7,12 +7,13 @@ sys.path.insert(0, str(ws_dir))                # add ws to sys-path to run py-fi
 
 from modules.strategy.invested_strategies import *
 from modules.file_handler import *
+from modules.params import *
 from modules.strategy.visualize_strategy import VisualizeStrategy
 from modules.strategy.evaluate_strategy import get_evaluation_statistics
 
 
-def _calc_folder_path(strategy_name, source, symbol, param_study):
-    base_folder_path = get_path('ws') / 'data/analyse/visualize' / strategy_name
+def _calc_folder_path(indicator_name, source, symbol, param_study):
+    base_folder_path = get_path('ws') / 'data/analyse/visualize' / indicator_name
     if param_study:
         folder_path = base_folder_path / 'parameter_study' / symbol
     else:
@@ -44,7 +45,7 @@ if __name__ == "__main__":
         - strategy name / symbol / params - for calculating the file name
     """
 
-    strategy_name = 'BB'                                    # MACD, BB, RSI
+    indicator_name = 'BB'                                    # MACD, BB, RSI
     run_type = 3                                            # Program flow [1-4]
     source = 'yaml'                                         # [yaml, api]
 
@@ -84,7 +85,7 @@ if __name__ == "__main__":
     # Params study
     if param_study:
         # Param study (get all param combinations from strategy name
-        params_study = get_all_combinations_from_params_study(strategy_name, 'visualize')
+        params_study = get_all_combinations_from_params_study(indicator_name, 'visualize')
     else:
         params_study = [None]
 
@@ -107,11 +108,11 @@ if __name__ == "__main__":
 
             # Run routine
             df = load_pandas_from_file_path(symbol_file_path)
-            df = func_get_invested_from_indicator(strategy_name, df[['close']], params)
+            df = func_get_invested_from_indicator(indicator_name, df[['close']], params)
             evaluation = get_evaluation_statistics(df)
             vs = VisualizeStrategy(df)
-            vs.init(strategy_name=strategy_name, plot_type=2)
-            vs.init(folder_path=_calc_folder_path(strategy_name, source, symbol, param_study), filename=_calc_file_name(i, symbol, params))
+            vs.init(indicator_name=indicator_name, plot_type=2)
+            vs.init(folder_path=_calc_folder_path(indicator_name, source, symbol, param_study), filename=_calc_file_name(i, symbol, params))
             vs.init(title=_calc_title_from_evaluation(evaluation))
             #vs.init(show_plot=True, save_plot=False)       # init for show and no save
             vs.run()

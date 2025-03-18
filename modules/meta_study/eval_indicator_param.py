@@ -9,19 +9,19 @@ from modules.course import get_file_paths_of_course_selection
 from modules.error_handling import ErrorHandling
 
 
-def eval_param_with_symbol_study(strategy_name, params:dict, symbols_paths):
+def eval_param_with_symbol_study(indicator_name, params:dict, symbols_paths):
     """ Evaluate one param variation of an indicator over multiple courses
     Calculate 'EvaluateStrategy' (= Evaluation of one param variation with one symbol) over multiple courses (defined in
       stages). Then summarize the results over the multiple courses and calculate mean and std as meta result
       for this param variation
 
-    :param strategy_name: strategy name
+    :param indicator_name: strategy name
     :param params: dict of the one specific param variation of the indicator
     :param symbols_paths: list paths of the selected courses for the evaluation
     :return: dict meta result - mean and std as summary over multiple courses (from the most important values)
 
     Input:
-        strategy_name + params -> One param variation (for the indicator)
+        indicator_name + params -> One param variation (for the indicator)
     Process:
         calculate basic evaluation over multiple courses (depending on stage) and summarize them
         e.g.: Buy_and_Hold, Strategy_with_fee, diff_benchmark
@@ -37,7 +37,7 @@ def eval_param_with_symbol_study(strategy_name, params:dict, symbols_paths):
     for index, symbol_file_path in enumerate(symbols_paths):
         #print(f'{index + 1}/{len(symbol_study_file_paths)}: {symbol_file_path.stem}')
         df = load_pandas_from_file_path(symbol_file_path)[['close']]
-        df = func_get_invested_from_indicator(strategy_name, df, params)
+        df = func_get_invested_from_indicator(indicator_name, df, params)
         df = df[['close', 'invested']] # Cut df to the minimal relevant data
         if len(df) < 600:
             raise AssertionError(f'The data of the course "{symbol_file_path.stem}" is too short: "{len(df)}". Remove it from the analysis')
@@ -62,21 +62,21 @@ def eval_param_with_symbol_study(strategy_name, params:dict, symbols_paths):
 
 
 class ResultManager:
-    def __init__(self, strategy_name, course_selection_key, save=True):
-        self.strategy_name = strategy_name
+    def __init__(self, indicator_name, course_selection_key, save=True):
+        self.indicator_name = indicator_name
         self.course_selection_paths = get_file_paths_of_course_selection(course_selection_key)
 
         param_selection = 'brute_force' # [visualize, brute_force, optimization]
-        self.params_variations = get_all_combinations_from_params_study(strategy_name, param_selection)
+        self.params_variations = get_all_combinations_from_params_study(indicator_name, param_selection)
         self.total_tests = len(self.params_variations)
 
         # Save results
         self.save = save
         self.folder_path = get_path() # overwrite in child
-        self.file_name = f'{strategy_name}_{course_selection_key}_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}'
+        self.file_name = f'{indicator_name}_{course_selection_key}_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 
         # Meta information for the study
-        self.params_dict = get_params_from_yaml(strategy_name, param_selection)
+        self.params_dict = get_params_from_yaml(indicator_name, param_selection)
         self.symbols = get_names_from_paths(self.course_selection_paths)
         self.time_start = pd.Timestamp.now()
 
@@ -108,7 +108,7 @@ class ResultManager:
         # Make result dict (assemble from 3 parts)
           # Save meta information to this study
         result_dict_meta = {
-            'strategy_name': self.strategy_name,
+            'indicator_name': self.indicator_name,
         }
           # Add first row (best result) of the study
         df = pd.DataFrame(self.summary_dict)
@@ -135,7 +135,7 @@ class ResultManager:
             return
         df = pd.DataFrame([result_dict])
         file = self.folder_path / '_summary.csv'
-        print(f'{self.strategy_name} finished - save results to {file} \n')
+        print(f'{self.indicator_name} finished - save results to {file} \n')
         if not file.exists():
             df.to_csv(file, mode='w', header=True, float_format='%.3f', index=False)
         else:
@@ -144,8 +144,8 @@ class ResultManager:
 
 
 class BruteForce(ResultManager):
-    def __init__(self, strategy_name, course_selection_key, save):
-        super().__init__(strategy_name, course_selection_key, save)
+    def __init__(self, indicator_name, course_selection_key, save):
+        super().__init__(indicator_name, course_selection_key, save)
 
         self.folder_path = get_path() / 'data/analyse/study_indicator_params/brute_force'
 
@@ -157,7 +157,7 @@ class BruteForce(ResultManager):
         """
         start = pd.Timestamp.now()
         for index, params in enumerate(self.params_variations[0:n]):
-            result = eval_param_with_symbol_study(self.strategy_name, params, self.course_selection_paths)
+            result = eval_param_with_symbol_study(self.indicator_name, params, self.course_selection_paths)
             result['params'] = params
             print(
                 f'Test + iteration time \t\t'
@@ -172,7 +172,7 @@ class BruteForce(ResultManager):
         summary_dict = {}
         for index, params in enumerate(self.params_variations):
             try:
-                result = eval_param_with_symbol_study(self.strategy_name, params, self.course_selection_paths)
+                result = eval_param_with_symbol_study(self.indicator_name, params, self.course_selection_paths)
                 result['params'] = params
                 print(
                     f'{index + 1}/{len(self.params_variations)}: \t\t'  # index

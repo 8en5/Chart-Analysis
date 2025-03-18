@@ -43,12 +43,12 @@ def get_dummy_data_random():
     return df
 
 
-def get_dummy_data_course(strategy_name='BB', symbol='BTC'):
-    strategy_name = strategy_name
+def get_dummy_data_course(indicator_name='BB', symbol='BTC'):
+    indicator_name = indicator_name
     symbol = symbol
     path = get_path('cc') / 'download' / f'{symbol}.csv'
     df = load_pandas_from_file_path(path)
-    df = func_get_invested_from_indicator(strategy_name, df)
+    df = func_get_invested_from_indicator(indicator_name, df)
     df = df.dropna(subset=['invested'])  # remove all rows in the beginning, where df[invested] is None
     df['close_perc'] = df['close'].pct_change(periods=1)
     df = df[['close', 'invested', 'close_perc']]

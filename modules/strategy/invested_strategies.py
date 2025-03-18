@@ -7,13 +7,13 @@ from modules.params import get_params_from_yaml
 pd.set_option('future.no_silent_downcasting', True) # if values are converted down (value to nan - when calculating df[invested] based on df[signal])
 
 
-def func_get_invested_from_indicator(strategy_name, *args):
-    """ Call function set_manual_strategy_{strategy_name}()
-    :param strategy_name: name for the strategy defined in this file
+def func_get_invested_from_indicator(indicator_name, *args):
+    """ Call function set_manual_strategy_{indicator_name}()
+    :param indicator_name: name for the strategy defined in this file
     :param args: *args for the func
-    :return: set_manual_strategy_{strategy_name}
+    :return: set_manual_strategy_{indicator_name}
     """
-    func_name = f'_get_invested_from_{strategy_name}'
+    func_name = f'_get_invested_from_{indicator_name}'
     # Check
     func = globals().get(func_name)
     if not callable(func):

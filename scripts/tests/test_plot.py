@@ -10,12 +10,12 @@ from modules.plot import *
 
 
 
-def test_plot_indicator(strategy_name):
+def test_plot_indicator(indicator_name):
     symbol = 'BTC'
 
     # Load course and indicator
     df = load_pandas_from_symbol(symbol)
-    df = func_indicator(strategy_name, df)
+    df = func_indicator(indicator_name, df)
 
     # Figure
     fig, ax = plt.subplots(2, 1)
@@ -23,7 +23,7 @@ def test_plot_indicator(strategy_name):
     ax_course(ax[0], df)
     ax_default_properties(ax[0], symbol)
     # Plot 2 (Indicators)
-    func_ax_indicator(strategy_name, ax[1], df)
+    func_ax_indicator(indicator_name, ax[1], df)
     ax_default_properties(ax[1], 'Indicator')
 
     # Show

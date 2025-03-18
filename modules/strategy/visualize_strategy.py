@@ -10,7 +10,7 @@ Input: df
     - plot_type = 2:
         - df[<indicators>, signal]
 - optional (defined in init() or init_analysis()):
-    - folder_path: strategy_name (else temp)
+    - folder_path: indicator_name (else temp)
     - file_name: symbol, params (else only counter)
 
 Output: Plot (save/show) that visualizes the strategy
@@ -39,7 +39,7 @@ class VisualizeStrategy:
 
         # Default values
             # Strategy
-        self.strategy_name = None                   # [str] strategy name
+        self.indicator_name = None                   # [str] strategy name
             # Plot
         self.plot_type = 1                          # [mapping] Plot type: 0 (only course) | 1 (course + indicator)
         self.show_plot = False                      # [bool] if true show plot - plt.show()
@@ -103,8 +103,8 @@ class VisualizeStrategy:
         - Plot 2: Indicator + Background signals (['buy', 'sell', 'bullish', 'bearish'] from indicators)
         """
         # Check
-        if self.strategy_name == '':
-            raise AssertionError(f'strategy_name is not defined - cant call ax_<strategy_name>(). Maybe choose plot_type = 1')
+        if self.indicator_name == '':
+            raise AssertionError(f'indicator_name is not defined - cant call ax_<indicator_name>(). Maybe choose plot_type = 1')
         if not 'signal' in self.df.columns:
             raise AssertionError(f'Min requirement failed: no column "signal" -> run set_manual_strategy_<name>')
 
@@ -116,9 +116,9 @@ class VisualizeStrategy:
         ax_default_properties(ax[0], self.title)                              # Labels
         # Plot 2 (Indicator)
         ax_background_colored_signals(ax[1], self.df[['signal']])             # df['signal'] -> [buy, sell, bullish, bearish]
-        func_ax_indicator = globals()[f'ax_{self.strategy_name}']             # e.g. ax_BB
+        func_ax_indicator = globals()[f'ax_{self.indicator_name}']             # e.g. ax_BB
         func_ax_indicator(ax[1], self.df)                                     # Indicator
-        ax_default_properties(ax[1], self.strategy_name)                      # Labels
+        ax_default_properties(ax[1], self.indicator_name)                      # Labels
 
 
     def _save_fig(self):
