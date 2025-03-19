@@ -2,10 +2,10 @@
 import pandas as pd
 
 from modules.file_handler import *
-from modules.strategy.invested_strategies import *
-from modules.strategy.evaluate_strategy import get_evaluation_statistics
+from modules.strategy.strategy_invested import *
+from modules.strategy.evaluate_invested import get_evaluation_statistics
 from modules.params import *
-from modules.course import get_file_paths_of_course_selection
+from modules.course import get_symbol_paths
 from modules.error_handling import ErrorHandling
 
 
@@ -64,7 +64,7 @@ def eval_param_with_symbol_study(indicator_name, params:dict, symbols_paths):
 class ResultManager:
     def __init__(self, indicator_name, course_selection_key, save=True):
         self.indicator_name = indicator_name
-        self.course_selection_paths = get_file_paths_of_course_selection(course_selection_key)
+        self.course_selection_paths = get_course_selection_from_yaml(course_selection_key)
 
         param_selection = 'brute_force' # [visualize, brute_force, optimization]
         self.params_variations = get_all_combinations_from_params_study(indicator_name, param_selection)

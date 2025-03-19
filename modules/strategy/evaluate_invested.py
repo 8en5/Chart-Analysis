@@ -4,7 +4,7 @@ import pandas as pd
 
 from modules.utils import *
 from modules.evaluation import *
-from modules.strategy.visualize_strategy import VisualizeStrategy
+from modules.strategy.strategy_visualize import VisualizeStrategy
 
 pandas_print_width()
 

@@ -19,17 +19,14 @@ Output: Plot (save/show) that visualizes the strategy
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-from modules.strategy.invested_strategies import *
 from modules.file_handler import *
 from modules.plot import *
+from modules.course import get_symbol_paths
+
 
 class VisualizeStrategy:
     """ Visualize strategies and save or show plots
     """
-
-    # Default folder path and file name (if not available)
-    folder_path = None                              # [Path] storage location for saving all plots (is defined in the first call)
-    counter = 1                                     # [int] counter for numbering the plots (+1 for each plot)
 
     def __init__(self, df):
         """
@@ -39,7 +36,7 @@ class VisualizeStrategy:
 
         # Default values
             # Strategy
-        self.indicator_name = None                   # [str] strategy name
+        self.indicator_name = None                  # [str] strategy name
             # Plot
         self.plot_type = 1                          # [mapping] Plot type: 0 (only course) | 1 (course + indicator)
         self.show_plot = False                      # [bool] if true show plot - plt.show()
@@ -49,17 +46,6 @@ class VisualizeStrategy:
         self.filename = None                        # [str] for saving the plot
 
 
-    def init(self, **kwargs):
-        """ Set specific values for the use case
-        :param kwargs: dict[key, value]
-        """
-        for key, value in kwargs.items():
-            if hasattr(self, key):  # Check if the attribute exists
-                setattr(self, key, value)  # Set the value
-            else:
-                raise AttributeError(f'"{key}" is not a valid attribute of this class')
-
-
     def run(self):
         """ Main routine to plot (show and/or save) the strategy
         """
@@ -67,7 +53,7 @@ class VisualizeStrategy:
         if not 'close' in self.df.columns:
             raise AssertionError(f'Min requirement failed: no column "close" -> run load_pandas_from_symbol(symbol)')
         if not 'invested' in self.df.columns:
-            raise AssertionError(f'Min requirement failed: no column "invested" -> run set_manual_strategy_<name>(df)')
+            raise AssertionError(f'Min requirement failed: no column "invested" -> run func_get_invested_from_indicator(indicator_name, df)')
         if not self.show_plot and not self.save_plot:
             raise AssertionError('Warning Abort: Check control parameters -> show and save is False')
 
@@ -93,7 +79,7 @@ class VisualizeStrategy:
         # Default Plot
         self.fig, ax = plt.subplots(1, 1)                         # 1 Plot
          # Plot 1 (Course)
-        ax_background_colored_signals(ax, self.df[['invested']])              # df['invested'] -> [in,out]
+        ax_background_colored_highlighting(ax, self.df[['invested']])         # df['invested'] -> [in,out]
         ax_course(ax, self.df)                                                # Course
         ax_default_properties(ax, self.title)                                 # Labels
 
@@ -103,21 +89,18 @@ class VisualizeStrategy:
         - Plot 2: Indicator + Background signals (['buy', 'sell', 'bullish', 'bearish'] from indicators)
         """
         # Check
-        if self.indicator_name == '':
-            raise AssertionError(f'indicator_name is not defined - cant call ax_<indicator_name>(). Maybe choose plot_type = 1')
         if not 'signal' in self.df.columns:
             raise AssertionError(f'Min requirement failed: no column "signal" -> run set_manual_strategy_<name>')
 
         # Indicator
         self.fig, ax = plt.subplots(2, 1, sharex=True)            # 2 Plots (share -> synch both plots during zoom)
         # Plot 1 (Course)
-        ax_background_colored_signals(ax[0], self.df[['invested']])           # df['invested'] -> [in,out]
+        ax_background_colored_highlighting(ax[0], self.df[['invested']])      # df['invested'] -> [in,out]
         ax_course(ax[0], self.df)                                             # Course
         ax_default_properties(ax[0], self.title)                              # Labels
         # Plot 2 (Indicator)
-        ax_background_colored_signals(ax[1], self.df[['signal']])             # df['signal'] -> [buy, sell, bullish, bearish]
-        func_ax_indicator = globals()[f'ax_{self.indicator_name}']             # e.g. ax_BB
-        func_ax_indicator(ax[1], self.df)                                     # Indicator
+        ax_background_colored_highlighting(ax[1], self.df[['signal']])         # df['signal'] -> [buy, sell, bullish, bearish]
+        func_ax_indicator(ax[1], self.df)                                # Indicator
         ax_default_properties(ax[1], self.indicator_name)                      # Labels
 
 
@@ -145,3 +128,36 @@ class VisualizeStrategy:
 
         # Save plot
         save_matplotlib_figure(self.fig, self.folder_path, self.filename)
+
+
+def _calc_full_df(symbol_path, indicator_name, params):
+    """ Calculate full df[close, <indicators>, signal, invested]
+    :param symbol_path: path to symbol
+    :param indicator_name: indicator name
+    :param params: 1x params for the indicator
+    :return:
+    """
+    # Local import to avoid circle imports between strategy_visualize.py and evaluate_invested.py
+    from modules.strategy.strategy_invested import func_get_invested_from_indicator
+    from evaluate_invested import get_evaluation_statistics
+
+    # Load symbol - df[close]
+    df = load_pandas_from_file_path(symbol_path)[['close']]
+    # Calculate signals - df[<indicators>, signal]
+    df = func_get_invested_from_indicator(indicator_name, df, params)
+    # Calculate invested - df[invested]
+    df = get_evaluation_statistics(df)
+    #print(df)
+    return df
+
+
+def manager_visualize(source_symbols, indicator_name, params, study_type=''):
+    """
+    :param source_symbols: multiple sources possible: course_selection_key / list symbol_names
+    :param indicator_name:
+    :param params:
+    :param study_type:
+    :return:
+    """
+
+    symbol_paths = get_symbol_paths(source_symbols)

@@ -30,7 +30,7 @@ def API_request_available_symbols():
     return df
 
 
-def main_routine_download_available_symbols():
+def main_routine_download_available_symbols_cc():
     """ Download and save df with all symbols
     save file: 'cc_symbols_api.csv' to 'ws/data/course/crypto_compare'
     """

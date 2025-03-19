@@ -69,7 +69,7 @@ def test_ax_background_colored_evaluation():
     # Figure
     fig, ax = plt.subplots(1, 1)
     ax_course(ax, df)
-    ax_background_colored_signals(ax, df)
+    ax_background_colored_highlighting(ax, df)
 
     # Show
     plt.show()

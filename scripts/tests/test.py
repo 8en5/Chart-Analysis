@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 from modules.file_handler import get_path, load_pandas_from_file_path
-from modules.strategy.invested_strategies import func_get_invested_from_indicator
+from modules.strategy.strategy_invested import func_get_invested_from_indicator
 
 def get_df_from_list(list_data, col='close'):
     """ Convert a list into a df with date as index

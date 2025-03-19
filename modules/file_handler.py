@@ -66,14 +66,19 @@ def get_relative_folder(folder_path:Path) -> Path:
 
 
 #---------------------- Files and names in directory ----------------------#
-def find_file_in_directory(folder_path:Path, filename:str) -> Path:
+def get_file_in_directory(folder_path:Path, filename:str, extension=None) -> Path:
     """ Find file in directory
     :param folder_path: folder
     :param filename: name (extension doesn't matter)
+    :param extension: file extension (csv, txt, png)
     :return: founded file path in the folder (else raise Error)
     """
     folder_path = Path(folder_path)         # Make sure path is a Path object
-    found_files = [file for file in folder_path.rglob('*') if file.name == filename or file.stem == filename]
+    if extension:  # If an extension is provided, add it to the filename
+        search_pattern = f'{filename}.{extension}'
+        found_files = [file for file in folder_path.rglob('*') if file.name == search_pattern and file.is_file()]
+    else:  # Search by name only, ignoring extension
+        found_files = [file for file in folder_path.rglob('*') if file.stem == filename and file.is_file()]
 
     # Evaluate search
     if not found_files:
@@ -84,16 +89,22 @@ def find_file_in_directory(folder_path:Path, filename:str) -> Path:
     return found_files[0]
 
 
-def find_files_in_directory(folder_path:Path, filename_list:list) -> list[Path]:
-    """ Check if a list of files are all in directory, then return True (else False)
+def founded_files_in_directory(folder_path:Path, filename_list:list, extension=None) -> tuple[list[Path],list[Path]]:
+    """ Return tuple of files, which are found in workspace and which are not
     :param folder_path: folder
     :param filename_list: name (extension doesn't matter)
-    :return: list of all founded file paths
+    :param extension: file extension (csv, txt, png)
+    :return: tuple(paths_available, paths_unavailable)
     """
-    found_file_paths = []
+    file_paths_positive = []
+    file_paths_negative = []
     for filename in filename_list:
-        found_file_paths.append(find_file_in_directory(folder_path, filename))
-    return found_file_paths
+        try:
+            file_paths_positive.append(get_file_in_directory(folder_path, filename, extension))
+        except FileNotFoundError:
+            # Run into Error, but it is ok -> file not found
+            file_paths_negative.append(filename)
+    return file_paths_positive, file_paths_negative
 
 
 def list_file_paths_in_folder(folder_path:Path, filter:str='') -> list[Path]:
@@ -147,7 +158,7 @@ def load_pandas_from_symbol(symbol:str) -> pd.DataFrame:
     # Find file path from symbol in folder
     folder_path = get_path('cc')
     file_name = f'{symbol}.csv'
-    file_path = find_file_in_directory(folder_path, file_name)
+    file_path = get_file_in_directory(folder_path, file_name)
 
     return load_pandas_from_file_path(file_path)
 

@@ -1,15 +1,9 @@
 
-# 4 lines of code, to run this file in a separate cmd over a bat script
-import sys
-from pathlib import Path
-ws_dir = (Path(__file__).parent / "../..").resolve()  # Workspace
-sys.path.insert(0, str(ws_dir))                # add ws to sys-path to run py-file in separate cmd
-
-from modules.strategy.invested_strategies import *
+from modules.strategy.strategy_invested import *
 from modules.file_handler import *
 from modules.params import *
-from modules.strategy.visualize_strategy import VisualizeStrategy
-from modules.strategy.evaluate_strategy import get_evaluation_statistics
+from modules.strategy.strategy_visualize import VisualizeStrategy
+from modules.strategy.evaluate_invested import get_evaluation_statistics
 
 
 def _calc_folder_path(indicator_name, source, symbol, param_study):
@@ -45,7 +39,7 @@ if __name__ == "__main__":
         - strategy name / symbol / params - for calculating the file name
     """
 
-    indicator_name = 'BB'                                    # MACD, BB, RSI
+    indicator_name = 'BB'                                   # MACD, BB, RSI
     run_type = 3                                            # Program flow [1-4]
     source = 'yaml'                                         # [yaml, api]
 

@@ -44,7 +44,6 @@ def ax_perc_bar(ax, df):
     ax.bar(df_freq.index, df_freq[col_perc], label=f'percentage_{freq}', color='blue', width=bar_width)    # Bar Percentage
 
 
-
 def ax_BB(ax, df):
     # ['BBL_5_2.0', 'BBM_5_2.0', 'BBU_5_2.0', 'BBB_5_2.0', 'BBP_5_2.0'] - [Low, SMA, Up, Bandwith, Percentage]
     col_l, col_m, col_u = get_indicator_col_names(df, 'BB')
@@ -78,7 +77,7 @@ def ax_SMA(ax, df):
 
 
 
-def ax_background_colored_signals(ax, df):
+def ax_background_colored_highlighting(ax, df):
     allowed_col = ['signal', 'invested']
     col = ''
     if any(element in allowed_col for element in df.columns):

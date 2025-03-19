@@ -52,7 +52,7 @@ def test_calc_accumulated_perc():
 
 
 #------------------------- evaluate_strategy.py -------------------------#
-from modules.strategy.evaluate_strategy import get_evaluation_statistics
+from modules.strategy.evaluate_invested import get_evaluation_statistics
 
 def test_get_evaluation_statistics():
     df = get_dummy_data_course()

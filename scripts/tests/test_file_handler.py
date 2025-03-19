@@ -48,7 +48,7 @@ def test_find_file_in_directory():
         try:
             if test:
                 filename = test
-                file_path = find_file_in_directory(folder_path, filename)
+                file_path = get_file_in_directory(folder_path, filename)
                 print('file_path:', file_path)
                 print('type:', type(file_path))
         except Exception as e:
