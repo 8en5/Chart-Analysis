@@ -6,7 +6,7 @@ from modules.api.crypto_compare.download_courses import main_routine_download_co
 
 
 def get_course_selection_from_yaml(key_course_selection='default') -> list[str]:
-    """ Get all file paths from the selected symbols from yaml
+    """ Get the symbol names by a key from the yaml
     :param key_course_selection: key for different course selections in the yaml file
     :return: if all symbols found list of paths, else raise Error
     """
@@ -20,15 +20,25 @@ def get_course_selection_from_yaml(key_course_selection='default') -> list[str]:
 
     # Get course selection from yaml
     course_selection_symbols = data[key_course_selection]
+    if isinstance(course_selection_symbols, str):
+        course_selection_symbols = [course_selection_symbols]
     return course_selection_symbols
 
 
 #---------------------- All courses ----------------------#
 
 def get_symbol_paths(source_symbols:str|list[str]) -> list:
-    """ Return list of symbol file paths
+    """ Central function to get a list of symbol file paths
+    Get the file_paths either from the course_selection_key via yaml or a list of symbol names
+    This function checks, if the requests symbols are already downloaded. If not, download it
+
     :param source_symbols: multiple sources possible: course_selection_key / list symbol_names
     :return: list of symbol file paths
+
+    e.g.
+      get_symbol_paths('default')               1 -> Path[ADA, BTC, ETH, LINK] (defined in the yaml)
+      get_symbol_paths('BTC')                   2 -> Path[BTC]
+      get_symbol_paths(['BTC', 'ETH', 'SOL'])   2 -> Path[BTC, ETH, SOL]
     """
     if isinstance(source_symbols, str):
         try:
@@ -36,10 +46,10 @@ def get_symbol_paths(source_symbols:str|list[str]) -> list:
             symbol_names = get_course_selection_from_yaml(source_symbols)
         except ValueError:
             # Run into Error, but it is ok (source_symbols was not a course_selection_key)
-            # If key not in yaml, convert symbol to list - e.g. 'BTC' -> ['BTC']
+            # 2 - convert one given course to a list - e.g. 'BTC' -> ['BTC']
             symbol_names = [source_symbols]
     elif isinstance(source_symbols, list):
-        # 2 - source_symbols = list[symbol_names] -> already list of symbol names
+        # 3 - source_symbols = list[symbol_names] -> already list of symbol names
         symbol_names = source_symbols
     else:
         raise ValueError(f'Wrong instance, should be str or list: {source_symbols}')
@@ -59,7 +69,7 @@ def get_symbol_paths(source_symbols:str|list[str]) -> list:
 def ensure_courses_available(symbol_names:list, update=False) -> None:
     """ Ensures that all courses are downloaded
     Download all courses (from different APIs) if not already downloaded
-    If symbol_name is not available in any API throw an Error
+    If a given symbol name is not available in any API then throw an Error
 
     :param symbol_names: list of symbol names
     :param update: whether an already downloaded course should be updated
@@ -90,8 +100,11 @@ def ensure_courses_available(symbol_names:list, update=False) -> None:
 
 #---------------------- Crypto Compare ----------------------#
 
-def get_csv_cc():
-    # Check if csv is available
+def get_csv_cc() -> pd.DataFrame:
+    """ Returns the csv with available symbols from CryptoCompare
+    :return: df with information to the symbols available on CryptoCompare
+    """
+    # Download csv, if not available
     file_path = get_path('cc_symbols_api_csv')
     if not file_path.exists():
         # Download file
@@ -122,7 +135,7 @@ def symbols_available_for_cc(list_symbol_names) -> tuple[list, list]:
     return symbols_positive, symbols_negative
 
 
-def get_symbols_list_from_api_csv_cc(n=None, asset_type=None, order=0):
+def get_symbols_list_from_api_csv_cc(n=None, asset_type=None, order=0) -> list[str]:
     """ Return list of symbols from CC (controllable with amount, asset_type and order)
     :param n: amount of symbols
     :param asset_type: [BLOCKCHAIN, TOKEN, FIAT, INDEX]
@@ -133,7 +146,7 @@ def get_symbols_list_from_api_csv_cc(n=None, asset_type=None, order=0):
         n = -1 # all data
 
     # Load available symbols
-    df = symbols_available_for_cc()
+    df = get_csv_cc()
     if n > len(df)-2:
         n = -1
 

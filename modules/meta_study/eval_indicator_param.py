@@ -64,10 +64,10 @@ def eval_param_with_symbol_study(indicator_name, params:dict, symbols_paths):
 class ResultManager:
     def __init__(self, indicator_name, course_selection_key, save=True):
         self.indicator_name = indicator_name
-        self.course_selection_paths = get_course_selection_from_yaml(course_selection_key)
+        self.course_selection_paths = get_symbol_paths(course_selection_key)
 
         param_selection = 'brute_force' # [visualize, brute_force, optimization]
-        self.params_variations = get_all_combinations_from_params_study(indicator_name, param_selection)
+        self.params_variations = get_all_params_combinations_from_yaml(indicator_name, param_selection)
         self.total_tests = len(self.params_variations)
 
         # Save results

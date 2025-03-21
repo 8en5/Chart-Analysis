@@ -11,7 +11,7 @@ def func_get_invested_from_indicator(indicator_name, *args):
     """ Call function set_manual_strategy_{indicator_name}()
     :param indicator_name: name for the strategy defined in this file
     :param args: *args for the func
-    :return: set_manual_strategy_{indicator_name}
+    :return: _get_invested_from_{indicator_name} -> df[<indicators>, signal, invested]
     """
     func_name = f'_get_invested_from_{indicator_name}'
     # Check
@@ -136,7 +136,7 @@ def _get_invested_from_MACD(df, params=None):
     df['signal'] = np.select(conditions, values, default='')
 
     # Invested [in, out] from signals
-    df =_calc_invested_from_signal(df)
+    df = _calc_invested_from_signal(df)
     return df
 
 

@@ -4,7 +4,6 @@ import pandas as pd
 
 from modules.utils import *
 from modules.evaluation import *
-from modules.strategy.strategy_visualize import VisualizeStrategy
 
 pandas_print_width()
 
@@ -82,6 +81,7 @@ class EvaluateStrategy:
           This plot provides a visual insight into the calculation (plotting each section)
         Currently plots are saved under default folder and default name
         """
+        from modules.strategy.strategy_visualize import VisualizeStrategy
         vs = VisualizeStrategy(self.df)
         title = f"{self.result_dict['Strategy_with_fee']:.2f} | {self.result_dict['factor_benchmark']:.2f}"
         vs.init(title=title)
@@ -121,6 +121,7 @@ def run_evaluation_multiple_cycles(df) -> pd.DataFrame:
         8      2.031768           1.018231       -1.013536
         9      1.778987           0.713761       -1.065226
     """
+    df = df.copy()
     # Check min columns
     minimal_columns = ['close', 'invested']
     if not set(minimal_columns).issubset(df.columns):
@@ -136,7 +137,7 @@ def run_evaluation_multiple_cycles(df) -> pd.DataFrame:
     df = df.dropna(subset=['invested']) # remove all rows in the beginning, where df[invested] is None
     if df.empty: # all entries are None
         raise ValueError(f'df[invested] only None values -> handle it earlier') # TODO weiß noch nicht wie ich damit umgehe (an welcher Stelle abfangen)
-    df['invested'] = df['invested'].astype(int) # because there is no None value, the column can be set to int
+    df.loc[:, 'invested'] = df['invested'].astype(int) # because there is no None value, the column can be set to int
 
     # Iterate over multiple periods
     intervals = get_intervals(len(df))

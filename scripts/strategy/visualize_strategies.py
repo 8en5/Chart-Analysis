@@ -6,24 +6,6 @@ from modules.strategy.strategy_visualize import VisualizeStrategy
 from modules.strategy.evaluate_invested import get_evaluation_statistics
 
 
-def _calc_folder_path(indicator_name, source, symbol, param_study):
-    base_folder_path = get_path('ws') / 'data/analyse/visualize' / indicator_name
-    if param_study:
-        folder_path = base_folder_path / 'parameter_study' / symbol
-    else:
-        folder_path = base_folder_path / 'symbols' / source
-    return folder_path
-
-def _calc_file_name(index, symbol, params):
-    # Set file name - '{counter}_{symbol}_param1-value1_param2-value2'
-    file_name = f'{index}_{symbol}'  # # 1_ETH
-    if params is not None:
-        for key, value in params.items():  # e.g. '1_ETH_bb_l-5_bb_std-1.5'
-            file_name += f'_{key}-{value}'
-    return file_name
-
-def _calc_title_from_evaluation(result):
-    return f"S = {result['stage_strategy_mean']:.2f} | Diff_BaH = {result['stage_diff_benchmark_mean']:.2f}"
 
 
 if __name__ == "__main__":
@@ -79,7 +61,7 @@ if __name__ == "__main__":
     # Params study
     if param_study:
         # Param study (get all param combinations from strategy name
-        params_study = get_all_combinations_from_params_study(indicator_name, 'visualize')
+        params_study = get_all_params_combinations_from_yaml(indicator_name, 'visualize')
     else:
         params_study = [None]
 
@@ -100,17 +82,5 @@ if __name__ == "__main__":
         for i_p, params in enumerate(params_study):
             print(f'{i}/{l_s * l_p}: \t\t {i_s+1}/{l_s}: {symbol} \t\t {i_p+1}/{l_p} {params}')
 
-            # Run routine
-            df = load_pandas_from_file_path(symbol_file_path)
-            df = func_get_invested_from_indicator(indicator_name, df[['close']], params)
-            evaluation = get_evaluation_statistics(df)
-            vs = VisualizeStrategy(df)
-            vs.init(indicator_name=indicator_name, plot_type=2)
-            vs.init(folder_path=_calc_folder_path(indicator_name, source, symbol, param_study), filename=_calc_file_name(i, symbol, params))
-            vs.init(title=_calc_title_from_evaluation(evaluation))
-            #vs.init(show_plot=True, save_plot=False)       # init for show and no save
-            vs.run()
-
-            # Next cycle
             i += 1
             print()
