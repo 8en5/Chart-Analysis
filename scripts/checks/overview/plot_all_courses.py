@@ -25,7 +25,7 @@ def plot_course(df, symbol):
     fig, ax = plt.subplots(1, 1)
     # Plot 1 (Course)
     ax_course(ax, df)
-    ax_default_properties(ax, symbol)
+    ax_properties(ax, symbol)
 
     # Save plot
     folder_path = get_path() / 'data/analyse/all_courses'

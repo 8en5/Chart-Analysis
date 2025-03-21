@@ -2,7 +2,7 @@ import pandas as pd
 import json
 
 from modules.file_handler import get_path
-from modules.meta_study.eval_indicator_param import BruteForce
+from modules.meta_study.study_params import BruteForce
 
 
 def study_brute_force():

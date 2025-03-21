@@ -1,7 +1,3 @@
-
-import numpy as np
-import pandas as pd
-
 from modules.utils import *
 from modules.evaluation import *
 
@@ -65,9 +61,10 @@ class EvaluateStrategy:
                 #'factor_benchmark': (S - BaH) / BaH if S > BaH else -(BaH - S) / S if S < BaH else 1
             }
 
-            self.plot = False
-            if self.plot:
-                self._plot()
+        # Plot
+        self.plot = True
+        if self.plot:
+            self._plot()
 
 
     def get_result(self) -> dict[str,float]:
@@ -81,11 +78,10 @@ class EvaluateStrategy:
           This plot provides a visual insight into the calculation (plotting each section)
         Currently plots are saved under default folder and default name
         """
-        from modules.strategy.strategy_visualize import VisualizeStrategy
-        vs = VisualizeStrategy(self.df)
-        title = f"{self.result_dict['Strategy_with_fee']:.2f} | {self.result_dict['factor_benchmark']:.2f}"
-        vs.init(title=title)
-        vs.run()
+        from modules.plot import fig_type1_default, save_fig
+        fig = fig_type1_default(self.df)
+        save_fig(fig)
+        print('save plot from evaluation iterations steps')
 
 
 def run_evaluation_multiple_cycles(df) -> pd.DataFrame:
@@ -168,6 +164,7 @@ def get_evaluation_statistics(df) -> dict[str,float]:
     # Summarize all Evaluations in one df
     df_summary = run_evaluation_multiple_cycles(df)
     #print(df_summary)
+    exit()
 
     # Statistics (mean and std from all number columns)
     """ mean and std from multiple cycles
