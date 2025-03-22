@@ -1,6 +1,8 @@
 import pandas as pd
 import sys
 import os
+import json
+import re
 
 #------------------------- Helper -------------------------#
 
@@ -20,6 +22,25 @@ def pandas_print_width():
     pd.set_option('display.max_columns', None)
     pd.set_option('display.width', None)
 
+
+def dump_json_nicely(input_dict):
+    """ Json dumps dict (but with list on one line and floats rounded to 3 decimals)
+    :param input_dict: dict
+    :return: nicely formatted dict
+
+    Regex from ChatGPT, no idea how the regex works, but it does exactly what I want
+    """
+    # Check
+    if not isinstance(input_dict, dict):
+        raise ValueError(f'Input is not a dict: {input_dict}')
+
+    # Dump the dict to a JSON string with indentation
+    output = json.dumps(input_dict, indent=4)
+    # Format lists to be in a single line (ChatGPT)
+    output = re.sub(r'\[\s*([\s\S]*?)\s*\]', lambda m: f"[{', '.join(re.findall(r'[^,\s\[\]]+', m.group(1)))}]", output)
+    # Format floats to 3 decimal places (ChatGPT)
+    output = re.sub(r'(\d+\.\d+)', lambda m: f'{float(m.group()):.3f}', output)
+    return output
 
 
 #------------------------- Functional -------------------------#

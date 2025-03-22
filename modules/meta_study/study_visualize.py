@@ -1,12 +1,12 @@
 """ [fig] Visualize strategies - plot and save/show
 Manager, to study different variants
 
-Input: indicator_name, source_symbols, source_params, study_type
+Input: indicator_name, source_courses, source_params, study_type
 Output: [fig] Plot (save/show) that visualizes the strategy
 """
 
 from modules.file_handler import *
-from modules.course import get_symbol_paths
+from modules.course import get_courses_paths
 from modules.params import get_all_params_combinations_from_yaml
 from modules.plot import fig_type1_default, fig_type2_indicator, save_fig
 from modules.strategy.evaluate_invested import get_evaluation_invested_statistics
@@ -15,16 +15,16 @@ from modules.strategy.strategy_invested import func_get_invested_from_indicator
 
 #---------------------- Manger for Visualization ----------------------#
 
-def manager_visualize_strategy(indicator_name, source_symbols, source_params, study_type='params'):
+def manager_visualize_strategy(indicator_name, source_courses, source_params, study_type='params'):
     """ [Loop fig] Manager to plot and save (visualize) strategies
     :param indicator_name: indicator name
-    :param source_symbols: multiple sources possible: course_selection_key / list symbol_names
+    :param source_courses: multiple sources possible: course_selection_key / list symbol_names
     :param source_params: different sources possible - key_course_selection / list_params_combinations / None (default key_course_selection)
     :param study_type: for folder structure - params/symbols or symbols/params
     """
     # Prepare variables
     # Symbols
-    symbol_paths = get_symbol_paths(source_symbols)
+    courses_paths = get_courses_paths(source_courses)
     # Param combinations
     if isinstance(source_params, str):  # key from yaml
         params_combinations = get_all_params_combinations_from_yaml(indicator_name, source_params)
@@ -41,9 +41,9 @@ def manager_visualize_strategy(indicator_name, source_symbols, source_params, st
         # params oriented -> one param with many symbols
         i = 1
         l_p = len(params_combinations)
-        l_s = len(symbol_paths)
+        l_s = len(courses_paths)
         for i_p, params in enumerate(params_combinations):
-            for i_s, symbol_path in enumerate(symbol_paths):
+            for i_s, symbol_path in enumerate(courses_paths):
                 print(f'{i}/{l_s * l_p}: \t\t {i_p + 1}/{l_p} {params} \t\t {i_s + 1}/{l_s}: {symbol_path.stem}')
                 routine_visualize_strategy(symbol_path, indicator_name, params, study_type)
                 i += 1
@@ -51,9 +51,9 @@ def manager_visualize_strategy(indicator_name, source_symbols, source_params, st
     elif study_type == 'symbols':
         # symbols oriented -> one symbol with many params
         i = 1
-        l_s = len(symbol_paths)
+        l_s = len(courses_paths)
         l_p = len(params_combinations)
-        for i_s, symbol_path in enumerate(symbol_paths):
+        for i_s, symbol_path in enumerate(courses_paths):
             for i_p, params in enumerate(params_combinations):
                 print(f'{i}/{l_s * l_p}: \t\t {i_s + 1}/{l_s}: {symbol_path.stem} \t\t {i_p + 1}/{l_p} {params}')
                 routine_visualize_strategy(symbol_path, indicator_name, params, study_type)

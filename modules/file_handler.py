@@ -19,6 +19,7 @@ def get_path(key:str='ws') -> Path:
         # Folders
         'ws': workspace_path,
         'cc': workspace_path / 'data/course/crypto_compare',
+        'study': workspace_path / 'data/study',
 
         # Files
         'cc_symbols_api_csv': workspace_path / 'data/course/crypto_compare/cc_symbols_api.csv',
@@ -30,24 +31,6 @@ def get_path(key:str='ws') -> Path:
         raise KeyError(f'Key "{key}" not in folder_dict "{list(folder_dict.keys())}"')
 
     return folder_dict[key]
-
-
-def get_last_created_folder_in_dir(dir_path) -> Path:
-    """ Returns the latest created folder in a directory (without recursive, only this dir)
-    :param dir_path: folder_path
-    :return: Path of the latest created folder (raise Error if there is no folder)
-    """
-    dir_path = Path(dir_path)  # Make sure path is a Path object
-    # Check folder exists and folder is a folder
-    if not dir_path.exists() or not dir_path.is_dir():
-        raise FileNotFoundError(f'Folder "{dir_path}" does not exist')
-    # List of all folders in the directory
-    folders = [f for f in dir_path.iterdir() if f.is_dir()]
-    if not folders:
-        raise AssertionError(f'Folder "{dir_path} has no subfolders')
-    # Find the folder with the most recent creation time
-    latest_folder = max(folders, key=lambda f: f.stat().st_ctime)
-    return latest_folder
 
 
 def create_dir(folder_path:Path) -> None:
@@ -67,9 +50,30 @@ def create_dir(folder_path:Path) -> None:
         if not folder_path.is_relative_to(workspace_path):
             raise AssertionError(f'Folder {folder_path} not in workspace {workspace_path}')
 
-        # Folder doesn't exists, create folder
+        # Create folder
         folder_path.mkdir(parents=True, exist_ok=True)
         print(f'Make directory {folder_path}')
+
+
+def get_last_created_folder_in_dir(source_path) -> Path:
+    """ Returns the latest created folder in a directory (without recursive, only this dir)
+    :param source_path: folder_path or key
+    :return: Path of the latest created folder (raise Error if there is no folder)
+    """
+    dir_path = Path(source_path)  # Make sure path is a Path object
+    # Check if source_path is a Path or a key for get_path()
+    if not dir_path.exists():
+        dir_path = get_path(source_path)
+    # Check folder exists and folder is a folder
+    if not dir_path.exists() or not dir_path.is_dir():
+        raise FileNotFoundError(f'Folder "{dir_path}" does not exist')
+    # List of all folders in the directory
+    folders = [f for f in dir_path.iterdir() if f.is_dir()]
+    if not folders:
+        raise AssertionError(f'Folder "{dir_path} has no subfolders')
+    # Find the folder with the most recent creation time
+    latest_folder = max(folders, key=lambda f: f.stat().st_ctime)
+    return latest_folder
 
 
 def get_relative_folder(folder_path:Path) -> Path:
@@ -197,13 +201,17 @@ def load_pandas_from_file_path(file_path:Path):
     return df
 
 
-def save_pandas_to_file(df:pd.DataFrame, folder_path:Path, name:str, extension:str='csv') -> None:
+def save_pandas_to_file(df:pd.DataFrame, folder_path:Path=None, name:str=None, extension='csv') -> None:
     """ Saves a Pandas DataFrame to a file.
     :param df: Pandas DataFrame to save
     :param folder_path: Directory where the file should be saved
     :param name: File name without extension
     :param extension: File extension (default: 'csv')
     """
+    # Check
+    if not folder_path and not name:
+        raise ValueError(f'folder_path ore name are None')
+
     folder_path = Path(folder_path)  # Make sure path is a Path object
 
     # Create folder if it doesn't exist
@@ -269,3 +277,9 @@ def load_yaml_from_file_path(file_path:Path) -> dict:
     with file_path.open('r', encoding="utf-8") as f:
         data = yaml.safe_load(f)
         return data
+
+
+#---------------------- txt ----------------------#
+def save_txt(data, file_path, mode='w'):
+    with open(file_path, mode=mode) as file:
+        file.write(data)

@@ -1,12 +1,13 @@
 
 import pandas as pd
+from collections import defaultdict
 
 from modules.file_handler import *
 from modules.strategy.strategy_invested import *
 from modules.strategy.evaluate_invested import get_evaluation_invested_statistics
 from modules.params import *
-from modules.course import get_symbol_paths
-from modules.error_handling import ErrorHandling
+from modules.course import get_courses_paths
+from modules.error_handling import log_error
 
 
 def eval_param_with_symbol_study(indicator_name, params:dict, symbols_paths):
@@ -30,7 +31,8 @@ def eval_param_with_symbol_study(indicator_name, params:dict, symbols_paths):
         e.g.: Buy_and_Hold_mean, Buy_and_Hold_std, diff_benchmark_mean, diff_benchmark_std
     """
     # Constants
-    offset = 400    # cut data from df so that all parameter variations start with the same day (each param has a different startup time before they deliver signals)
+    offset = 400            # cut data from df so that all parameter variations start with the same day (each param has a different startup time before they deliver signals)
+    minimum_length = 600    # min data length for the study
 
     # Loop over all symbols and calculate meta evaluation
     summary_dict = {}
@@ -39,7 +41,7 @@ def eval_param_with_symbol_study(indicator_name, params:dict, symbols_paths):
         df = load_pandas_from_file_path(symbol_file_path)[['close']]
         df = func_get_invested_from_indicator(indicator_name, df, params)
         df = df[['close', 'invested']] # Cut df to the minimal relevant data
-        if len(df) < 600:
+        if len(df) < minimum_length:
             raise AssertionError(f'The data of the course "{symbol_file_path.stem}" is too short: "{len(df)}". Remove it from the analysis')
         df = df.iloc[offset:] # offset for standardization - each parameter has a different startup time until signals are generated
         if df['invested'].isna().any(): # Observation, if there are any None values in df[invested]
@@ -61,137 +63,104 @@ def eval_param_with_symbol_study(indicator_name, params:dict, symbols_paths):
     return result_dict
 
 
-class ResultManager:
-    def __init__(self, indicator_name, course_selection_key, save=True):
-        self.indicator_name = indicator_name
-        self.course_selection_paths = get_symbol_paths(course_selection_key)
 
-        param_selection = 'brute_force' # [visualize, brute_force, optimization]
-        self.params_variations = get_all_params_combinations_from_yaml(indicator_name, param_selection)
-        self.total_tests = len(self.params_variations)
+def study_params_brute_force(indicator_name, course_selection_key, init=False):
+    """ [param study]
+    :param indicator_name: indicator name
+    :param course_selection_key: key params from yaml
+    :param init: init over test samples - 1) if test set is ok, 2) estimate time, 3) metadata
+    :return: None
+    """
+    course_selection_paths = get_courses_paths(course_selection_key)
+    param_selection = 'brute_force'     # [visualize, brute_force, optimization]
+    params_variations = get_all_params_combinations_from_yaml(indicator_name, param_selection)
 
-        # Save results
-        self.save = save
-        self.folder_path = get_path() # overwrite in child
-        self.file_name = f'{indicator_name}_{course_selection_key}_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}'
+    # Save results
+    folder_path_param_study = get_last_created_folder_in_dir('study') / f'{indicator_name}_{course_selection_key}'
+    file_name_param_study = f'{indicator_name}_{course_selection_key}_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
+    file_path = folder_path_param_study / file_name_param_study
 
-        # Meta information for the study
-        self.params_dict = get_params_from_yaml(indicator_name, param_selection)
-        self.symbols = get_names_from_paths(self.course_selection_paths)
-        self.time_start = pd.Timestamp.now()
-
-        # Calculated in child class
-        self.summary_dict = {} # overwrite in child
-
-        # Error handling
-        self.error_handling = ErrorHandling()
-
-
-    def save_intermediate_result(self):
-        """ Save intermediate result
-        summary_dict -> df -> sort -> file
-        """
-        if not self.save:
-            return
-        # Summaries all results in one df
-        df = pd.DataFrame(self.summary_dict)
-        # Sort dict
-        df_sorted = df.sort_values(by='S', ascending=False)
-        # Save result to file
-        save_pandas_to_file(df_sorted, self.folder_path, self.file_name)
-
-
-    def finish(self):
-        """ Save study result (meeta information + the best strategy)
-        dict with result -> df -> append to summary file
-        """
-        # Make result dict (assemble from 3 parts)
-          # Save meta information to this study
-        result_dict_meta = {
-            'indicator_name': self.indicator_name,
+    # Init or run
+    time_start = pd.Timestamp.now()
+    key = f'{indicator_name}_{course_selection_key}'
+    if init:
+        # Init - test samples to test the functionality and get the time estimation for the project
+        test_samples = 2
+        print(f'Start init tests for {indicator_name}_{course_selection_key} over {test_samples} samples')
+        routine_param_study_brute_force(indicator_name, course_selection_paths, params_variations[0:test_samples], file_path, False)
+        time_end = pd.Timestamp.now()
+        time_per_iteration = (time_end - time_start).total_seconds() / test_samples
+        # Meta dict
+        meta_dict = {
+            'meta': {
+                'params': get_params_from_yaml(indicator_name, param_selection),
+                'total_param_combinations': len(params_variations),
+                'courses': get_names_from_paths(course_selection_paths),
+            },
+            'pre_study_estimation': {
+                f'time_test_samples_{test_samples} [s]': (time_end - time_start).total_seconds(),
+                'time_per_iteration [s]': time_per_iteration,
+                'estimated_time [h]': time_per_iteration * len(params_variations) / 3600
+            }
         }
-          # Add first row (best result) of the study
-        df = pd.DataFrame(self.summary_dict)
-        df = df.sort_values(by='S', ascending=False)
-        result_dict_row = df.iloc[0].to_dict()
-          # Add more information to the end
-        result_dict_end = {
-            'start': self.time_start,
-            'end': pd.Timestamp.now(),
-            'total_tests': self.total_tests,
-            'diff_total [h]': (pd.Timestamp.now() - self.time_start) / np.timedelta64(1, 'h'),
-            'diff_test [s]': (pd.Timestamp.now() - self.time_start) / (np.timedelta64(1, 's') * self.total_tests),
-            'selected_symbols': self.symbols,
-            'params_dict': self.params_dict,
+    else:
+        # Run real study
+        print(f'Start real study for {indicator_name}_{course_selection_key} over {len(params_variations)} samples')
+        time_end = pd.Timestamp.now()
+        time_per_iteration = (time_end - time_start).total_seconds() / len(params_variations)
+        routine_param_study_brute_force(indicator_name, course_selection_paths, params_variations[0:3], file_path, True)
+        # Meta dict
+        meta_dict = {
+            'real_study': {
+                'time_real [h]': (time_end - time_start).total_seconds() / 3600,
+                'time_per_iteration [s]': time_per_iteration,
+                'start': time_start.strftime('%Y/%m/%d %H:%M:%S'),
+                'end': time_end.strftime('%Y/%m/%d %H:%M:%S'),
+            }
         }
-          # Combine all dicts
-        result_dict = {**result_dict_meta, **result_dict_row, **result_dict_end}
-
-        # Print result
-        print(result_dict)
-
-        # Save to summary file
-        if not self.save:
-            return
-        df = pd.DataFrame([result_dict])
-        file = self.folder_path / '_summary.csv'
-        print(f'{self.indicator_name} finished - save results to {file} \n')
-        if not file.exists():
-            df.to_csv(file, mode='w', header=True, float_format='%.3f', index=False)
-        else:
-            df.to_csv(file, mode='a', header=False, float_format='%.3f', index=False)
+    return key, meta_dict
 
 
-
-class BruteForce(ResultManager):
-    def __init__(self, indicator_name, course_selection_key, save):
-        super().__init__(indicator_name, course_selection_key, save)
-
-        self.folder_path = get_path() / 'data/analyse/study_indicator_params/brute_force'
-
-
-    def test_time_per_iteration(self, n) -> float:
-        """ Calculates the average calculation time of one iteration
-        :param n: number of samples to calculate average iteration time
-        :return: average time per iteration
-        """
-        start = pd.Timestamp.now()
-        for index, params in enumerate(self.params_variations[0:n]):
-            result = eval_param_with_symbol_study(self.indicator_name, params, self.course_selection_paths)
+def routine_param_study_brute_force(indicator_name, course_selection_paths, params_variations, file_path, save):
+    # Run study
+    summary_dict = defaultdict(list)
+    for index, params in enumerate(params_variations):
+        try:
+            # Calculate param evaluation over multiple courses
+            result = eval_param_with_symbol_study(indicator_name, params, course_selection_paths)
             result['params'] = params
             print(
-                f'Test + iteration time \t\t'
-                f'{index + 1}/{len(self.params_variations)}: \t\t'  # index
+                f'{index + 1}/{len(params_variations)}: \t\t'  # index
                 f'{[round(v, 2) if isinstance(v, (int, float)) else v for v in result.values()]}' # print result dict in one line ->    1/11776: [1.04, 5.06, -4.02, {'rsi_l': 5.0, 'bl': 10.0, 'bu': 50.0}]
             )
-        end = pd.Timestamp.now()
-        return (end - start).total_seconds()
+            # Append all results in one dict as list
+            for key, value in result.items():
+                summary_dict[key].append(value)
+
+            # Save intermediate results and delete summary_dict
+            if save and index % 500 == 0:
+                save_summary_dict(summary_dict, file_path)
+        except Exception as e:
+            print(f'Error occurred for param: {params}')
+            log_error(e, True)
+
+    # Finish
+    if save:
+        save_summary_dict(summary_dict, file_path)
+    del summary_dict # delete
 
 
-    def run(self):
-        summary_dict = {}
-        for index, params in enumerate(self.params_variations):
-            try:
-                result = eval_param_with_symbol_study(self.indicator_name, params, self.course_selection_paths)
-                result['params'] = params
-                print(
-                    f'{index + 1}/{len(self.params_variations)}: \t\t'  # index
-                    f'{[round(v, 2) if isinstance(v, (int, float)) else v for v in result.values()]}' # print result dict in one line ->    1/11776: [1.04, 5.06, -4.02, {'rsi_l': 5.0, 'bl': 10.0, 'bu': 50.0}]
-                )
-                # Append all results in one dict
-                for key, value in result.items():
-                    if key not in summary_dict:
-                        summary_dict[key] = []
-                    summary_dict[key].append(value)
-                # Save intermediate results
-                if index % 200 == 0:
-                    self.summary_dict = summary_dict
-                    self.save_intermediate_result()
-            except Exception as e:
-                print(f'Error occurred for param: {params}')
-                self.error_handling.log_error(e, True)
+def save_summary_dict(summary_dict, file_path) -> None:
+    """ [file save] Save intermediate result
+    summary_dict -> convert to df -> sort df -> save df to file
 
-        # Finish
-        self.summary_dict = summary_dict
-        self.save_intermediate_result()
-        self.finish()
+    :param summary_dict: evaluation results (over multiple symbols)
+    :param file_path: storage location
+    :return: None
+    """
+    # Summaries all results in one df
+    df = pd.DataFrame(summary_dict)
+    # Sort dict
+    df_sorted = df.sort_values(by='S', ascending=False)
+    # Save result to file
+    save_pandas_to_file(df_sorted, file_path.parent, file_path.stem)

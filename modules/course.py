@@ -27,33 +27,33 @@ def get_course_selection_from_yaml(key_course_selection='default') -> list[str]:
 
 #---------------------- All courses ----------------------#
 
-def get_symbol_paths(source_symbols:str|list[str]) -> list:
+def get_courses_paths(source_courses:str|list[str]) -> list:
     """ Central function to get a list of symbol file paths
     Get the file_paths either from the course_selection_key via yaml or a list of symbol names
     This function checks, if the requests symbols are already downloaded. If not, download it
 
-    :param source_symbols: multiple sources possible: course_selection_key / list symbol_names
+    :param source_courses: multiple sources possible: course_selection_key / list symbol_names
     :return: list of symbol file paths
 
     e.g.
-      get_symbol_paths('default')               1 -> Path[ADA, BTC, ETH, LINK] (defined in the yaml)
-      get_symbol_paths('BTC')                   2 -> Path[BTC]
-      get_symbol_paths(['BTC', 'ETH', 'SOL'])   2 -> Path[BTC, ETH, SOL]
+      get_courses_paths('default')               1 -> Path[ADA, BTC, ETH, LINK] (defined in the yaml)
+      get_courses_paths('BTC')                   2 -> Path[BTC]
+      get_courses_paths(['BTC', 'ETH', 'SOL'])   2 -> Path[BTC, ETH, SOL]
     """
     # Get list of symbols based on different sources
-    if isinstance(source_symbols, str):
+    if isinstance(source_courses, str):
         try:
-            # 1 - source_symbols = course_selection_key -> load symbols defined in the yaml
-            symbol_names = get_course_selection_from_yaml(source_symbols)
+            # 1 - source_courses = course_selection_key -> load symbols defined in the yaml
+            symbol_names = get_course_selection_from_yaml(source_courses)
         except ValueError:
-            # Run into Error, but it is ok (source_symbols was not a course_selection_key)
+            # Run into Error, but it is ok (source_courses was not a course_selection_key)
             # 2 - convert one given course to a list - e.g. 'BTC' -> ['BTC']
-            symbol_names = [source_symbols]
-    elif isinstance(source_symbols, list):
-        # 3 - source_symbols = list[symbol_names] -> already list of symbol names
-        symbol_names = source_symbols
+            symbol_names = [source_courses]
+    elif isinstance(source_courses, list):
+        # 3 - source_courses = list[symbol_names] -> already list of symbol names
+        symbol_names = source_courses
     else:
-        raise ValueError(f'Wrong instance, should be str or list: {source_symbols}')
+        raise ValueError(f'Wrong instance, should be str or list: {source_courses}')
 
 
     # Check if all courses are already downloaded
