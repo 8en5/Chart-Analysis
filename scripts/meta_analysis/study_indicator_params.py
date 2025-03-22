@@ -6,7 +6,7 @@ from modules.meta_study.study_params import BruteForce
 
 
 def study_brute_force():
-    indicator_names = ['MACD', 'BB', 'RSI']
+    indicator_names = ['MACD'] # ['MACD', 'BB', 'RSI']
     course_selection_keys = ['default']
     file_path = get_path() / 'data' / f'running_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 

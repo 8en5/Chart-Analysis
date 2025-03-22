@@ -189,8 +189,7 @@ class BruteForce(ResultManager):
                     self.save_intermediate_result()
             except Exception as e:
                 print(f'Error occurred for param: {params}')
-                self.error_handling.log_error(e, False)
-                exit()
+                self.error_handling.log_error(e, True)
 
         # Finish
         self.summary_dict = summary_dict
