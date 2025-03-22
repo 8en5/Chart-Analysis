@@ -15,4 +15,6 @@ data_archive/
 # Folder
 temp/
 
-# Files
+# Ignore bash und bat scripts (until they get a major change)
+#/*.sh
+#/*.bat

@@ -37,6 +37,13 @@ def func_indicator(indicator_name:str, *args, **kwargs):
         """
         print(f'There are too few values in the df')
 
+def keys_func_indicator():
+    """ [func] Return all keys with which you can call the function func_indicator(key)
+    :return: list[keys]
+    """
+    return [name.replace('_indicator_', '', 1) for name in globals().keys() if name.startswith('_indicator_')]
+
+
 def get_indicator_col_names(df, indicator:str):
     # Check
     if indicator not in INDICATOR_COL_NAMES:

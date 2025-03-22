@@ -89,6 +89,12 @@ def func_ax_indicator(indicator_name:str, *args):
     # Return called function
     return func(*args)
 
+def keys_func_ax_indicator():
+    """ [func] Return all keys with which you can call the function func_ax_indicator(key)
+    :return: list[keys]
+    """
+    return [name.replace('ax_', '', 1) for name in globals().keys() if name.startswith('ax_')]
+
 
 def ax_course(ax, df):
     """[ax]"""

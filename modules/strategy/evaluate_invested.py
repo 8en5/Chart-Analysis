@@ -18,7 +18,7 @@ def evaluate_invested(df) -> dict[str, any]:
              'in+': 32.728, 'in-': 58.884, 'out+': 67.271, 'out-': 41.115,
              'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
     """
-    # Work on a copy, because this function is called several cycles
+    # Work on a copy, because this function is called multiple cycles
     df = df.copy()
 
     # Check None values in df[invested]
@@ -38,8 +38,8 @@ def evaluate_invested(df) -> dict[str, any]:
     df['close_perc'] = df['close'].pct_change(periods=1)  # * 100
 
     # Main evaluation values
-    BaH = calc_total_accumulated_perc(df, 0)  # Buy_and_Hold
-    S = calc_total_accumulated_perc(df, 2)    # Strategy_with_fee
+    BaH = _calc_total_accumulated_perc(df, 0)  # Buy_and_Hold
+    S = _calc_total_accumulated_perc(df, 2)    # Strategy_with_fee
 
     # Dict of all evaluation values
     min_calculations = True
@@ -51,7 +51,7 @@ def evaluate_invested(df) -> dict[str, any]:
         }
     else:
         # Calculate different states based on [{in, out}, {+, -}]
-        portions_dict = calc_all_investment_states(df)
+        portions_dict = _calc_all_investment_states(df)
 
         result_dict = {
                 # Meta
@@ -64,9 +64,9 @@ def evaluate_invested(df) -> dict[str, any]:
             'in-': portions_dict['in-'],
             'out+': portions_dict['out+'],
             'out-': portions_dict['out-'],
-            'Buy_and_Hold': calc_total_accumulated_perc(df, 0),
-            'Strategy_without_fee': calc_total_accumulated_perc(df, 1),
-            'Strategy_with_fee': calc_total_accumulated_perc(df, 2),
+            'Buy_and_Hold': _calc_total_accumulated_perc(df, 0),
+            'Strategy_without_fee': _calc_total_accumulated_perc(df, 1),
+            'Strategy_with_fee': _calc_total_accumulated_perc(df, 2),
             #'Strategy_with_fees_and_tax': calc_total_accumulated_perc(self.df, 3),
                 # Comparability to the benchmark
             'diff_benchmark': S - BaH,
@@ -212,7 +212,7 @@ def _calc_amount_transactions(df, period='') -> float:
     return total_transactions / num_periods if num_periods > 0 else 0
 
 
-def calc_all_investment_states(df) -> dict[str, float]:
+def _calc_all_investment_states(df) -> dict[str, float]:
     """ Portion [%] of the 4 investment states based on 'invested'
     :param df: df[invested, close_perc]
     :return: dict[in+, in-, out+, out-]
@@ -276,7 +276,7 @@ def calc_all_investment_states(df) -> dict[str, float]:
     return {key: value["portion"] for key, value in eval_dict.items()}
 
 
-def calc_accumulated_perc(df, n=2):
+def _calc_accumulated_perc(df, n=2):
     """ Accumulated return (last accumulated value equals total return)
     :param df: df['invested', 'close_perc']
     :param n: 0 - Buy and Hold | 1 - Strategy without fee | 2 - Strategy with fee | 3 - Strategy with fee and tax
@@ -312,11 +312,11 @@ def calc_accumulated_perc(df, n=2):
     return df
 
 
-def calc_total_accumulated_perc(df, n=2) -> float:
+def _calc_total_accumulated_perc(df, n=2) -> float:
     """ Last value of accumulated return
     :param df: see calc_accumulated_perc()
     :param n: see calc_accumulated_perc()
     :return: total return
     """
     # Call calc_accumulated_perc(df, n) and take the last accumulated value - this corresponds to the total return
-    return calc_accumulated_perc(df, n)['accumulate'].iloc[-1]
+    return _calc_accumulated_perc(df, n)['accumulate'].iloc[-1]

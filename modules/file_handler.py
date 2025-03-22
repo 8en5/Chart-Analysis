@@ -32,6 +32,24 @@ def get_path(key:str='ws') -> Path:
     return folder_dict[key]
 
 
+def get_last_created_folder_in_dir(dir_path) -> Path:
+    """ Returns the latest created folder in a directory (without recursive, only this dir)
+    :param dir_path: folder_path
+    :return: Path of the latest created folder (raise Error if there is no folder)
+    """
+    dir_path = Path(dir_path)  # Make sure path is a Path object
+    # Check folder exists and folder is a folder
+    if not dir_path.exists() or not dir_path.is_dir():
+        raise FileNotFoundError(f'Folder "{dir_path}" does not exist')
+    # List of all folders in the directory
+    folders = [f for f in dir_path.iterdir() if f.is_dir()]
+    if not folders:
+        raise AssertionError(f'Folder "{dir_path} has no subfolders')
+    # Find the folder with the most recent creation time
+    latest_folder = max(folders, key=lambda f: f.stat().st_ctime)
+    return latest_folder
+
+
 def create_dir(folder_path:Path) -> None:
     """ Create folder, if folder does not exist
     Folder must be in the workspace
