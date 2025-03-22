@@ -1,92 +1,96 @@
-from modules.utils import *
-from modules.evaluation import *
 
-pandas_print_width()
+import pandas as pd
+import numpy as np
+
+from modules.utils import get_period, get_intervals, pandas_print_all
+from modules.plot import fig_type1_default, save_fig
 
 
-class EvaluateStrategy:
-    """
-    Input:
-        df[close, invested]
-    Output
-        All
-            {'start': Timestamp('2017-10-05 00:00:00'), 'end': Timestamp('2018-09-20 00:00:00'), 'days': 350, 'transactions': 22,
+def evaluate_invested(df) -> dict[str, any]:
+    """ [eval_dict df] Calculate evaluation_dict of one symbol with one param - df[invested]
+    :param df: df[close, invested]
+    :return: evaluation dict
+
+    Input:    df[close, invested]
+    Output:
+        min: {'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
+        all: {'start': Timestamp('2017-10-05 00:00:00'), 'end': Timestamp('2018-09-20 00:00:00'), 'days': 350, 'transactions': 22,
              'in+': 32.728, 'in-': 58.884, 'out+': 67.271, 'out-': 41.115,
-             'Buy_and_Hold': 3.718, 'Strategy_without_fee': 0.110, 'Strategy_with_fee': 0.101}
-        Min
-            {'Buy_and_Hold': 3.718, 'Strategy_with_fee': 0.101, 'diff_benchmark': -3.616}
+             'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
     """
+    # Work on a copy, because this function is called several cycles
+    df = df.copy()
 
-    def __init__(self, df):
-        self.df = df.replace({None: 0})
+    # Check None values in df[invested]
+    """
+    df[invested] must not have None values, otherwise calculations in this function will fail.
+    - None values are where the indicator does not yet provide any signals
+    - Here to run the calculation, all None values re replaced with 0. But then this strategy (1x params of an indicator)
+      is not comparable with the other parameters that can already make decisions at this point. Therefore make sure 
+      beforehand that all parameters start with the same offset, so there are no None values
+    """
+    amount_none_values = df['invested'].isnull().sum()
+    if amount_none_values > 0:
+        print(f'Warning: Cut {amount_none_values}/{len(df)} values from None to 0 where there was no signal')
+        df = df.replace({None: 0})
 
-        # Calculate daily perc change from course
-        self.df['close_perc'] = self.df['close'].pct_change(periods=1)  # * 100
+    # Calculate daily perc change from course - df['close_perc']
+    df['close_perc'] = df['close'].pct_change(periods=1)  # * 100
 
-        # Main calculations
-        BaH = calc_total_accumulated_perc(self.df, 0)  # Buy_and_Hold
-        S = calc_total_accumulated_perc(self.df, 2)  # Strategy_with_fee
+    # Main evaluation values
+    BaH = calc_total_accumulated_perc(df, 0)  # Buy_and_Hold
+    S = calc_total_accumulated_perc(df, 2)    # Strategy_with_fee
 
-        min_calculations = True
-        if min_calculations:
-            self.result_dict = {
-                'S': S,
-                'BaH': BaH,
-                'diff': S - BaH,
-            }
-        else:
-            # Calculate different states based on [{in, out}, {+, -}]
-            self.portions_dict = calc_all_investment_states(self.df)
+    # Dict of all evaluation values
+    min_calculations = True
+    if min_calculations:
+        result_dict = {
+            'S': S,
+            'BaH': BaH,
+            'diff': S - BaH,
+        }
+    else:
+        # Calculate different states based on [{in, out}, {+, -}]
+        portions_dict = calc_all_investment_states(df)
 
-            self.result_dict = {
-                    # Meta
-                'start': df.index.min(),
-                'end': df.index.max(),
-                'days': (df.index.min() - df.index.max()).days,
-                'transactions': calc_amount_transactions(self.df),
-                    # Evaluation
-                'in+': self.portions_dict['in+'],
-                'in-': self.portions_dict['in-'],
-                'out+': self.portions_dict['out+'],
-                'out-': self.portions_dict['out-'],
-                'Buy_and_Hold': calc_total_accumulated_perc(self.df, 0),
-                'Strategy_without_fee': calc_total_accumulated_perc(self.df, 1),
-                'Strategy_with_fee': calc_total_accumulated_perc(self.df, 2),
-                #'Strategy_with_fees_and_tax': calc_total_accumulated_perc(self.df, 3),
-                    # Comparability to the benchmark
-                'diff_benchmark': S - BaH,
-                #'ratio_benchmark': S / BaH,
-                #'perc_benchmark': (S - BaH) / BaH,
-                #'factor_benchmark': 1 + (S - BaH) / BaH if S > BaH else -(1 + (BaH - S) / S) if S < BaH else 1
-                #'factor_benchmark': (S - BaH) / BaH if S > BaH else -(BaH - S) / S if S < BaH else 1
-            }
+        result_dict = {
+                # Meta
+            'start': df.index.min(),
+            'end': df.index.max(),
+            'days': (df.index.min() - df.index.max()).days,
+            'transactions': _calc_amount_transactions(df),
+                # Evaluation
+            'in+': portions_dict['in+'],
+            'in-': portions_dict['in-'],
+            'out+': portions_dict['out+'],
+            'out-': portions_dict['out-'],
+            'Buy_and_Hold': calc_total_accumulated_perc(df, 0),
+            'Strategy_without_fee': calc_total_accumulated_perc(df, 1),
+            'Strategy_with_fee': calc_total_accumulated_perc(df, 2),
+            #'Strategy_with_fees_and_tax': calc_total_accumulated_perc(self.df, 3),
+                # Comparability to the benchmark
+            'diff_benchmark': S - BaH,
+            #'ratio_benchmark': S / BaH,
+            #'perc_benchmark': (S - BaH) / BaH,
+            #'factor_benchmark': 1 + (S - BaH) / BaH if S > BaH else -(1 + (BaH - S) / S) if S < BaH else 1
+            #'factor_benchmark': (S - BaH) / BaH if S > BaH else -(BaH - S) / S if S < BaH else 1
+        }
 
-        # Plot
-        self.plot = True
-        if self.plot:
-            self._plot()
+    # Plot
+    plot = False
+    if plot:
+        fig = fig_type1_default(df, '')
+        save_fig(fig, None)
 
-
-    def get_result(self) -> dict[str,float]:
-        #print(self.result_dict)
-        return self.result_dict
-
-
-    def _plot(self):
-        """ Plot (debugging purposes)
-        For evaluation, each strategy is split into several overlapping sections and the performance is calculated.
-          This plot provides a visual insight into the calculation (plotting each section)
-        Currently plots are saved under default folder and default name
-        """
-        from modules.plot import fig_type1_default, save_fig
-        fig = fig_type1_default(self.df)
-        save_fig(fig)
-        print('save plot from evaluation iterations steps')
+    # Return Evaluation as dict
+    #print(result_dict)
+    return result_dict
 
 
-def run_evaluation_multiple_cycles(df) -> pd.DataFrame:
-    """ Run evaluation multiple times in different periods and summarize the result
-    :return: df_summary -> df[start, end, days, amount_transactions, in+, in, out+, out-, Buy and Hold, Strategy without fee, Strategy with fee, factor_benchmark]
+
+def run_evaluate_invested_multiple_cycles(df) -> pd.DataFrame:
+    """ [eval_sum_cycle df] Run evaluation_dict multiple times in different periods and summarize the result
+    :return: df_summary -> df[S, BaH, diff]
 
     Input:
         df[close, invested]
@@ -117,7 +121,6 @@ def run_evaluation_multiple_cycles(df) -> pd.DataFrame:
         8      2.031768           1.018231       -1.013536
         9      1.778987           0.713761       -1.065226
     """
-    df = df.copy()
     # Check min columns
     minimal_columns = ['close', 'invested']
     if not set(minimal_columns).issubset(df.columns):
@@ -130,7 +133,7 @@ def run_evaluation_multiple_cycles(df) -> pd.DataFrame:
     The None values in df[invested] can be used specifically to remove all columns where the indicators do not yet provide any values.
       (this has an impact on buy and hold, which also begins on the same day when the indicators deliver values)
     """
-    df = df.dropna(subset=['invested']) # remove all rows in the beginning, where df[invested] is None
+    df = df.dropna(subset=['invested']) # remove all rows in the beginning, where df[invested] is None - comparability to BaH
     if df.empty: # all entries are None
         raise ValueError(f'df[invested] only None values -> handle it earlier') # TODO weiß noch nicht wie ich damit umgehe (an welcher Stelle abfangen)
     df.loc[:, 'invested'] = df['invested'].astype(int) # because there is no None value, the column can be set to int
@@ -143,7 +146,7 @@ def run_evaluation_multiple_cycles(df) -> pd.DataFrame:
     for index, interval in enumerate(intervals):
         start = df.index[interval[0]]
         end = df.index[interval[1]]
-        result = EvaluateStrategy(df[start:end]).get_result()
+        result = evaluate_invested(df[start:end])
 
         # Append all results in one dict
         for key, value in result.items():
@@ -156,15 +159,14 @@ def run_evaluation_multiple_cycles(df) -> pd.DataFrame:
 
 
 
-def get_evaluation_statistics(df) -> dict[str,float]:
-    """ Calculate mean and std of the most important key figures from the evaluation
+def get_evaluation_invested_statistics(df) -> dict[str,float]:
+    """ [eval_dict_cycle df] Calculate mean and std of the most important key figures from the evaluation
     :param df: df[close, invested]
     :return: result: mean and std from important key figures over multiple cycles
     """
     # Summarize all Evaluations in one df
-    df_summary = run_evaluation_multiple_cycles(df)
+    df_summary = run_evaluate_invested_multiple_cycles(df)
     #print(df_summary)
-    exit()
 
     # Statistics (mean and std from all number columns)
     """ mean and std from multiple cycles
@@ -180,3 +182,141 @@ def get_evaluation_statistics(df) -> dict[str,float]:
     #print(result_dict)
 
     return result_dict
+
+
+
+#------------------------- Evaluation of df[invested] -------------------------#
+"""
+Input: df[close, invested, close_perc]
+"""
+
+def _calc_amount_transactions(df, period='') -> float:
+    """
+    :param df: df[invested]
+    :param period: [D, 3D, W, ME, QE, YE]
+    :return: amount of transaction per period
+
+    Input:
+        len(df) = 60 (60 days or 2 months)
+        total_transactions = 20
+    Output:
+        -> 10 transactions / month
+        -> 0.3 transactions / day
+        -> ca 120 transactions / year
+    """
+    total_transactions = (df['invested'] != df['invested'].shift()).sum()  # sum all flank changes (0->1 and 1->0)
+    if period == '':    # total
+        return total_transactions
+    freq = get_period(period) # D->1, W->7, M->30, ...
+    num_periods = len(df) / freq  # number of periods in len(df) (e.g. len(df)=90 / freq=30 = 3
+    return total_transactions / num_periods if num_periods > 0 else 0
+
+
+def calc_all_investment_states(df) -> dict[str, float]:
+    """ Portion [%] of the 4 investment states based on 'invested'
+    :param df: df[invested, close_perc]
+    :return: dict[in+, in-, out+, out-]
+
+    based on the daily percentage changes in the course and the status of whether you are invested - sum over all 4 areas
+    Output: {'in+': 52.73, 'in-': 47.72, 'out+': 42.52, 'out-': 49.49}
+        Interpretation:
+            - in+: 52.73 % of all increased percentages the strategy is invested        (good - should be high)
+            - in-: 47.72 % of all increased percentages the strategy was not invested   (bad - should be low)
+            - out+: 42.52 % of all fallen percentages the strategy is invested          (bad - should be low)
+            - out-: 42.52 % of all fallen percentages the strategy is not invested      (good - should be high)
+    """
+    #df = df.copy()
+    # Calculate different states based on [in, out]
+    """
+                       close invested  close_perc invested_states
+    date                                                         
+    2010-08-29       0.06400        0   -0.009288            out-
+    2010-08-30       0.06497        0    0.015156            out+
+    2010-08-31       0.06000        0   -0.076497            out-
+    2010-09-01       0.06290        1    0.048333             in+
+    2010-09-02       0.06340        1    0.007949             in+
+    2010-09-03       0.06085        1   -0.040221             in-
+    2010-09-04       0.06238        1    0.025144             in+
+    """
+    conditions = [
+        (df['invested'] == 1) & (df['close_perc'] > 0),  # in+ (invested and course rises)
+        (df['invested'] == 1) & (df['close_perc'] < 0),  # in- (invested and course falls)
+        (df['invested'] == 0) & (df['close_perc'] > 0),  # out+ (not invested and course rises)
+        (df['invested'] == 0) & (df['close_perc'] < 0),  # out- (not invested and course falls)
+    ]
+    values_type = ['in+', 'in-', 'out+', 'out-']
+    df['invested_states'] = np.select(conditions, values_type, default='')
+
+
+    # Calculate the proportions of rising and falling prices
+    """
+    sum(in+) / +    (ratio in+ to all ricing courses)
+    sum(in-) / -    (ratio in- to all fallen courses)
+    sum(out+) / +   (ratio out+ to all ricing courses)
+    sum(out-) / -   (ratio out- to all fallen courses)
+    """
+    # sum of all ricing and sum of all fallen courses
+    total_perc_plus = sum(df.loc[df['close_perc'] > 0, 'close_perc'].to_list())     # sum of all ricing courses
+    total_perc_minus = sum(df.loc[df['close_perc'] < 0, 'close_perc'].to_list())    # sum of all fallen courses
+    # calculate ratio
+    eval_dict = {}
+    for key in values_type: # ['in+', 'in-', 'out+', 'out-']
+        eval_dict[key] = {}
+        list_perc = df.loc[df['invested_states'] == key, 'close_perc'].to_list()  # list of all percentages respectively from the 4 categories ['in+', 'in-', 'out+', 'out-']
+        eval_dict[key]['sum'] = sum(list_perc)  # sum the list
+        # Calculate portion (e.g. "invested and rising" / "all rising prices")
+        if '+' in key:
+            eval_dict[key]['portion'] = eval_dict[key]['sum'] / total_perc_plus * 100
+        elif '-' in key:
+            eval_dict[key]['portion'] = eval_dict[key]['sum'] / total_perc_minus * 100
+        else:
+            raise ValueError(f'no + or - in {key}')
+
+    # summarize data in dict {'in+': 52.73, 'in-': 47.72, 'out+': 42.52, 'out-': 49.49}
+    return {key: value["portion"] for key, value in eval_dict.items()}
+
+
+def calc_accumulated_perc(df, n=2):
+    """ Accumulated return (last accumulated value equals total return)
+    :param df: df['invested', 'close_perc']
+    :param n: 0 - Buy and Hold | 1 - Strategy without fee | 2 - Strategy with fee | 3 - Strategy with fee and tax
+    :return: df['factor', 'accumulate']
+    """
+    # Check
+    if df['invested'].isna().any(): # if None or NaN in df[invested]
+        raise ValueError(f'NaN or None in df[invested] - this will lead to errors in this function (take care of it beforehand)')
+
+    df = df.copy() # working on a copy, because this function is called 1 - 3 times per basic evaluation and the columns in the df are not needed
+    match n:
+        case 0:
+            # Buy and Hold
+            df['factor'] = 1 + df['close_perc']
+        case 1:
+            # Strategy without fees
+            df['factor'] = 1 + df['close_perc'] * df['invested']
+        case 2:
+            # Strategy with fees
+            FEE = 0.004  # 0.4 %
+            df['trade_occurred'] = df['invested'].diff().fillna(0).ne(0)
+            df['factor_trading_fee'] = df['trade_occurred'].apply(lambda x: 1 - FEE if x else 1)
+            df['factor_without_fee'] = 1 + df['close_perc'] * df['invested']
+            df['factor'] = df['factor_without_fee'] * df['factor_trading_fee']
+        case 3:
+            # Strategy with fees and tax
+            # TODO: Kapitalertragssteuer - 25% auf alle Gewinne (aber Verluste können gegen gerechnet werden)
+            pass
+        case _:
+            raise ValueError(f'n should be between 0-3: {n}')
+
+    df['accumulate'] = df['factor'].cumprod()
+    return df
+
+
+def calc_total_accumulated_perc(df, n=2) -> float:
+    """ Last value of accumulated return
+    :param df: see calc_accumulated_perc()
+    :param n: see calc_accumulated_perc()
+    :return: total return
+    """
+    # Call calc_accumulated_perc(df, n) and take the last accumulated value - this corresponds to the total return
+    return calc_accumulated_perc(df, n)['accumulate'].iloc[-1]

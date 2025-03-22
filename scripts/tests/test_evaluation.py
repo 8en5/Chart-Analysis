@@ -3,7 +3,6 @@ from test import *
 
 
 #------------------------- evaluation.py -------------------------#
-from modules.evaluation import *
 
 def test_get_intervals():
     test_data_lengths = [2, 50, 400, 1000, 2000, 5000]
@@ -52,11 +51,11 @@ def test_calc_accumulated_perc():
 
 
 #------------------------- evaluate_strategy.py -------------------------#
-from modules.strategy.evaluate_invested import get_evaluation_statistics
+from modules.strategy.evaluate_invested import get_evaluation_invested_statistics
 
 def test_get_evaluation_statistics():
     df = get_dummy_data_course()
-    df_summary = get_evaluation_statistics(df)
+    df_summary = get_evaluation_invested_statistics(df)
     print(df_summary)
 
 

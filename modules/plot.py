@@ -73,7 +73,7 @@ def save_fig(fig, file_path=None):
 
 
 
-#---------------------- Lvl 1 - individual axes which together form a fig ----------------------#
+#---------------------- Lvl 1 - individual axes (which together form a fig) ----------------------#
 
 def func_ax_indicator(indicator_name:str, *args):
     """ [ax] Central function to call the other modular functions
@@ -118,7 +118,7 @@ def ax_perc_bar(ax, df):
     ax.bar(df_freq.index, df_freq[col_perc], label=f'percentage_{freq}', color='blue', width=bar_width)    # Bar Percentage
 
 
-#------------- Indicators -------------#
+#--- ax Indicators ---#
 
 def ax_BB(ax, df):
     """[ax]"""
@@ -156,6 +156,7 @@ def ax_SMA(ax, df):
 
 
 
+#--- ax background color ---#
 
 def ax_background_colored_highlighting(ax, df):
     """[ax]"""
@@ -198,7 +199,8 @@ def ax_background_colored_highlighting(ax, df):
 
 
 
-# Graph elements (title, xlim, xlabel, grid, legend)
+#--- ax Graph elements (title, xlim, xlabel, grid, legend) ---#
+
 def ax_ylim_threshold(values, ax, lower=0.05, upper=99.95):
     """[ax]"""
     lower_threshold = np.percentile(values.fillna(0), lower)  # lower threshold

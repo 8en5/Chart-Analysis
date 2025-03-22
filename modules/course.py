@@ -40,6 +40,7 @@ def get_symbol_paths(source_symbols:str|list[str]) -> list:
       get_symbol_paths('BTC')                   2 -> Path[BTC]
       get_symbol_paths(['BTC', 'ETH', 'SOL'])   2 -> Path[BTC, ETH, SOL]
     """
+    # Get list of symbols based on different sources
     if isinstance(source_symbols, str):
         try:
             # 1 - source_symbols = course_selection_key -> load symbols defined in the yaml
@@ -54,19 +55,25 @@ def get_symbol_paths(source_symbols:str|list[str]) -> list:
     else:
         raise ValueError(f'Wrong instance, should be str or list: {source_symbols}')
 
-    # Download courses (if not available or update them)
-    ensure_courses_available(symbol_names, False)
 
-    # Check, if all courses are available
-    folder_path = get_path() / 'data/course'
-    paths_pos, names_neg = founded_files_in_directory(folder_path, symbol_names, 'csv')
-    if len(names_neg) > 0:
-        raise AssertionError(f'Here is a problem: Not all courses are downloaded, but they should be: "{names_neg}"')
-    else:
+    # Check if all courses are already downloaded
+    paths_pos, names_neg = founded_files_in_directory(get_path(), symbol_names, 'csv')
+    if len(names_neg) == 0:
+        # all courses already downloaded
         return paths_pos
 
+    # Download courses
+    download_courses(symbol_names, False) # [update=True to update all, update=False to download only missing courses]
 
-def ensure_courses_available(symbol_names:list, update=False) -> None:
+    # Check, if all courses are now downloaded
+    paths_pos, names_neg = founded_files_in_directory(get_path(), symbol_names, 'csv')
+    if len(names_neg) == 0:
+        return paths_pos
+    else:
+        raise AssertionError(f'Here is a problem: Not all courses are downloaded, but they should be: "{names_neg}"')
+
+
+def download_courses(symbol_names:list, update=False) -> None:
     """ Ensures that all courses are downloaded
     Download all courses (from different APIs) if not already downloaded
     If a given symbol name is not available in any API then throw an Error

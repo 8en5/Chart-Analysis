@@ -3,6 +3,10 @@ from modules.meta_study.study_visualize import manager_visualize_strategy
 
 
 def main():
+    """ [loop fig] Study to visualize strategies (indicator params)
+    :return: None
+    """
+
     # Parameters for the study
       # Indicator
     indicator_name = 'BB'   # MACD, BB, RSI

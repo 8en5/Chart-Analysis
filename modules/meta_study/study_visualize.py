@@ -9,7 +9,7 @@ from modules.file_handler import *
 from modules.course import get_symbol_paths
 from modules.params import get_all_params_combinations_from_yaml
 from modules.plot import fig_type1_default, fig_type2_indicator, save_fig
-from modules.strategy.evaluate_invested import get_evaluation_statistics
+from modules.strategy.evaluate_invested import get_evaluation_invested_statistics
 from modules.strategy.strategy_invested import func_get_invested_from_indicator
 
 
@@ -82,15 +82,15 @@ def routine_visualize_strategy(symbol_path:Path, indicator_name:str, params:dict
     evaluation_dict_str = _calc_evaluation_to_str(evaluation_dict)
 
     # Plot
-    save_plot = False
-    show_plot = True
+    save_plot = True
+    show_plot = False
     fig = fig_type2_indicator(df, indicator_name, symbol_path.stem, params, evaluation_dict_str)
     #fig = plot_type1_default(df, f'{evaluation_dict_str}\n{symbol_path.stem}\n{params}')
     if save_plot:
         save_fig(fig, file_path)
     if show_plot:
         plt.show()
-    exit()
+
 
 def _calc_indicator_and_invested(symbol_path, indicator_name, params) -> pd.DataFrame:
     """ [fig] Calculate full df[close, <indicators>, signal, invested]
@@ -112,7 +112,7 @@ def _calc_evaluation(df) -> dict:
     :param df: df[invested]
     :return: dict evaluation - e.g. {'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
     """
-    evaluation_dict = get_evaluation_statistics(df)
+    evaluation_dict = get_evaluation_invested_statistics(df)
     return evaluation_dict
 
 
@@ -166,4 +166,6 @@ def _calc_evaluation_to_str(evaluation_dict) -> str:
 
 
 
-manager_visualize_strategy('MACD', 'default', 'visualize', study_type='symbols')
+if __name__ == "__main__":
+    # Testing
+    manager_visualize_strategy('MACD', 'default', 'visualize', study_type='symbols')
