@@ -10,15 +10,15 @@ from modules.course import get_courses_paths
 from modules.error_handling import log_error
 
 
-def eval_param_with_symbol_study(indicator_name, params:dict, symbols_paths):
-    """ Evaluate one param variation of an indicator over multiple courses
+def eval_param_with_symbol_study(indicator_name, params:dict, course_paths):
+    """ [eval param multiple symbols] Evaluate one param variation of an indicator over multiple courses
     Calculate 'EvaluateStrategy' (= Evaluation of one param variation with one symbol) over multiple courses (defined in
       stages). Then summarize the results over the multiple courses and calculate mean and std as meta result
       for this param variation
 
     :param indicator_name: strategy name
     :param params: dict of the one specific param variation of the indicator
-    :param symbols_paths: list paths of the selected courses for the evaluation
+    :param course_paths: list paths of the selected courses for the evaluation
     :return: dict meta result - mean and std as summary over multiple courses (from the most important values)
 
     Input:
@@ -36,7 +36,7 @@ def eval_param_with_symbol_study(indicator_name, params:dict, symbols_paths):
 
     # Loop over all symbols and calculate meta evaluation
     summary_dict = {}
-    for index, symbol_file_path in enumerate(symbols_paths):
+    for index, symbol_file_path in enumerate(course_paths):
         #print(f'{index + 1}/{len(symbol_study_file_paths)}: {symbol_file_path.stem}')
         df = load_pandas_from_file_path(symbol_file_path)[['close']]
         df = func_get_invested_from_indicator(indicator_name, df, params)
@@ -55,24 +55,42 @@ def eval_param_with_symbol_study(indicator_name, params:dict, symbols_paths):
             summary_dict[key].append(value)
 
     # Summarize evaluation
+    """ e.g. for [ADA, BTC, ETH, LINK]
+    df_summary = 
+                  S       BaH      diff
+        0  4.710666  5.545694 -0.835028
+        1  4.205323  4.681915 -0.476592
+        2  3.307129  6.934328 -3.627199
+        3  2.998117  2.767857  0.230259
+    """
     df_summary = pd.DataFrame(summary_dict)
     #print(df_summary)
 
     # Result as dict
+    """result_dict = {'S': 3.81, 'BaH': 4.98, 'diff': -1.18}"""
     result_dict = df_summary.mean().to_dict()
+    #print(json_round_dict(result_dict))
+    full = True # decide manually if min or full evaluation
+    if full:
+        # Insert course names (first column)
+        course_names = get_names_from_paths(course_paths)
+        df_summary.insert(0, 'symbol', pd.Series(course_names))
+        result_dict['full'] = df_summary.set_index('symbol').to_dict(orient='index')
+        #print(json_round_dict(result_dict))
+        """result_dict = {'S': 3.81, 'BaH': 4.98, 'diff': -1.18, 'full': {'BTC': {'S': 4.71, 'BaH': 5.55, 'diff': -0.84}, 'ETH': {'S': 4.21, 'BaH': 4.68, 'diff': -0.48}, 'ADA': {'S': 3.31, 'BaH': 6.93, 'diff': -3.63}, 'LINK': {'S': 3.0, 'BaH': 2.77, 'diff': 0.23}}}"""
     return result_dict
 
 
 
-def study_params_brute_force(indicator_name, course_selection_key, init=False):
-    """ [param study]
+def study_params_brute_force(indicator_name:str, course_selection_key:str, init=False):
+    """ [Meta, param study, loop param_variation] Collect metadata for the study and start routine
     :param indicator_name: indicator name
     :param course_selection_key: key params from yaml
-    :param init: init over test samples - 1) if test set is ok, 2) estimate time, 3) metadata
+    :param init: init over test samples - if test set is ok, time estimation and metadata
     :return: None
     """
     course_selection_paths = get_courses_paths(course_selection_key)
-    param_selection = 'brute_force'     # [visualize, brute_force, optimization]
+    param_selection = 'brute_force'     # [brute_force, (visualize, optimization)]
     params_variations = get_all_params_combinations_from_yaml(indicator_name, param_selection)
 
     # Save results
@@ -85,7 +103,7 @@ def study_params_brute_force(indicator_name, course_selection_key, init=False):
     key = f'{indicator_name}_{course_selection_key}'
     if init:
         # Init - test samples to test the functionality and get the time estimation for the project
-        test_samples = 2
+        test_samples = 100
         print(f'Start init tests for {indicator_name}_{course_selection_key} over {test_samples} samples')
         routine_param_study_brute_force(indicator_name, course_selection_paths, params_variations[0:test_samples], file_path, False)
         time_end = pd.Timestamp.now()
@@ -108,7 +126,7 @@ def study_params_brute_force(indicator_name, course_selection_key, init=False):
         print(f'Start real study for {indicator_name}_{course_selection_key} over {len(params_variations)} samples')
         time_end = pd.Timestamp.now()
         time_per_iteration = (time_end - time_start).total_seconds() / len(params_variations)
-        routine_param_study_brute_force(indicator_name, course_selection_paths, params_variations[0:3], file_path, True)
+        routine_param_study_brute_force(indicator_name, course_selection_paths, params_variations, file_path, True)
         # Meta dict
         meta_dict = {
             'real_study': {
@@ -121,20 +139,32 @@ def study_params_brute_force(indicator_name, course_selection_key, init=False):
     return key, meta_dict
 
 
-def routine_param_study_brute_force(indicator_name, course_selection_paths, params_variations, file_path, save):
+def routine_param_study_brute_force(indicator_name:str, course_selection_paths:list[Path], params_variations:list[dict], file_path:[Path], save:[bool]):
+    """ [param study, loop param_variation] Start routine for the param study
+    :param indicator_name: indicator name
+    :param course_selection_paths: list of the course paths (symbol paths)
+    :param params_variations: list of dicts of params
+    :param file_path: file path for the results
+    :param save: whether results should be saved
+    :return:
+    """
     # Run study
     summary_dict = defaultdict(list)
     for index, params in enumerate(params_variations):
         try:
             # Calculate param evaluation over multiple courses
-            result = eval_param_with_symbol_study(indicator_name, params, course_selection_paths)
-            result['params'] = params
+            result_dict = {
+                'params': params
+            }
+            result_dict_eval = eval_param_with_symbol_study(indicator_name, params, course_selection_paths)
+            result_dict.update(result_dict_eval)
+
             print(
                 f'{index + 1}/{len(params_variations)}: \t\t'  # index
-                f'{[round(v, 2) if isinstance(v, (int, float)) else v for v in result.values()]}' # print result dict in one line ->    1/11776: [1.04, 5.06, -4.02, {'rsi_l': 5.0, 'bl': 10.0, 'bu': 50.0}]
+                f'{json_round_dict(result_dict)}' # print result dict in one line ->    1/11776: [1.04, 5.06, -4.02, {'rsi_l': 5.0, 'bl': 10.0, 'bu': 50.0}]
             )
             # Append all results in one dict as list
-            for key, value in result.items():
+            for key, value in result_dict.items():
                 summary_dict[key].append(value)
 
             # Save intermediate results and delete summary_dict
@@ -142,7 +172,7 @@ def routine_param_study_brute_force(indicator_name, course_selection_paths, para
                 save_summary_dict(summary_dict, file_path)
         except Exception as e:
             print(f'Error occurred for param: {params}')
-            log_error(e, True)
+            log_error(e, True, get_last_created_folder_in_dir('study'))
 
     # Finish
     if save:
@@ -150,7 +180,7 @@ def routine_param_study_brute_force(indicator_name, course_selection_paths, para
     del summary_dict # delete
 
 
-def save_summary_dict(summary_dict, file_path) -> None:
+def save_summary_dict(summary_dict:dict, file_path:Path) -> None:
     """ [file save] Save intermediate result
     summary_dict -> convert to df -> sort df -> save df to file
 
@@ -158,9 +188,17 @@ def save_summary_dict(summary_dict, file_path) -> None:
     :param file_path: storage location
     :return: None
     """
+    # Round to 2 decimals
+    summary_dict = json_round_dict(summary_dict)
     # Summaries all results in one df
     df = pd.DataFrame(summary_dict)
     # Sort dict
     df_sorted = df.sort_values(by='S', ascending=False)
     # Save result to file
     save_pandas_to_file(df_sorted, file_path.parent, file_path.stem)
+
+
+
+if __name__ == "__main__":
+    # Testing
+    study_params_brute_force('MACD', 'default', True)

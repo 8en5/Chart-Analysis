@@ -1,13 +1,14 @@
 import traceback
 import json
 import pandas as pd
+from pathlib import Path
 
 from modules.file_handler import get_path, create_dir
 
 
 errors = []
 
-def log_error(error:Exception, save=True):
+def log_error(error:Exception, save=True, file_path:Path=None):
     # Error info in log
     error_info = {
         'date': pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S"),
@@ -32,14 +33,13 @@ def log_error(error:Exception, save=True):
     print(log_message)
 
     if save:
-        save_errors()
+        save_errors(file_path)
 
 
-def save_errors(study=False):
+def save_errors(folder:Path=None):
     # Folder and file name
-    if study:
-        folder = get_path('study_latest')
-    else:
+    if not folder:
+        # Default folder
         folder = get_path() / 'data'
 
     file_name = f'error_log.txt'

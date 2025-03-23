@@ -280,6 +280,10 @@ def load_yaml_from_file_path(file_path:Path) -> dict:
 
 
 #---------------------- txt ----------------------#
-def save_txt(data, file_path, mode='w'):
+def save_txt(data:str, file_path:Path, mode='w'):
+
+    # Create folder if it doesn't exist
+    create_dir(file_path.parent)
+
     with open(file_path, mode=mode) as file:
         file.write(data)

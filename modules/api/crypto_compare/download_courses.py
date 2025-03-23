@@ -9,7 +9,7 @@ Output:
 
 import requests
 
-from modules.utils import dump_json_nicely
+from modules.utils import json_dump_nicely
 from modules.file_handler import *
 from modules.error_handling import log_error
 
@@ -186,5 +186,5 @@ def main_routine_download_course_list_cc(symbols:list) -> None:
         print()
 
     # Print known errors
-    output = dump_json_nicely(ACCEPTED_ERRORS)
+    output = json_dump_nicely(ACCEPTED_ERRORS)
     print(output)

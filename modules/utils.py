@@ -23,7 +23,24 @@ def pandas_print_width():
     pd.set_option('display.width', None)
 
 
-def dump_json_nicely(input_dict):
+def json_round_dict(input_dict:dict) -> dict:
+    """ Json dumps dict (rounded to 2 decimals)
+    :param input_dict: dict of data
+    :return: dict with n decimals
+    """
+    # Check
+    if not isinstance(input_dict, dict):
+        raise ValueError(f'Input is not a dict: {input_dict}')
+
+    # Dump the dict to a JSON string
+    json_str = json.dumps(input_dict)
+    # Find all numbers in the JSON string and round them to 2 decimal places
+    rounded_json_str = re.sub(r"([-+]?\d*\.\d+)", lambda x: f"{float(x.group()):.2f}", json_str)
+    # Return dict
+    return json.loads(rounded_json_str)
+
+
+def json_dump_nicely(input_dict:dict):
     """ Json dumps dict (but with list on one line and floats rounded to 3 decimals)
     :param input_dict: dict
     :return: nicely formatted dict
@@ -35,12 +52,12 @@ def dump_json_nicely(input_dict):
         raise ValueError(f'Input is not a dict: {input_dict}')
 
     # Dump the dict to a JSON string with indentation
-    output = json.dumps(input_dict, indent=4)
+    json_str = json.dumps(input_dict, indent=4)
     # Format lists to be in a single line (ChatGPT)
-    output = re.sub(r'\[\s*([\s\S]*?)\s*\]', lambda m: f"[{', '.join(re.findall(r'[^,\s\[\]]+', m.group(1)))}]", output)
+    json_str = re.sub(r'\[\s*([\s\S]*?)\s*\]', lambda m: f"[{', '.join(re.findall(r'[^,\s\[\]]+', m.group(1)))}]", json_str)
     # Format floats to 3 decimal places (ChatGPT)
-    output = re.sub(r'(\d+\.\d+)', lambda m: f'{float(m.group()):.3f}', output)
-    return output
+    json_str = re.sub(r'(\d+\.\d+)', lambda m: f'{float(m.group()):.3f}', json_str)
+    return json_str
 
 
 #------------------------- Functional -------------------------#
