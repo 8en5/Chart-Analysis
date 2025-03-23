@@ -56,7 +56,7 @@ def _set_param_variation(params_study: dict[str, list[float] | tuple[float, floa
     return params_study
 
 
-def get_all_params_combinations_from_yaml(indicator_name, key_variant):
+def get_all_params_variations_from_yaml(indicator_name, key_variant):
     """ Return list of all params variations
     :param indicator_name: dict[key]
     :param key_variant: dict[indicator_name][key]

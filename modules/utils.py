@@ -51,12 +51,12 @@ def json_dump_nicely(input_dict:dict):
     if not isinstance(input_dict, dict):
         raise ValueError(f'Input is not a dict: {input_dict}')
 
+    # Round json
+    input_dict = json_round_dict(input_dict)
     # Dump the dict to a JSON string with indentation
     json_str = json.dumps(input_dict, indent=4)
     # Format lists to be in a single line (ChatGPT)
     json_str = re.sub(r'\[\s*([\s\S]*?)\s*\]', lambda m: f"[{', '.join(re.findall(r'[^,\s\[\]]+', m.group(1)))}]", json_str)
-    # Format floats to 3 decimal places (ChatGPT)
-    json_str = re.sub(r'(\d+\.\d+)', lambda m: f'{float(m.group()):.3f}', json_str)
     return json_str
 
 

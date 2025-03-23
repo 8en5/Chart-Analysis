@@ -1,5 +1,5 @@
 
-from modules.meta_study.study_visualize import manager_visualize_strategy
+from modules.meta_study.study_visualize import manager_visualize_strategies
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
 
 
     # Run
-    manager_visualize_strategy(indicator_name, source_courses, source_params, study_type)
+    manager_visualize_strategies(indicator_name, source_courses, source_params, study_type)
 
 
 if __name__ == "__main__":

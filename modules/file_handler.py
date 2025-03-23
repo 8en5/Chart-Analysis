@@ -274,7 +274,7 @@ def load_yaml_from_file_path(file_path:Path) -> dict:
     if not file_path.exists():
         raise FileNotFoundError(f'File "{file_path}" does not exist')
 
-    with file_path.open('r', encoding="utf-8") as f:
+    with file_path.open('r', encoding='utf-8') as f:
         data = yaml.safe_load(f)
         return data
 

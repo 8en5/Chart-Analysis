@@ -3,21 +3,22 @@ import pandas as pd
 from collections import defaultdict
 
 from modules.file_handler import *
-from modules.strategy.strategy_invested import *
-from modules.strategy.evaluate_invested import get_evaluation_invested_statistics
 from modules.params import *
 from modules.course import get_courses_paths
 from modules.error_handling import log_error
+from modules.strategy.strategy_invested import *
+from modules.strategy.evaluate_invested import get_evaluation_invested_statistics
+from modules.meta_study.study_visualize import manager_visualize_strategies
 
 
 def eval_param_with_symbol_study(indicator_name, params:dict, course_paths):
-    """ [eval param multiple symbols] Evaluate one param variation of an indicator over multiple courses
+    """ [eval, 1x param, multiple symbols] Evaluate one param variation of an indicator over multiple courses
     Calculate 'EvaluateStrategy' (= Evaluation of one param variation with one symbol) over multiple courses (defined in
       stages). Then summarize the results over the multiple courses and calculate mean and std as meta result
       for this param variation
 
     :param indicator_name: strategy name
-    :param params: dict of the one specific param variation of the indicator
+    :param params: 1x params dict of one indicator
     :param course_paths: list paths of the selected courses for the evaluation
     :return: dict meta result - mean and std as summary over multiple courses (from the most important values)
 
@@ -53,6 +54,8 @@ def eval_param_with_symbol_study(indicator_name, params:dict, course_paths):
             if key not in summary_dict:
                 summary_dict[key] = []
             summary_dict[key].append(value)
+        # Clean up memory
+        del df # delete
 
     # Summarize evaluation
     """ e.g. for [ADA, BTC, ETH, LINK]
@@ -67,17 +70,23 @@ def eval_param_with_symbol_study(indicator_name, params:dict, course_paths):
     #print(df_summary)
 
     # Result as dict
-    """result_dict = {'S': 3.81, 'BaH': 4.98, 'diff': -1.18}"""
     result_dict = df_summary.mean().to_dict()
-    #print(json_round_dict(result_dict))
-    full = True # decide manually if min or full evaluation
-    if full:
+    min = False # decide manually if min or full evaluation
+    if min:
+        """result_dict = {'S': 3.81, 'BaH': 4.98, 'diff': -1.18}"""
+        #print(json_round_dict(result_dict))
+    else:
         # Insert course names (first column)
         course_names = get_names_from_paths(course_paths)
         df_summary.insert(0, 'symbol', pd.Series(course_names))
-        result_dict['full'] = df_summary.set_index('symbol').to_dict(orient='index')
+        result_dict_extra = {
+            'params': params,
+            'courses': df_summary.set_index('symbol').to_dict(orient='index')
+        }
+        result_dict.update(result_dict_extra)
+        """{'S': 3.81, 'BaH': 4.98, 'diff': -1.18, 'params': {'m_fast': 2.0, 'm_slow': 15.0, 'm_signal': 1.0}, 'courses': {'BTC': {'S': 1.0, 'BaH': 5.55, 'diff': -4.55}, 'ETH': {'S': 1.0, 'BaH': 4.68, 'diff': -3.68}, 'ADA': {'S': 1.0, 'BaH': 6.93, 'diff': -5.93}, 'LINK': {'S': 1.0, 'BaH': 2.77, 'diff': -1.77}}}"""
         #print(json_round_dict(result_dict))
-        """result_dict = {'S': 3.81, 'BaH': 4.98, 'diff': -1.18, 'full': {'BTC': {'S': 4.71, 'BaH': 5.55, 'diff': -0.84}, 'ETH': {'S': 4.21, 'BaH': 4.68, 'diff': -0.48}, 'ADA': {'S': 3.31, 'BaH': 6.93, 'diff': -3.63}, 'LINK': {'S': 3.0, 'BaH': 2.77, 'diff': 0.23}}}"""
+    #print(json_dump_nicely(result_dict))
     return result_dict
 
 
@@ -91,7 +100,7 @@ def study_params_brute_force(indicator_name:str, course_selection_key:str, init=
     """
     course_selection_paths = get_courses_paths(course_selection_key)
     param_selection = 'brute_force'     # [brute_force, (visualize, optimization)]
-    params_variations = get_all_params_combinations_from_yaml(indicator_name, param_selection)
+    params_variations = get_all_params_variations_from_yaml(indicator_name, param_selection)
 
     # Save results
     folder_path_param_study = get_last_created_folder_in_dir('study') / f'{indicator_name}_{course_selection_key}'
@@ -139,26 +148,22 @@ def study_params_brute_force(indicator_name:str, course_selection_key:str, init=
     return key, meta_dict
 
 
-def routine_param_study_brute_force(indicator_name:str, course_selection_paths:list[Path], params_variations:list[dict], file_path:[Path], save:[bool]):
+def routine_param_study_brute_force(indicator_name:str, course_selection_paths:list[Path], params_variations:list[dict], file_path:[Path], save:[bool]) -> None:
     """ [param study, loop param_variation] Start routine for the param study
     :param indicator_name: indicator name
     :param course_selection_paths: list of the course paths (symbol paths)
     :param params_variations: list of dicts of params
     :param file_path: file path for the results
     :param save: whether results should be saved
-    :return:
+    :return: None
     """
+    #params_variations = params_variations[0:10]    # Testing - cut to min data
     # Run study
     summary_dict = defaultdict(list)
     for index, params in enumerate(params_variations):
         try:
             # Calculate param evaluation over multiple courses
-            result_dict = {
-                'params': params
-            }
-            result_dict_eval = eval_param_with_symbol_study(indicator_name, params, course_selection_paths)
-            result_dict.update(result_dict_eval)
-
+            result_dict = eval_param_with_symbol_study(indicator_name, params, course_selection_paths)
             print(
                 f'{index + 1}/{len(params_variations)}: \t\t'  # index
                 f'{json_round_dict(result_dict)}' # print result dict in one line ->    1/11776: [1.04, 5.06, -4.02, {'rsi_l': 5.0, 'bl': 10.0, 'bu': 50.0}]
@@ -176,8 +181,11 @@ def routine_param_study_brute_force(indicator_name:str, course_selection_paths:l
 
     # Finish
     if save:
+        # Save summary
         save_summary_dict(summary_dict, file_path)
-    del summary_dict # delete
+
+        # Visualize best parameters
+        visualize_summary_dict(indicator_name, course_selection_paths, summary_dict)
 
 
 def save_summary_dict(summary_dict:dict, file_path:Path) -> None:
@@ -198,7 +206,24 @@ def save_summary_dict(summary_dict:dict, file_path:Path) -> None:
     save_pandas_to_file(df_sorted, file_path.parent, file_path.stem)
 
 
+def visualize_summary_dict(indicator_name, course_selection_paths, summary_dict):
+    """ Plot the best n params from the param study
+    :param indicator_name: indicator name
+    :param course_selection_paths: paths of the course selection
+    :param summary_dict: {'S': 3.81, 'BaH': 4.98, 'diff': -1.18, 'params': {'p_1': 10, 'p_2': 20}, 'courses': {'BTC': {'S': 4.71, 'BaH': 5.55, 'diff': -0.84}, ...}
+    :return:
+    """
+    # TODO: Wenn Strategie 100% investiert ist, dann überspringen
+    n = 5
+    # Sort dict
+    df = pd.DataFrame(summary_dict)
+    df_sorted = df.sort_values(by='S', ascending=False)
+    # Take the best n results
+    list_params = df_sorted['params'].head(n).tolist()
+    print(f'Start visualizing the best {n} params for the indicator {indicator_name}: {list_params}')
+    manager_visualize_strategies(indicator_name, course_selection_paths, list_params, study_type='study')
+
 
 if __name__ == "__main__":
     # Testing
-    study_params_brute_force('MACD', 'default', True)
+    study_params_brute_force('MACD', 'default', False)

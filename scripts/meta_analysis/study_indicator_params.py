@@ -7,9 +7,9 @@ from modules.meta_study.study_params import study_params_brute_force
 
 
 def study_brute_force():
-    indicator_names = ['MACD', 'BB', 'RSI']
+    indicator_names = ['MACD'] #['MACD', 'BB', 'RSI']
     course_selection_keys = ['default']
-    pre_test = False
+    pre_test = True
 
     # Create result folder for the whole study
     folder_path = get_path('study') / f'Study_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}'

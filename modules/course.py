@@ -36,9 +36,10 @@ def get_courses_paths(source_courses:str|list[str]) -> list:
     :return: list of symbol file paths
 
     e.g.
-      get_courses_paths('default')               1 -> Path[ADA, BTC, ETH, LINK] (defined in the yaml)
-      get_courses_paths('BTC')                   2 -> Path[BTC]
-      get_courses_paths(['BTC', 'ETH', 'SOL'])   2 -> Path[BTC, ETH, SOL]
+      1 get_courses_paths('default')               -> Path[ADA, BTC, ETH, LINK] (defined in the yaml)
+      2 get_courses_paths('BTC')                   -> Path[BTC]
+      3 get_courses_paths(['BTC', 'ETH', 'SOL'])   -> Path[BTC, ETH, SOL]
+      4 get_courses_paths(['../data/../BTC.csv'])  -> Path[BTC, ETH, SOL]
     """
     # Get list of symbols based on different sources
     if isinstance(source_courses, str):
@@ -50,8 +51,14 @@ def get_courses_paths(source_courses:str|list[str]) -> list:
             # 2 - convert one given course to a list - e.g. 'BTC' -> ['BTC']
             symbol_names = [source_courses]
     elif isinstance(source_courses, list):
-        # 3 - source_courses = list[symbol_names] -> already list of symbol names
-        symbol_names = source_courses
+        if isinstance(source_courses[0], str):
+            # 3 - source_courses = list[symbol_names] -> already list of symbol names
+            symbol_names = source_courses
+        elif isinstance(source_courses[0], Path):
+            # 4 - source_courses = list[Path]
+            symbol_names = get_names_from_paths(source_courses)
+        else:
+            raise ValueError(f'Wrong instance, should be str or Path: {source_courses}')
     else:
         raise ValueError(f'Wrong instance, should be str or list: {source_courses}')
 

@@ -22,6 +22,7 @@ def fig_type1_default(df, title=''):
     ax_background_colored_highlighting(ax, df[['invested']])  # df['invested'] -> [in,out]
     ax_course(ax, df)                                         # Course
     ax_properties(ax, title=title)                            # Labels
+    plt_properties(plt)                                       # Labels
     return fig
 
 def fig_type2_indicator(df, indicator_name, title1=None, title2=None, suptitle=None):
@@ -45,6 +46,7 @@ def fig_type2_indicator(df, indicator_name, title1=None, title2=None, suptitle=N
     func_ax_indicator(indicator_name, ax[1], df)               # Indicator
     ax_properties(ax[1], title=title2)                               # Labels
     fig_properties(fig, suptitle=suptitle)                           # Labels
+    plt_properties(plt)                                              # Labels
     return fig
 
 def save_fig(fig, file_path=None):
@@ -215,14 +217,11 @@ def ax_ylim_threshold(values, ax, lower=0.05, upper=99.95):
     ax.set_ylim(lower_threshold, upper_threshold)
 
 
-def ax_properties(ax, title=None, xlabel=None, ylabel='Chart', grid=True, legend=True):
+def ax_properties(ax, title=None, xlabel='Date', ylabel='Chart', grid=True, legend=True):
     """[ax]"""
-    """ commented out
-    xlabel = 'Date
-    """
     # Graph elements
     if title: ax.set_title(title)
-    if xlabel: ax.set_xlabel('Date')
+    if xlabel: ax.set_xlabel(xlabel)
     if ylabel: ax.set_ylabel(ylabel)
     if grid: ax.grid()
     if legend: ax.legend()
@@ -230,4 +229,9 @@ def ax_properties(ax, title=None, xlabel=None, ylabel='Chart', grid=True, legend
 
 def fig_properties(fig, suptitle=None):
     """[fig]"""
-    if suptitle: fig.suptitle(suptitle)
+    if suptitle: fig.suptitle(suptitle) # big title (over the normal title)
+
+
+def plt_properties(plt, loc='upper left'):
+    """[plt]"""
+    plt.legend(loc=loc) # position legend
