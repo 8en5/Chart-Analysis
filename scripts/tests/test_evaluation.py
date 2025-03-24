@@ -1,9 +1,11 @@
 from modules.utils import *
 from test import *
 
+from modules.strategy.evaluate_invested import _calc_amount_transactions, _calc_all_investment_states, \
+    _calc_accumulated_perc, _calc_total_accumulated_perc, get_evaluation_invested_statistics
+
 
 #------------------------- evaluation.py -------------------------#
-from modules.evaluation import *
 
 def test_get_intervals():
     test_data_lengths = [2, 50, 400, 1000, 2000, 5000]
@@ -21,14 +23,14 @@ def test_calc_amount_transactions():
     #print(df)
     test_periods = ['', 'D', 'W', 'ME', 'QE', 'YE']
     for period in test_periods:
-        trans_per_freq = calc_amount_transactions(df, period)
+        trans_per_freq = _calc_amount_transactions(df, period)
         print(f'{period}: {trans_per_freq}')
 
 
 def test_calc_all_investment_states():
     df = get_dummy_data_course()
     #print(df)
-    states = calc_all_investment_states(df)
+    states = _calc_all_investment_states(df)
     print(states)
 
 
@@ -43,20 +45,19 @@ def test_calc_accumulated_perc():
     }
     for key, value in test_dict.items():
         df = get_dummy_data_course('BB', 'BTC')
-        df = calc_accumulated_perc(df, value)
+        df = _calc_accumulated_perc(df, value)
         print(key)
         print(df)
-        print('Total:', calc_total_accumulated_perc(df, value))
+        print('Total:', _calc_total_accumulated_perc(df, value))
         print('\n')
 
 
 
 #------------------------- evaluate_strategy.py -------------------------#
-from modules.strategy.evaluate_strategy import get_evaluation_statistics
 
 def test_get_evaluation_statistics():
     df = get_dummy_data_course()
-    df_summary = get_evaluation_statistics(df)
+    df_summary = get_evaluation_invested_statistics(df)
     print(df_summary)
 
 

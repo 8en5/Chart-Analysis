@@ -40,7 +40,7 @@ def test_perc():
     print(df_test)
 
     ax_perc_bar(ax, df_test)
-    ax_default_properties(ax)
+    ax_properties(ax)
     plt.show()
 
 

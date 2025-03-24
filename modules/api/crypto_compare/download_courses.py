@@ -8,11 +8,10 @@ Output:
 """
 
 import requests
-import json
-import re
 
+from modules.utils import json_dump_nicely
 from modules.file_handler import *
-from modules.error_handling import ErrorHandling
+from modules.error_handling import log_error
 
 
 # Errors occur when downloading some symbols and should be ignored
@@ -48,7 +47,7 @@ def API_request_course(symbol:str, to_ts=None, limit=2000):
 
     # Check for errors in the API response
     if data['Response'] != 'Success':
-        raise Exception(f'{data['Message']}')
+        raise Exception(f"{data['Message']}")
 
     # Convert the data to a DataFrame
     df = pd.DataFrame(data['Data']['Data']) # df = ['time', 'high', 'low', 'open', 'volumefrom', 'volumeto', 'close', 'conversionType', 'conversionSymbol']
@@ -75,11 +74,10 @@ class DownloadManagerCC:
     This class tracks errors across all instances (in class methods). They are categorizing in new and known errors.
     """
 
-    def __init__(self, symbol:str, error_handling):
+    def __init__(self, symbol:str):
         self.symbol = symbol                                     # symbol
-        self.error_handling = error_handling                     # Error handling
 
-        self.folder_path = get_path('course_cc') / 'download'    # folder to save all symbols
+        self.folder_path = get_path('cc') / 'download'    # folder to save all symbols
         self.allow_update = True                                 # bool, whether updates are allowed if file with old data exists (if False, always full download)
 
         # Initialize variables, value assigned at runtime
@@ -113,7 +111,7 @@ class DownloadManagerCC:
                         ACCEPTED_ERRORS[accepted_error] = []
                     return
             # Call error handler, if error_msg is not in ACCEPTED_ERRORS
-            self.error_handling.log_error(e)
+            log_error(e)
 
 
     def _routine_request_full_course(self):
@@ -176,9 +174,6 @@ class DownloadManagerCC:
 
 
 def main_routine_download_course_list_cc(symbols:list) -> None:
-    # Error handling
-    error_handling = ErrorHandling()
-
     # Download symbols from list
     print(f'Request: {symbols}')
     print(f'Start downloading ...', '\n')
@@ -186,11 +181,10 @@ def main_routine_download_course_list_cc(symbols:list) -> None:
         # Print
         print(f'\r[{index + 1}/{len(symbols)}] - {symbol}')
         # Download each symbol
-        dm = DownloadManagerCC(symbol, error_handling)
+        dm = DownloadManagerCC(symbol)
         dm.run()
         print()
 
     # Print known errors
-    output = json.dumps(ACCEPTED_ERRORS, indent=4)
-    output = re.sub(r'",\s+', '", ', output)  # https://stackoverflow.com/questions/48969984/python-json-dump-how-to-make-inner-array-in-one-line
+    output = json_dump_nicely(ACCEPTED_ERRORS)
     print(output)

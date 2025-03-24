@@ -1,19 +1,30 @@
 
 from pathlib import Path
 import matplotlib.pyplot as plt
+import yaml
 
 from modules.utils import *
 
 
 def get_path(key:str='ws') -> Path:
+    """ Return selected paths to important folders or files
+    :param key: key for the specific path
+    :return:
+    """
     # Calculate workspace
     current_path = Path(__file__).resolve()   # location of this file
     workspace_path = current_path.parents[1]  # "../../"
 
     folder_dict = {
+        # Folders
         'ws': workspace_path,
-        'course_cc': workspace_path / "data/course/crypto_compare",
-        'analyse_cc': workspace_path / "data/analyse/crypto_compare",
+        'cc': workspace_path / 'data/course/crypto_compare',
+        'study': workspace_path / 'data/study',
+
+        # Files
+        'cc_symbols_api_csv': workspace_path / 'data/course/crypto_compare/cc_symbols_api.csv',
+        'course_selection_yaml': workspace_path / 'modules/input_files/course_selection.yaml',
+        'indicator_params_yaml': workspace_path / 'modules/input_files/indicator_params.yaml',
     }
 
     if key not in folder_dict:
@@ -23,6 +34,10 @@ def get_path(key:str='ws') -> Path:
 
 
 def create_dir(folder_path:Path) -> None:
+    """ Create folder, if folder does not exist
+    Folder must be in the workspace
+    :param folder_path: directory (which should be created)
+    """
     folder_path = Path(folder_path)  # Make sure path is a Path object
     if folder_path.exists():
         # Folder exists
@@ -30,14 +45,35 @@ def create_dir(folder_path:Path) -> None:
         return
     else:
         # Folder doesn't exist
-        # Create folder only, if folder in workspace
+        # Create folder only, if folder is in workspace
         workspace_path = get_path('ws')
         if not folder_path.is_relative_to(workspace_path):
             raise AssertionError(f'Folder {folder_path} not in workspace {workspace_path}')
 
-        # Folder doesn't exists, create folder
+        # Create folder
         folder_path.mkdir(parents=True, exist_ok=True)
         print(f'Make directory {folder_path}')
+
+
+def get_last_created_folder_in_dir(source_path) -> Path:
+    """ Returns the latest created folder in a directory (without recursive, only this dir)
+    :param source_path: folder_path or key
+    :return: Path of the latest created folder (raise Error if there is no folder)
+    """
+    dir_path = Path(source_path)  # Make sure path is a Path object
+    # Check if source_path is a Path or a key for get_path()
+    if not dir_path.exists():
+        dir_path = get_path(source_path)
+    # Check folder exists and folder is a folder
+    if not dir_path.exists() or not dir_path.is_dir():
+        raise FileNotFoundError(f'Folder "{dir_path}" does not exist')
+    # List of all folders in the directory
+    folders = [f for f in dir_path.iterdir() if f.is_dir()]
+    if not folders:
+        raise AssertionError(f'Folder "{dir_path} has no subfolders')
+    # Find the folder with the most recent creation time
+    latest_folder = max(folders, key=lambda f: f.stat().st_ctime)
+    return latest_folder
 
 
 def get_relative_folder(folder_path:Path) -> Path:
@@ -51,15 +87,20 @@ def get_relative_folder(folder_path:Path) -> Path:
     return folder_rel
 
 
-
-def find_file_in_directory(folder_path:Path, filename:str) -> Path:
+#---------------------- Files and names in directory ----------------------#
+def get_file_in_directory(folder_path:Path, filename:str, extension=None) -> Path:
     """ Find file in directory
     :param folder_path: folder
     :param filename: name (extension doesn't matter)
+    :param extension: file extension (csv, txt, png)
     :return: founded file path in the folder (else raise Error)
     """
     folder_path = Path(folder_path)         # Make sure path is a Path object
-    found_files = [file for file in folder_path.rglob('*') if file.name == filename or file.stem == filename]
+    if extension:  # If an extension is provided, add it to the filename
+        search_pattern = f'{filename}.{extension}'
+        found_files = [file for file in folder_path.rglob('*') if file.name == search_pattern and file.is_file()]
+    else:  # Search by name only, ignoring extension
+        found_files = [file for file in folder_path.rglob('*') if file.stem == filename and file.is_file()]
 
     # Evaluate search
     if not found_files:
@@ -70,16 +111,22 @@ def find_file_in_directory(folder_path:Path, filename:str) -> Path:
     return found_files[0]
 
 
-def find_files_in_directory(folder_path:Path, filename_list:list) -> list[Path]:
-    """ Check if a list of files are all in directory, then return True (else False)
+def founded_files_in_directory(folder_path:Path, filename_list:list, extension=None) -> tuple[list[Path],list[Path]]:
+    """ Return tuple of files, which are found in workspace and which are not
     :param folder_path: folder
     :param filename_list: name (extension doesn't matter)
-    :return: list of all founded file paths
+    :param extension: file extension (csv, txt, png)
+    :return: tuple(paths_available, paths_unavailable)
     """
-    found_file_paths = []
+    file_paths_positive = []
+    file_paths_negative = []
     for filename in filename_list:
-        found_file_paths.append(find_file_in_directory(folder_path, filename))
-    return found_file_paths
+        try:
+            file_paths_positive.append(get_file_in_directory(folder_path, filename, extension))
+        except FileNotFoundError:
+            # Run into Error, but it is ok -> file not found
+            file_paths_negative.append(filename)
+    return file_paths_positive, file_paths_negative
 
 
 def list_file_paths_in_folder(folder_path:Path, filter:str='') -> list[Path]:
@@ -128,11 +175,12 @@ def get_names_from_paths(list_file_paths:list) -> list[str]:
     return [Path(path).stem for path in list_file_paths]
 
 
+#---------------------- Pandas ----------------------#
 def load_pandas_from_symbol(symbol:str) -> pd.DataFrame:
     # Find file path from symbol in folder
-    folder_path = get_path('course_cc')
+    folder_path = get_path('cc')
     file_name = f'{symbol}.csv'
-    file_path = find_file_in_directory(folder_path, file_name)
+    file_path = get_file_in_directory(folder_path, file_name)
 
     return load_pandas_from_file_path(file_path)
 
@@ -153,13 +201,17 @@ def load_pandas_from_file_path(file_path:Path):
     return df
 
 
-def save_pandas_to_file(df:pd.DataFrame, folder_path:Path, name:str, extension:str='csv') -> None:
+def save_pandas_to_file(df:pd.DataFrame, folder_path:Path=None, name:str=None, extension='csv') -> None:
     """ Saves a Pandas DataFrame to a file.
     :param df: Pandas DataFrame to save
     :param folder_path: Directory where the file should be saved
     :param name: File name without extension
     :param extension: File extension (default: 'csv')
     """
+    # Check
+    if not folder_path and not name:
+        raise ValueError(f'folder_path ore name are None')
+
     folder_path = Path(folder_path)  # Make sure path is a Path object
 
     # Create folder if it doesn't exist
@@ -178,6 +230,7 @@ def save_pandas_to_file(df:pd.DataFrame, folder_path:Path, name:str, extension:s
     print(f'Saved {file_name} to {relative_folder}')
 
 
+#---------------------- Matplotlib ----------------------#
 def save_matplotlib_figure(fig:plt.Figure, folder_path:Path, name:str, extension:str='png') -> None:
     """ Saves a Matplotlib figure to a file.
     :param fig: Matplotlib figure to save
@@ -212,3 +265,25 @@ def save_matplotlib_figure(fig:plt.Figure, folder_path:Path, name:str, extension
     fig.set_size_inches((8, 6))
     fig.savefig(file_path, format=extension, dpi=300)
     print(f'Saved {file_name} to {relative_folder}')
+
+
+#---------------------- Yaml ----------------------#
+def load_yaml_from_file_path(file_path:Path) -> dict:
+    file_path = Path(file_path)  # Make sure path is a Path object
+    # Check, if folder_path is valid
+    if not file_path.exists():
+        raise FileNotFoundError(f'File "{file_path}" does not exist')
+
+    with file_path.open('r', encoding='utf-8') as f:
+        data = yaml.safe_load(f)
+        return data
+
+
+#---------------------- txt ----------------------#
+def save_txt(data:str, file_path:Path, mode='w'):
+
+    # Create folder if it doesn't exist
+    create_dir(file_path.parent)
+
+    with open(file_path, mode=mode) as file:
+        file.write(data)

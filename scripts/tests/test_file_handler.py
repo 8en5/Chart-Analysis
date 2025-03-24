@@ -4,7 +4,7 @@ from modules.file_handler import *
 
 
 def test_path():
-    tests = [None, 'ws', 'course_cc', 'analyse_cc', 'wrong_key']
+    tests = [None, 'ws', 'cc', 'wrong_key']
     for index, test in enumerate(tests):
         print(f'{index}: {test}')
         try:
@@ -41,14 +41,14 @@ def test_find_file_in_directory():
         'wrong_symbol.csv'  # not finding
     ]
 
-    folder_path = get_path('course_cc')
-    #folder_path = str(get_path('course_cc'))   # test type string
+    folder_path = get_path('cc')
+    #folder_path = str(get_path('cc'))   # test type string
     for index, test in enumerate(tests):
         print(f'{index}: {test}')
         try:
             if test:
                 filename = test
-                file_path = find_file_in_directory(folder_path, filename)
+                file_path = get_file_in_directory(folder_path, filename)
                 print('file_path:', file_path)
                 print('type:', type(file_path))
         except Exception as e:
@@ -62,7 +62,7 @@ def test_multiple_function():
 
 if __name__ == "__main__":
 
-    #test_path()
+    test_path()
     #test_create_dir()
     #test_find_file_in_directory()
-    test_multiple_function()
+    #test_multiple_function()

@@ -7,29 +7,29 @@ from modules.plot import *
 
 
 def all_indicators():
-    strategy_names = ['BB', 'MACD', 'RSI', 'SMA']
-    for strategy_name in strategy_names:
-        print(strategy_name)
-        _plot_indicator(strategy_name)
+    indicator_names = ['BB', 'MACD', 'RSI', 'SMA']
+    for indicator_name in indicator_names:
+        print(indicator_name)
+        _plot_indicator(indicator_name)
         print()
 
 
-def _plot_indicator(strategy_name):
+def _plot_indicator(indicator_name):
     # Load course and indicator
     df = load_pandas_from_symbol(symbol)
-    df = func_indicator(strategy_name, df)
+    df = func_indicator(indicator_name, df)
 
     # Figure
     fig, ax = plt.subplots(2, 1)
     # Plot 1 (Course)
     ax_course(ax[0], df)
-    ax_default_properties(ax[0], symbol)
+    ax_properties(ax[0], symbol)
     # Plot 2 (Indicators)
-    func_ax_indicator(strategy_name, ax[1], df)
-    ax_default_properties(ax[1], 'Indicator')
+    func_ax_indicator(indicator_name, ax[1], df)
+    ax_properties(ax[1], 'Indicator')
 
     # Save plot
-    save_matplotlib_figure(fig, folder_path, strategy_name)
+    save_matplotlib_figure(fig, folder_path, indicator_name)
 
 
 def all_perc():
@@ -50,13 +50,13 @@ def _plot_perc(freq='ME'):
     fig, ax = plt.subplots(3, 1)
     # Plot 1 (Course)
     ax_course(ax[0], df)
-    ax_default_properties(ax[0], symbol)
+    ax_properties(ax[0], symbol)
     # Plot 2 (Perc df)
     ax_perc(ax[1], df)
-    ax_default_properties(ax[1], 'Indicator')
+    ax_properties(ax[1], 'Indicator')
     # Plot 3 (Perc bar)
     ax_perc_bar(ax[2], df)
-    ax_default_properties(ax[2], 'Indicator')
+    ax_properties(ax[2], 'Indicator')
 
     # Save
     save_matplotlib_figure(fig, folder_path, f'perc_{freq}')

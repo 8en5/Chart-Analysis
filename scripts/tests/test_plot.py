@@ -10,21 +10,21 @@ from modules.plot import *
 
 
 
-def test_plot_indicator(strategy_name):
+def test_plot_indicator(indicator_name):
     symbol = 'BTC'
 
     # Load course and indicator
     df = load_pandas_from_symbol(symbol)
-    df = func_indicator(strategy_name, df)
+    df = func_indicator(indicator_name, df)
 
     # Figure
     fig, ax = plt.subplots(2, 1)
     # Plot 1 (Course)
     ax_course(ax[0], df)
-    ax_default_properties(ax[0], symbol)
+    ax_properties(ax[0], symbol)
     # Plot 2 (Indicators)
-    func_ax_indicator(strategy_name, ax[1], df)
-    ax_default_properties(ax[1], 'Indicator')
+    func_ax_indicator(indicator_name, ax[1], df)
+    ax_properties(ax[1], 'Indicator')
 
     # Show
     plt.show()
@@ -44,13 +44,13 @@ def test_plot_perc(freq='ME'):
     fig, ax = plt.subplots(3, 1)
     # Plot 1 (Course)
     ax_course(ax[0], df)
-    ax_default_properties(ax[0], symbol)
+    ax_properties(ax[0], symbol)
     # Plot 2 (Perc df)
     ax_perc(ax[1], df)
-    ax_default_properties(ax[1], 'Indicator')
+    ax_properties(ax[1], 'Indicator')
     # Plot 3 (Perc bar)
     ax_perc_bar(ax[2], df)
-    ax_default_properties(ax[2], 'Indicator')
+    ax_properties(ax[2], 'Indicator')
 
     # Show
     plt.show()
@@ -69,7 +69,7 @@ def test_ax_background_colored_evaluation():
     # Figure
     fig, ax = plt.subplots(1, 1)
     ax_course(ax, df)
-    ax_background_colored_signals(ax, df)
+    ax_background_colored_highlighting(ax, df)
 
     # Show
     plt.show()

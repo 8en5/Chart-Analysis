@@ -1,132 +1,29 @@
-import itertools
-import numpy as np
 
-from modules.plot import *
 from modules.indicators import *
 from modules.functional_analysis import *
-from modules.utils import pandas_print_all
+from modules.params import get_params_from_yaml
+
 
 pd.set_option('future.no_silent_downcasting', True) # if values are converted down (value to nan - when calculating df[invested] based on df[signal])
 
 
-params_study_dict = {
-    'BB' : {
-        'visualize': {
-            'bb_l': [6],
-            'bb_std': [1.5, 2.5]
-        },
-        'brute_force': {
-            'bb_l': (5, 30, 5),
-            'bb_std': (1.5, 2.5, 0.3)
-        }
-    },
-
-    'MACD': {
-        'visualize': {
-            'm_fast': [10, 18],
-            'm_slow': [20, 40],
-            'm_signal': [30, 90]  # m_signal accidentally set to 90 (copy from rsi) -> really good param
-        },
-        'brute_force': {
-            'm_fast': (2, 50, 3),
-            'm_slow': (15, 200, 5),
-            'm_signal': (1, 3, 0.2)
-        },
-        'optimization': {
-            'm_fast': [2, 5, 15, 25],
-            'm_slow': [15, 25, 50, 80, 100],
-            'm_signal': [10, 30, 60, 90, 120]
-        }
-    },
-
-    'RSI': {
-        'visualize': {
-            'rsi_l': [10, 14, 18],
-            'bl': [20, 30, 40],
-            'bu': [60, 70, 90]
-        },
-        'brute_force': {
-            'rsi_l': (5, 100, 3),
-            'bl': (10, 40, 2),
-            'bu': (50, 95, 2)
-        },
-    },
-}
-
-def func_manual_strategy(strategy_name, *args):
-    """ Call function set_manual_strategy_{strategy_name}()
-    :param strategy_name: name for the strategy defined in this file
+def func_get_invested_from_indicator(indicator_name, *args):
+    """ Call function set_manual_strategy_{indicator_name}()
+    :param indicator_name: name for the strategy defined in this file
     :param args: *args for the func
-    :return: set_manual_strategy_{strategy_name}
+    :return: _get_invested_from_{indicator_name} -> df[<indicators>, signal, invested]
     """
-    func_name = f'set_manual_strategy_{strategy_name}'
+    func_name = f'_get_invested_from_{indicator_name}'
     # Check
     func = globals().get(func_name)
     if not callable(func):
         raise ValueError(f'The function "{func_name}" does not exist - define it in manual_strategies.py')
     # Return called function
     return func(*args)
-
-def func_plot(strategy_name, *args):
-    """
-    :param strategy_name: name for the strategy defined in this file
-    :param args: *args for the func
-    :return: set_manual_plot_{strategy_name}
-    """
-    func_name = f'set_manual_plot_{strategy_name}'
-    # Check
-    func = globals().get(func_name)
-    if not callable(func):
-        raise ValueError(f'The function "{func_name}" does not exist - define it in manual_strategies.py')
-    # Return called function
-    return func(*args)
-
-
-def get_params_from_dict(strategy_name, variant):
-    """ Return params defined in params_study_dict
-    :param strategy_name: dict[key]
-    :param variant: dict[strategy_name][key]
-    :return: dict of params
-    """
-    if strategy_name not in params_study_dict:
-        raise ValueError(f'key "{strategy_name}" not in {params_study_dict}')
-    if variant not in params_study_dict[strategy_name]:
-        raise ValueError(f'key "{variant}" not in {params_study_dict[strategy_name]}')
-    return params_study_dict[strategy_name][variant]
-
-def get_all_combinations_from_params_study(strategy_name, variant):
-    """ Return list of all params variations
-    :param strategy_name: dict[key]
-    :param variant: dict[strategy_name][key]
-    :return: list of all params variations
-    """
-    # Get raw params and prepare it
-    params_study = get_params_from_dict(strategy_name, variant)
-    params_study = _set_param_variation(params_study)
-    # Calculate all combinations
-    keys = params_study.keys()
-    values = params_study.values()
-    combination = list(itertools.product(*values))
-    combinations_list = [dict(zip(keys, combi)) for combi in combination]  # combination_list = [{self.params1}, {self.params2}, ... ]
-    return combinations_list
-
-
-def _set_param_variation(params_study: dict[str, list[float] | tuple[float, float, float]]) -> dict[str, list]:
-    """ If present, converts a tuple (range) parameter set into a list.
-
-    :param params_study: {key: [x,x,x], key: (start, end, step)}
-    :return: dict all in format {key: [x,x,x]}
-    """
-    for key, value in params_study.items():
-        if isinstance(value, tuple) and len(value) == 3:
-            start, end, step = float(value[0]), float(value[1]), float(value[2])
-            params_study[key] = [round(start + i * step, 10) for i in range(int((end - start) / step) + 1)]
-
-    return params_study
 
 
 def _calc_invested_from_signal(df):
-    """ Calculate status 'invested' from signal
+    """ Calculate status 'invested' from the signals of the indicators
     :param df: df['signal']
     :return: df['invested']
     """
@@ -197,12 +94,9 @@ def _calc_invested_from_signal(df):
 
 
 #------------------------ BB ------------------------#
-def set_manual_strategy_BB(df, params=None):
+def _get_invested_from_BB(df, params=None):
     if params is None:
-        params = {
-            'bb_l': 6,
-            'bb_std': 2.0
-        }
+        params = get_params_from_yaml('BB', 'default')
 
     # Indicator
     df = func_indicator('BB', df, length=params['bb_l'], std=params['bb_std'])
@@ -223,13 +117,9 @@ def set_manual_strategy_BB(df, params=None):
 
 
 #---------------------- MACD ----------------------#
-def set_manual_strategy_MACD(df, params=None):
+def _get_invested_from_MACD(df, params=None):
     if params is None:
-        params = {
-            'm_fast': 12,
-            'm_slow': 26,
-            'm_signal': 90 # 9
-        }
+        params = get_params_from_yaml('MACD', 'default')
 
     # Indicator
     df = func_indicator('MACD', df, fast=params['m_fast'], slow=params['m_slow'], signal=params['m_signal'])
@@ -246,18 +136,14 @@ def set_manual_strategy_MACD(df, params=None):
     df['signal'] = np.select(conditions, values, default='')
 
     # Invested [in, out] from signals
-    df =_calc_invested_from_signal(df)
+    df = _calc_invested_from_signal(df)
     return df
 
 
 #---------------------- RSI ----------------------#
-def set_manual_strategy_RSI(df, params=None):
+def _get_invested_from_RSI(df, params=None):
     if params is None:
-        params = {
-            'rsi_l': 14,
-            'bl': 30,
-            'bu': 70
-        }
+        params = get_params_from_yaml('RSI', 'default')
 
     # Indicator
     df = func_indicator('RSI', df, params['rsi_l'], params['bl'], params['bu'])
@@ -273,5 +159,4 @@ def set_manual_strategy_RSI(df, params=None):
 
     # Invested [in, out] from signals
     df =_calc_invested_from_signal(df)
-
     return df

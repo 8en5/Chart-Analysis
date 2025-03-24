@@ -10,6 +10,11 @@ __pycache__/
 
 # Output
 data/
+data_archive/
 
 # Folder
 temp/
+
+# Ignore bash und bat scripts (until they get a major change)
+#/*.sh
+#/*.bat

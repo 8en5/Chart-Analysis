@@ -30,7 +30,7 @@ def API_request_available_symbols():
     return df
 
 
-def main_routine_download_available_symbols():
+def main_routine_download_available_symbols_cc():
     """ Download and save df with all symbols
     save file: 'cc_symbols_api.csv' to 'ws/data/course/crypto_compare'
     """
@@ -41,5 +41,5 @@ def main_routine_download_available_symbols():
 
     # Save data to a CSV file
     name = 'cc_symbols_api'
-    folder = get_path('course_cc')
+    folder = get_path('cc')
     save_pandas_to_file(df, folder, name)

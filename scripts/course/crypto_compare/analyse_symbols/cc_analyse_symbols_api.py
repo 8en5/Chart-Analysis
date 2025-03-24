@@ -6,7 +6,7 @@ from modules.utils import *
 
 
 def load_symbols_csv():
-    folder_path = get_path('course_cc')
+    folder_path = get_path('cc')
     file_name = 'cc_symbols_api.csv'
     file_path = folder_path / file_name
 

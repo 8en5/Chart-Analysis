@@ -2,8 +2,9 @@ import re
 import pandas as pd
 import pandas_ta as ta
 
+from modules.utils import get_period
 
-COL_NAMES = {
+INDICATOR_COL_NAMES = {
     'BB': [r'BBL.*', r'BBM.*', r'BBU.*'], # ['BBL_5_2.0', 'BBM_5_2.0', 'BBU_5_2.0', 'BBB_5_2.0', 'BBP_5_2.0'] - [Low, SMA, Up, Bandwith, Percentage]
     'CMA': ['CMA'], # ['CMA']
     'EMA': ['EMA.*'], # ['EMA_200']
@@ -36,13 +37,20 @@ def func_indicator(indicator_name:str, *args, **kwargs):
         """
         print(f'There are too few values in the df')
 
+def keys_func_indicator():
+    """ [func] Return all keys with which you can call the function func_indicator(key)
+    :return: list[keys]
+    """
+    return [name.replace('_indicator_', '', 1) for name in globals().keys() if name.startswith('_indicator_')]
+
+
 def get_indicator_col_names(df, indicator:str):
     # Check
-    if indicator not in COL_NAMES:
-        raise ValueError(f'{indicator} not in {COL_NAMES.keys()}')
+    if indicator not in INDICATOR_COL_NAMES:
+        raise ValueError(f'{indicator} not in {INDICATOR_COL_NAMES.keys()}')
 
     # Calculate col names
-    regex_list = COL_NAMES[indicator]
+    regex_list = INDICATOR_COL_NAMES[indicator]
     matching_columns = []
     for regex in regex_list:
         matches = [element for element in df.columns if re.fullmatch(regex, element)]
@@ -59,24 +67,9 @@ def get_indicator_col_names(df, indicator:str):
         return matching_columns
 
 
-def get_period(period='D'):
-    """
-    :param period: [D, 3D, W, ME, QE, YE]
-    :return:
-    """
-    match period:
-        case 'D': freq = 1      # Day
-        case '3D': freq = 3     # 3 Days
-        case 'W': freq = 7      # Week
-        case 'ME': freq = 30    # Month
-        case 'QE': freq = 91    # Quarter
-        case 'YE': freq = 365   # Year
-        case _: # else
-            raise ValueError(f'Warning: Wrong frequent: {period}')
-    return freq
 
 
-# TODO: df.copy entfernen -> direkt auf einem df arbeiten
+
 
 #------------- Own calculated Indicators -------------#
 
