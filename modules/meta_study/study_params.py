@@ -73,7 +73,7 @@ def eval_param_with_symbol_study(indicator_name, params:dict, course_paths):
     result_dict = df_summary.mean().to_dict()
     min = False # decide manually if min or full evaluation
     if min:
-        """result_dict = {'S': 3.81, 'BaH': 4.98, 'diff': -1.18}"""
+        """result_dict = result_dict = {'S': 3.81, 'BaH': 4.98, 'diff': -1.18}"""
         #print(json_round_dict(result_dict))
     else:
         # Insert course names (first column)
@@ -84,7 +84,7 @@ def eval_param_with_symbol_study(indicator_name, params:dict, course_paths):
             'courses': df_summary.set_index('symbol').to_dict(orient='index')
         }
         result_dict.update(result_dict_extra)
-        """{'S': 3.81, 'BaH': 4.98, 'diff': -1.18, 'params': {'m_fast': 2.0, 'm_slow': 15.0, 'm_signal': 1.0}, 'courses': {'BTC': {'S': 1.0, 'BaH': 5.55, 'diff': -4.55}, 'ETH': {'S': 1.0, 'BaH': 4.68, 'diff': -3.68}, 'ADA': {'S': 1.0, 'BaH': 6.93, 'diff': -5.93}, 'LINK': {'S': 1.0, 'BaH': 2.77, 'diff': -1.77}}}"""
+        """result_dict = {'S': 3.81, 'BaH': 4.98, 'diff': -1.18, 'params': {'m_fast': 2.0, 'm_slow': 15.0, 'm_signal': 1.0}, 'courses': {'BTC': {'S': 1.0, 'BaH': 5.55, 'diff': -4.55}, 'ETH': {'S': 1.0, 'BaH': 4.68, 'diff': -3.68}, 'ADA': {'S': 1.0, 'BaH': 6.93, 'diff': -5.93}, 'LINK': {'S': 1.0, 'BaH': 2.77, 'diff': -1.77}}}"""
         #print(json_round_dict(result_dict))
     #print(json_dump_nicely(result_dict))
     return result_dict

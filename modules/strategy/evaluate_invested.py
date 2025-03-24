@@ -48,6 +48,7 @@ def evaluate_invested(df) -> dict[str, any]:
             'S': S,
             'BaH': BaH,
             'diff': S - BaH,
+            '%_inv': (df['invested'] == 1).sum() / len(df)
         }
     else:
         # Calculate different states based on [{in, out}, {+, -}]
