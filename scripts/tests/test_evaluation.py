@@ -2,7 +2,7 @@ from modules.utils import *
 from test import *
 
 from modules.strategy.evaluate_invested import _calc_amount_transactions, _calc_all_investment_states, \
-    _calc_accumulated_perc, _calc_total_accumulated_perc, get_evaluation_invested_statistics
+    _calc_accumulated_perc, _calc_total_accumulated_perc, evaluate_invested_multiple_cycles
 
 
 #------------------------- evaluation.py -------------------------#
@@ -57,7 +57,7 @@ def test_calc_accumulated_perc():
 
 def test_get_evaluation_statistics():
     df = get_dummy_data_course()
-    df_summary = get_evaluation_invested_statistics(df)
+    df_summary = evaluate_invested_multiple_cycles(df)
     print(df_summary)
 
 

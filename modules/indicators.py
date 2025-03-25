@@ -15,27 +15,40 @@ INDICATOR_COL_NAMES = {
     'perc': [r'perc.*'],
 }
 
-def func_indicator(indicator_name:str, *args, **kwargs):
+def func_indicator(indicator_name:str, df:pd.DataFrame, params=None):
     """
     :param indicator_name: name for the indicator defined in this file
-    :param args: *args for the func
-    :return: _indicator_{indicator_name}
+    :param df: df[close]
+    :param params: params for the indicator [None, dict, list]
+    :return: _indicator_{indicator_name}(df, params)
     """
     func_name = f'_indicator_{indicator_name}'
+    n_col = len(df.columns)
     # Check if function is defined
     func = globals().get(func_name)
     if not callable(func):
         raise ValueError(f'The function "{func_name}" does not exist - define it in indicators.py')
     # Return called function
-    try:
-        return func(*args, **kwargs)
-    except TypeError:
-        """ TypeError if df has too little data
-        Indicators need a certain amount of data before they generate signals. Before that they are only None
-        The indicator in the library pandas_pa runs immediately Error if there is too little data:
-            TypeError: unsupported operand type(s) for -: 'float' and 'NoneType'
+    if params:
+        if isinstance(params, dict):
+            # {'m_fast': 14, 'm_slow': 30, 'm_signal': 70} -> 14, 30, 70
+            df = func(df, *params.values())
+        elif isinstance(params, list):
+            df = func(df, *params)
+        else:
+            raise ValueError(f'Param is not [dict, list]: {params}')
+    else:
+        df = func(df)
+    # Check
+    if n_col == len(df.columns):
+        """ Calculation of the signals failed
+        Indicators needs a minimum of data to calculate signals
+        If there are too less data, then the indicator returns None
         """
-        print(f'There are too few values in the df')
+        raise ValueError(f'Data for calculating the indicator {indicator_name} was to short: {len(df)} -> no calculation of the signals')
+
+    return df
+
 
 def keys_func_indicator():
     """ [func] Return all keys with which you can call the function func_indicator(key)

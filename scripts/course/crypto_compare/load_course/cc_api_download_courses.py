@@ -1,7 +1,3 @@
-import sys
-from pathlib import Path
-ws_dir = (Path(__file__).parent / "../../../..").resolve()  # Workspace
-sys.path.insert(0, str(ws_dir))                      # add ws to sys-path to run py-file in separate cmd
 
 from modules.course import *
 from modules.api.crypto_compare.download_courses import main_routine_download_course_list_cc

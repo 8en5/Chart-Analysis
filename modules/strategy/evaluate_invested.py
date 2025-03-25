@@ -18,10 +18,10 @@ def evaluate_invested(df) -> dict[str, any]:
              'in+': 32.728, 'in-': 58.884, 'out+': 67.271, 'out-': 41.115,
              'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
     """
-    # Work on a copy, because this function is called multiple cycles
+    # Work on a copy, because this function (with df) is called multiple cycles in different time spans
     df = df.copy()
 
-    # Check None values in df[invested]
+    # Check and cut None values in df[invested]
     """
     df[invested] must not have None values, otherwise calculations in this function will fail.
     - None values are where the indicator does not yet provide any signals
@@ -89,13 +89,14 @@ def evaluate_invested(df) -> dict[str, any]:
 
 
 
-def run_evaluate_invested_multiple_cycles(df) -> pd.DataFrame:
-    """ [eval_sum_cycle df] Run evaluation_dict multiple times in different periods and summarize the result
-    :return: df_summary -> df[S, BaH, diff]
+def evaluate_invested_multiple_cycles(df) -> dict[str,float]:
+    """ [eval_dict df] Run evaluation_dict multiple times in different periods and summarize the result in the same result dict
+    :param df: df[close, invested]
+    :return: evaluation dict
 
     Input:
         df[close, invested]
-    Output
+    Calculation:
         All
                start        end  days  transactions        in+        in-       out+       out-  Buy_and_Hold  Strategy_without_fee  Strategy_with_fee
         0 2017-10-05 2018-09-20   350            22  32.728084  58.884625  67.271916  41.115375      3.718401              0.110469           0.101552
@@ -121,7 +122,18 @@ def run_evaluate_invested_multiple_cycles(df) -> pd.DataFrame:
         7      0.557646           0.398123       -0.159523
         8      2.031768           1.018231       -1.013536
         9      1.778987           0.713761       -1.065226
+
+    Output:
+        mean and std from multiple cycles
+        df_stats =
+                  Buy_and_Hold  Strategy_with_fee  diff_benchmark
+            mean      2.862849           1.229129       -1.633720
+            std       4.463157           1.417515        3.346977
+
+        only mean from multiple cycles
+        result_dict = {'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
     """
+
     # Check min columns
     minimal_columns = ['close', 'invested']
     if not set(minimal_columns).issubset(df.columns):
@@ -141,8 +153,6 @@ def run_evaluate_invested_multiple_cycles(df) -> pd.DataFrame:
 
     # Iterate over multiple periods
     intervals = get_intervals(len(df))
-    #print(len(df))
-    #print(intervals)
     summary_dict = {}
     for index, interval in enumerate(intervals):
         start = df.index[interval[0]]
@@ -155,32 +165,26 @@ def run_evaluate_invested_multiple_cycles(df) -> pd.DataFrame:
                 summary_dict[key] = []
             summary_dict[key].append(value)
     df_summary = pd.DataFrame(summary_dict)
-    #print(df_summary)
-    return df_summary
 
 
-
-def get_evaluation_invested_statistics(df) -> dict[str,float]:
-    """ [eval_dict_cycle df] Calculate mean and std of the most important key figures from the evaluation
-    :param df: df[close, invested]
-    :return: result: mean and std from important key figures over multiple cycles
-    """
-    # Summarize all Evaluations in one df
-    df_summary = run_evaluate_invested_multiple_cycles(df)
-    #print(df_summary)
-
-    # Statistics (mean and std from all number columns)
-    """ mean and std from multiple cycles
-          Buy_and_Hold  Strategy_with_fee  diff_benchmark
-    mean      2.862849           1.229129       -1.633720
-    std       4.463157           1.417515        3.346977
+    # Result dict over multiple cycles
+    # Mean and std
+    """ mean and std from all numeric columns over multiple cycles
     df_stats = df_summary.select_dtypes(include=['number']).agg(['mean', 'std'])
     print(df_stats)
+              Buy_and_Hold  Strategy_with_fee  diff_benchmark
+        mean      2.862849           1.229129       -1.633720
+        std       4.463157           1.417515        3.346977
+    
     """
-
-    # Mean of all numeric columns (standard deviation currently not because I don't know how to use it for the evaluation)
+    # Only mean
+    """ Only mean from all numeric columns (standard deviation currently not because I don't know how to use it for the evaluation)
     result_dict = df_summary.select_dtypes(include=['number']).mean().to_dict()
     #print(result_dict)
+    result_dict = {'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
+    """
+    result_dict = df_summary.select_dtypes(include=['number']).mean().to_dict()
+    # print(result_dict)
 
     return result_dict
 

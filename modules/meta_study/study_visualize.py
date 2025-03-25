@@ -9,7 +9,7 @@ from modules.file_handler import *
 from modules.course import get_courses_paths
 from modules.params import get_all_params_variations_from_yaml
 from modules.plot import fig_type1_default, fig_type2_indicator, save_fig
-from modules.strategy.evaluate_invested import get_evaluation_invested_statistics
+from modules.strategy.evaluate_invested import evaluate_invested_multiple_cycles
 from modules.strategy.strategy_invested import func_get_invested_from_indicator
 
 
@@ -113,7 +113,7 @@ def _calc_evaluation(df) -> dict:
     :param df: df[invested]
     :return: dict evaluation - e.g. {'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
     """
-    evaluation_dict = get_evaluation_invested_statistics(df)
+    evaluation_dict = evaluate_invested_multiple_cycles(df)
     return evaluation_dict
 
 

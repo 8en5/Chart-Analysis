@@ -7,7 +7,7 @@ from modules.params import *
 from modules.course import get_courses_paths
 from modules.error_handling import log_error
 from modules.strategy.strategy_invested import *
-from modules.strategy.evaluate_invested import get_evaluation_invested_statistics
+from modules.strategy.evaluate_invested import evaluate_invested_multiple_cycles
 from modules.meta_study.study_visualize import manager_visualize_strategies
 
 
@@ -48,7 +48,7 @@ def eval_param_with_symbol_study(indicator_name, params:dict, course_paths):
         if df['invested'].isna().any(): # Observation, if there are any None values in df[invested]
             # if there are None Values in df[invested] this means, that there are no signals -> increase offset
             raise AssertionError(f'Warning for param {params}: Check offset, there should be no None vales in df[invested]: {df}')
-        result = get_evaluation_invested_statistics(df)
+        result = evaluate_invested_multiple_cycles(df)
         # Append all results in one dict
         for key, value in result.items():
             if key not in summary_dict:

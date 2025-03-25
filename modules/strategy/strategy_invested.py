@@ -7,10 +7,11 @@ from modules.params import get_params_from_yaml
 pd.set_option('future.no_silent_downcasting', True) # if values are converted down (value to nan - when calculating df[invested] based on df[signal])
 
 
-def func_get_invested_from_indicator(indicator_name, *args):
+def func_get_invested_from_indicator(indicator_name, df, params=None):
     """ Call function set_manual_strategy_{indicator_name}()
     :param indicator_name: name for the strategy defined in this file
-    :param args: *args for the func
+    :param df: df[close]
+    :param params: params for the indicator [None, dict, list]
     :return: _get_invested_from_{indicator_name} -> df[<indicators>, signal, invested]
     """
     func_name = f'_get_invested_from_{indicator_name}'
@@ -19,7 +20,7 @@ def func_get_invested_from_indicator(indicator_name, *args):
     if not callable(func):
         raise ValueError(f'The function "{func_name}" does not exist - define it in manual_strategies.py')
     # Return called function
-    return func(*args)
+    return func(df, params)
 
 
 def _calc_invested_from_signal(df):
@@ -99,7 +100,7 @@ def _get_invested_from_BB(df, params=None):
         params = get_params_from_yaml('BB', 'default')
 
     # Indicator
-    df = func_indicator('BB', df, length=params['bb_l'], std=params['bb_std'])
+    df = func_indicator('BB', df, params)
     col_l, col_m, col_u = get_indicator_col_names(df, 'BB')
 
     # Signals
@@ -122,7 +123,7 @@ def _get_invested_from_MACD(df, params=None):
         params = get_params_from_yaml('MACD', 'default')
 
     # Indicator
-    df = func_indicator('MACD', df, fast=params['m_fast'], slow=params['m_slow'], signal=params['m_signal'])
+    df = func_indicator('MACD', df, params)
     col_MACD, coll_diff, col_signal = get_indicator_col_names(df, 'MACD')
 
     # Signals
@@ -146,7 +147,7 @@ def _get_invested_from_RSI(df, params=None):
         params = get_params_from_yaml('RSI', 'default')
 
     # Indicator
-    df = func_indicator('RSI', df, params['rsi_l'], params['bl'], params['bu'])
+    df = func_indicator('RSI', df, params)
     col_RSI, col_bl, col_bu = get_indicator_col_names(df, 'RSI')
 
     # Signals
