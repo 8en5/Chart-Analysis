@@ -1,6 +1,7 @@
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 from modules.utils import get_period, get_intervals, pandas_print_all
 from modules.plot import fig_type1_default, save_fig
@@ -78,12 +79,16 @@ def evaluate_invested(df) -> dict[str, any]:
         }
 
     # Plot
-    plot = False
+    plot = True
     if plot:
         fig = fig_type1_default(df, '')
         save_fig(fig, None)
+        #plt.show()
 
     # Return Evaluation as dict
+    """
+    result_dict (min) = {'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
+    """
     #print(result_dict)
     return result_dict
 
@@ -97,7 +102,7 @@ def evaluate_invested_multiple_cycles(df) -> dict[str,float]:
     Input:
         df[close, invested]
     Calculation:
-        All
+        All)
                start        end  days  transactions        in+        in-       out+       out-  Buy_and_Hold  Strategy_without_fee  Strategy_with_fee
         0 2017-10-05 2018-09-20   350            22  32.728084  58.884625  67.271916  41.115375      3.718401              0.110469           0.101552
         1 2018-06-12 2019-05-28   350            30  49.721213  54.213025  50.278787  45.786975      0.564459              0.539257           0.480084
@@ -110,7 +115,7 @@ def evaluate_invested_multiple_cycles(df) -> dict[str,float]:
         8 2023-03-28 2024-03-12   350            33  40.723208  44.248819  59.276792  55.751181      2.031768              1.157571           1.018231
         9 2023-12-03 2024-11-17   350            31  40.902785  50.047369  59.097215  49.952631      1.778987              0.804957           0.713761
 
-        Min
+        Min)
            Buy_and_Hold  Strategy_with_fee  diff_benchmark
         0      3.718401           0.101552       -3.616850
         1      0.564459           0.480084       -0.084376
@@ -124,13 +129,13 @@ def evaluate_invested_multiple_cycles(df) -> dict[str,float]:
         9      1.778987           0.713761       -1.065226
 
     Output:
-        mean and std from multiple cycles
+        a) mean and std from multiple cycles
         df_stats =
                   Buy_and_Hold  Strategy_with_fee  diff_benchmark
             mean      2.862849           1.229129       -1.633720
             std       4.463157           1.417515        3.346977
 
-        only mean from multiple cycles
+        b) only mean from multiple cycles
         result_dict = {'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
     """
 
@@ -165,6 +170,7 @@ def evaluate_invested_multiple_cycles(df) -> dict[str,float]:
                 summary_dict[key] = []
             summary_dict[key].append(value)
     df_summary = pd.DataFrame(summary_dict)
+    print(df_summary)
 
 
     # Result dict over multiple cycles
@@ -184,8 +190,8 @@ def evaluate_invested_multiple_cycles(df) -> dict[str,float]:
     result_dict = {'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
     """
     result_dict = df_summary.select_dtypes(include=['number']).mean().to_dict()
-    # print(result_dict)
-
+    print(result_dict)
+    exit()
     return result_dict
 
 

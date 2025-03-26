@@ -19,10 +19,11 @@ def fig_type1_default(df, title=''):
     # Default Plot
     fig, ax = plt.subplots(1, 1)                  # 1 Plot
     # Plot 1 (Course)
-    ax_background_colored_highlighting(ax, df[['invested']])  # df['invested'] -> [in,out]
-    ax_course(ax, df)                                         # Course
-    ax_properties(ax, title=title)                            # Labels
-    plt_properties(plt)                                       # Labels
+    #ax_background_colored_highlighting(ax, df[['invested']])  # df['invested'] -> [in,out]
+    #ax_course(ax, df)                                         # Course
+    ax_course_dots(ax, df)                                     # Course with dots
+    ax_properties(ax, title=title)                             # Labels
+    plt_properties(plt)                                        # Labels
     return fig
 
 def fig_type2_indicator(df, indicator_name, title1=None, title2=None, suptitle=None):
@@ -40,6 +41,7 @@ def fig_type2_indicator(df, indicator_name, title1=None, title2=None, suptitle=N
     # Plot 1 (Course)
     ax_background_colored_highlighting(ax[0], df[['invested']])      # df['invested'] -> [in,out]
     ax_course(ax[0], df)                                             # Course
+    #ax_course_dots(ax, df)                                           # Course with dots
     ax_properties(ax[0], title=title1)                               # Labels
     # Plot 2 (Indicator)
     ax_background_colored_highlighting(ax[1], df[['signal']])        # df['signal'] -> [buy, sell, bullish, bearish]
@@ -62,7 +64,7 @@ def save_fig(fig, file_path=None):
         create_dir(folder_path)
         # File name (simple counter)
         available_paths = list_file_paths_in_folder(folder_path)
-        counter = 0
+        counter = -1
         for path in available_paths:
             if path.stem.isdigit():
                 n = int(path.stem)
@@ -102,6 +104,17 @@ def ax_course(ax, df):
     """[ax]"""
     ax.plot(df.index, df['close'], linestyle='-', color='black', label='Course')         # linear
     #ax.semilogy(df.index, df['close'], linestyle='-', color='black', label='Course')    # log
+
+def ax_course_dots(ax, df):
+    """[ax]"""
+    ax.plot(df.index, df['close'], linestyle='-', color='grey', label='Course')           # linear
+    #ax.semilogy(df.index, df['close'], linestyle='-', color='grey', label='Course')      # log
+    df['action'] = df['invested'].diff().fillna(0).shift(-1)
+    df_buy = df.loc[df['action'] == 1, 'close']
+    df_sell = df.loc[df['action'] == -1, 'close']
+    ax.scatter(df_buy.index, df_buy, color='green', marker='o', label='buy')
+    ax.scatter(df_sell.index, df_sell, color='red', marker='o', label='sell')
+
 
 def ax_perc(ax, df):
     """[ax]"""
