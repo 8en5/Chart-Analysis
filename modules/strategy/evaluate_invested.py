@@ -79,11 +79,14 @@ def evaluate_invested(df) -> dict[str, any]:
         }
 
     # Plot
-    plot = True
-    if plot:
+    save = True
+    show = False
+    if show or save:
         fig = fig_type1_default(df, '')
-        save_fig(fig, None)
-        #plt.show()
+        if save:
+         save_fig(fig, None)
+        if show:
+            plt.show()
 
     # Return Evaluation as dict
     """
@@ -170,8 +173,8 @@ def evaluate_invested_multiple_cycles(df) -> dict[str,float]:
                 summary_dict[key] = []
             summary_dict[key].append(value)
     df_summary = pd.DataFrame(summary_dict)
-    print(df_summary)
-
+    #print(df_summary)
+    #exit()
 
     # Result dict over multiple cycles
     # Mean and std
@@ -190,8 +193,8 @@ def evaluate_invested_multiple_cycles(df) -> dict[str,float]:
     result_dict = {'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
     """
     result_dict = df_summary.select_dtypes(include=['number']).mean().to_dict()
-    print(result_dict)
-    exit()
+    #print(result_dict)
+    #exit()
     return result_dict
 
 
