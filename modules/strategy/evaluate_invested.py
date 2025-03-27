@@ -9,10 +9,10 @@ from modules.plot import fig_type1_default, save_fig
 
 def evaluate_invested(df) -> dict[str, any]:
     """ [eval_dict df] Calculate evaluation_dict of one symbol with one param - df[invested]
-    :param df: df[close, invested]
+    :param df: df[invested, close_perc, group_invested]
     :return: evaluation dict
 
-    Input:    df[close, invested]
+    Input:    df[invested, close_perc, group_invested]
     Output:
         min: {'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
         all: {'start': Timestamp('2017-10-05 00:00:00'), 'end': Timestamp('2018-09-20 00:00:00'), 'days': 350, 'transactions': 22,
@@ -35,8 +35,6 @@ def evaluate_invested(df) -> dict[str, any]:
         print(f'Warning: Cut {amount_none_values}/{len(df)} values from None to 0 where there was no signal')
         df = df.replace({None: 0})
 
-    # Calculate daily perc change from course - df['close_perc']
-    df['close_perc'] = df['close'].pct_change(periods=1)  # * 100
 
     # Main evaluation values
     BaH = _calc_total_accumulated_perc(df, 0)  # Buy_and_Hold
@@ -79,8 +77,8 @@ def evaluate_invested(df) -> dict[str, any]:
         }
 
     # Plot
-    save = True
-    show = False
+    save = False
+    show = True
     if show or save:
         fig = fig_type1_default(df, '')
         if save:
@@ -141,7 +139,6 @@ def evaluate_invested_multiple_cycles(df) -> dict[str,float]:
         b) only mean from multiple cycles
         result_dict = {'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
     """
-
     # Check min columns
     minimal_columns = ['close', 'invested']
     if not set(minimal_columns).issubset(df.columns):
@@ -334,3 +331,4 @@ def _calc_total_accumulated_perc(df, n=2) -> float:
     """
     # Call calc_accumulated_perc(df, n) and take the last accumulated value - this corresponds to the total return
     return _calc_accumulated_perc(df, n)['accumulate'].iloc[-1]
+

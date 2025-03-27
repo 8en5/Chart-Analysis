@@ -25,8 +25,8 @@ def func_get_invested_from_indicator(indicator_name, df, params=None):
 
 def _calc_invested_from_signal(df):
     """ Calculate status 'invested' from the signals of the indicators
-    :param df: df['signal']
-    :return: df['invested']
+    :param df: df[signal]
+    :return: df[invested, close_perc, group_invested]
     """
 
     """ Input                                                                                             Output
@@ -89,12 +89,51 @@ def _calc_invested_from_signal(df):
         first_value = df.index[-1]
     df.loc[df.index[max_leading_nans]:first_value, 'invested'] = 0
 
+    # Extra calculations, because they are needed everywhere (but doesn't really fit here)
+    # Calculate daily perc change from course - df['close_perc']
+    df['close_perc'] = df['close'].pct_change(periods=1)  # * 100
+
+    # Group invested
+    df = _df_group_invested(df)
+
     #print(df)
     return df
 
 
+def _df_group_invested(df):
+    """ [df] Group invested periods
+    :param df: df[invested]
+    :return: df[group_invested]
 
-#------------------------ BB ------------------------#
+    Output:
+        print(df[['close', 'invested', 'group_invested']])
+                         close invested  group_invested
+        date
+        2010-09-26   0.062        0        NaN
+        2010-09-27   0.062        0        NaN
+        2010-09-28   0.062        1        1.0
+        2010-09-29   0.062        1        1.0
+        2010-09-30   0.062        1        1.0
+        2010-10-01   0.062        1        1.0
+        2010-10-02   0.061        1        1.0
+        2010-10-03   0.061        1        1.0
+        2010-10-04   0.061        1        1.0
+        2010-10-05   0.061        0        NaN
+        2010-10-06   0.063        0        NaN
+        2010-10-07   0.067        1        2.0
+        2010-10-08   0.087        1        2.0
+        2010-10-09   0.094        1        2.0
+        2010-10-10   0.097        1        2.0
+    """
+    # Group every connected invested block
+    df['group_invested'] = (df['invested'].fillna(0).diff(1) == 1).cumsum()
+    # Set everything else to None
+    df.loc[df['invested'].isna() | (df['invested'] == 0), 'group_invested'] = None
+    return df
+
+
+#------------------------ Indicators ------------------------#
+
 def _get_invested_from_BB(df, params=None):
     if params is None:
         params = get_params_from_yaml('BB', 'default')
@@ -117,7 +156,6 @@ def _get_invested_from_BB(df, params=None):
     return df
 
 
-#---------------------- MACD ----------------------#
 def _get_invested_from_MACD(df, params=None):
     if params is None:
         params = get_params_from_yaml('MACD', 'default')
@@ -141,7 +179,6 @@ def _get_invested_from_MACD(df, params=None):
     return df
 
 
-#---------------------- RSI ----------------------#
 def _get_invested_from_RSI(df, params=None):
     if params is None:
         params = get_params_from_yaml('RSI', 'default')

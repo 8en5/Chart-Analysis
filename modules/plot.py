@@ -1,42 +1,9 @@
 
 import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 from modules.indicators import get_indicator_col_names
 from modules.file_handler import *
-
-
-def df_group_invested_periods(df):
-    """ Group invested periods
-    :param df: df[invested]
-    :return: df[group_inv]
-
-    Output:
-        print(df[['close', 'invested', 'group_inv']])
-                         close invested  group_inv
-        date
-        2010-09-26   0.062        0        NaN
-        2010-09-27   0.062        0        NaN
-        2010-09-28   0.062        1        1.0
-        2010-09-29   0.062        1        1.0
-        2010-09-30   0.062        1        1.0
-        2010-10-01   0.062        1        1.0
-        2010-10-02   0.061        1        1.0
-        2010-10-03   0.061        1        1.0
-        2010-10-04   0.061        1        1.0
-        2010-10-05   0.061        0        NaN
-        2010-10-06   0.063        0        NaN
-        2010-10-07   0.067        1        2.0
-        2010-10-08   0.087        1        2.0
-        2010-10-09   0.094        1        2.0
-        2010-10-10   0.097        1        2.0
-    """
-    # Group every connected invested block
-    df['group_inv'] = (df['invested'].diff(1) == 1).cumsum()
-    # Set everything else to None
-    df.loc[df['invested'] == 0, 'group_inv'] = None
-    return df
 
 
 #---------------------- Lvl 2 - full figures (based on axes) ----------------------#
@@ -52,7 +19,7 @@ def fig_type1_default(df, title=''):
     # Default Plot
     fig, ax = plt.subplots(1, 1)                  # 1 Plot
     # Plot 1 (Course with evaluation)
-    ax_course_highlight_invested(ax, df, 'rect') # ['background', 'start_stop', 'interruption_line', 'rect']
+    ax_course_highlight_invested(ax, df, 'rect')          # Course ['background', 'start_stop', 'interruption_line', 'rect']
     ax_properties(ax, title=title)                             # Labels
     plt_properties(plt)                                        # Labels
     return fig
@@ -70,7 +37,7 @@ def fig_type2_indicator(df, indicator_name, title1=None, title2=None, suptitle=N
     # Indicator
     fig, ax = plt.subplots(2, 1, sharex=True)            # 2 Plots (share -> synch both plots during zoom)
     # Plot 1 (Course with evaluation)
-    ax_course_highlight_invested(ax, df, 'rect')  # ['background', 'start_stop', 'interruption_line', 'rect']
+    ax_course_highlight_invested(ax, df, 'rect')                # Course ['background', 'start_stop', 'interruption_line', 'rect']
     ax_properties(ax[0], title=title1)                               # Labels
     # Plot 2 (Indicator)
     ax_background_colored_highlighting(ax[1], df[['signal']])        # df['signal'] -> [buy, sell, bullish, bearish]
@@ -134,8 +101,8 @@ def _ax_course_highlight_invested_start_stop(ax, df):
     """[ax]"""
     ax_course(ax, df, background=True, log=False)
     # Groups of df[invested]
-    df = df_group_invested_periods(df)
-    for index, group in df.groupby('group_inv'):
+    df = df_group_invested(df)
+    for index, group in df.groupby('group_invested'):
         # Plot a dot at the first and last day of a invested group
         ax.scatter(group.index[0], group.loc[group.index[0], 'close'], color='green', marker='o', label='buy' if index==1 else None)
         ax.scatter(group.index[-1], group.loc[group.index[-1], 'close'], color='red', marker='o', label='sell' if index==1 else None)
@@ -146,8 +113,7 @@ def _ax_course_highlight_invested_interruption_line(ax, df):
     # Course
     ax_course(ax, df, background=True, log=False)
     # Groups of df[invested]
-    df = df_group_invested_periods(df)
-    for index, group in df.groupby('group_inv'):
+    for index, group in df.groupby('group_invested'):
         # Plot green line only if df[invested] is in
         ax.plot(group.index, group['close'], linestyle='-', color='green', label='invested' if index==1 else None)
 
@@ -157,8 +123,7 @@ def _ax_course_highlight_invested(ax, df):
     # Course
     ax_course(ax, df, background=False, log=False)
     # Groups of df[invested]
-    df = df_group_invested_periods(df)
-    for index, group in df.groupby('group_inv'):
+    for index, group in df.groupby('group_invested'):
         # Plot rect from first to the last day of a invested group
         x_start, x_end = group.index[0], group.index[-1]
         y_start, y_end = group.loc[group.index[0], 'close'], group.loc[group.index[-1], 'close']
