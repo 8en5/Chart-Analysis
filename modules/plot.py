@@ -85,7 +85,7 @@ def ax_course_highlight_invested(ax, df, key='rect'):
         case 'interruption_line':
             _ax_course_highlight_invested_interruption_line(ax, df)
         case 'rect':
-            _ax_course_highlight_invested(ax, df)
+            _ax_course_highlight_invested_rect(ax, df)
         case _:
             raise ValueError(f'Wrong highlight key: {key}')
 
@@ -101,7 +101,6 @@ def _ax_course_highlight_invested_start_stop(ax, df):
     """[ax]"""
     ax_course(ax, df, background=True, log=False)
     # Groups of df[invested]
-    df = df_group_invested(df)
     for index, group in df.groupby('group_invested'):
         # Plot a dot at the first and last day of a invested group
         ax.scatter(group.index[0], group.loc[group.index[0], 'close'], color='green', marker='o', label='buy' if index==1 else None)
@@ -118,10 +117,10 @@ def _ax_course_highlight_invested_interruption_line(ax, df):
         ax.plot(group.index, group['close'], linestyle='-', color='green', label='invested' if index==1 else None)
 
 
-def _ax_course_highlight_invested(ax, df):
+def _ax_course_highlight_invested_rect(ax, df):
     """[ax]"""
     # Course
-    ax_course(ax, df, background=False, log=False)
+    ax_course(ax, df, background=False, log=True)
     # Groups of df[invested]
     for index, group in df.groupby('group_invested'):
         # Plot rect from first to the last day of a invested group

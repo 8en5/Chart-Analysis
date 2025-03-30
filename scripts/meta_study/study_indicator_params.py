@@ -7,7 +7,7 @@ from modules.meta_study.study_params import study_params_brute_force
 
 
 def study_brute_force():
-    indicator_names = ['MACD'] #['MACD', 'BB', 'RSI']
+    indicator_names = ['MACD', 'BB', 'RSI']
     course_selection_keys = ['default']
     pre_test = True
 

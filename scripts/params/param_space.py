@@ -12,7 +12,7 @@ pandas_print_all()
 
 def main():
     # Load course
-    df = load_pandas_from_symbol('ADA')
+    df = load_pandas_from_symbol('ETH')
 
     # Indicator
     indicator_name = 'MACD'

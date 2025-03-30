@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from modules.utils import get_period, get_intervals, pandas_print_all
+from modules.utils import get_period, get_intervals, pandas_print_all, json_round_dict
 from modules.plot import fig_type1_default, save_fig
 
 
@@ -19,9 +19,6 @@ def evaluate_invested(df) -> dict[str, any]:
              'in+': 32.728, 'in-': 58.884, 'out+': 67.271, 'out-': 41.115,
              'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
     """
-    # Work on a copy, because this function (with df) is called multiple cycles in different time spans
-    df = df.copy()
-
     # Check and cut None values in df[invested]
     """
     df[invested] must not have None values, otherwise calculations in this function will fail.
@@ -78,9 +75,9 @@ def evaluate_invested(df) -> dict[str, any]:
 
     # Plot
     save = False
-    show = True
+    show = False
     if show or save:
-        fig = fig_type1_default(df, '')
+        fig = fig_type1_default(df, title=json_round_dict(result_dict))
         if save:
          save_fig(fig, None)
         if show:

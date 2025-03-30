@@ -7,7 +7,7 @@ from modules.params import *
 from modules.course import get_courses_paths
 from modules.error_handling import log_error
 from modules.strategy.strategy_invested import *
-from modules.strategy.evaluate_invested import evaluate_invested_multiple_cycles
+from modules.strategy.evaluate_invested import evaluate_invested_multiple_cycles, evaluate_invested
 from modules.meta_study.study_visualize import manager_visualize_strategies
 
 
@@ -41,14 +41,15 @@ def eval_param_with_symbol_study(indicator_name, params:dict, course_paths):
         #print(f'{index + 1}/{len(symbol_study_file_paths)}: {symbol_file_path.stem}')
         df = load_pandas_from_file_path(symbol_file_path)[['close']]
         df = func_get_invested_from_indicator(indicator_name, df, params)
-        df = df[['close', 'invested']] # Cut df to the minimal relevant data
+        df = df[['close', 'invested', 'close_perc']] # Cut df to the minimal relevant data
         if len(df) < minimum_length:
             raise AssertionError(f'The data of the course "{symbol_file_path.stem}" is too short: "{len(df)}". Remove it from the analysis')
         df = df.iloc[offset:] # offset for standardization - each parameter has a different startup time until signals are generated
         if df['invested'].isna().any(): # Observation, if there are any None values in df[invested]
             # if there are None Values in df[invested] this means, that there are no signals -> increase offset
             raise AssertionError(f'Warning for param {params}: Check offset, there should be no None vales in df[invested]: {df}')
-        result = evaluate_invested_multiple_cycles(df)
+        #result = evaluate_invested_multiple_cycles(df)
+        result = evaluate_invested(df)
         # Append all results in one dict
         for key, value in result.items():
             if key not in summary_dict:
@@ -67,7 +68,6 @@ def eval_param_with_symbol_study(indicator_name, params:dict, course_paths):
         3  2.998117  2.767857  0.230259
     """
     df_summary = pd.DataFrame(summary_dict)
-    #print(df_summary)
 
     # Result as dict
     result_dict = df_summary.mean().to_dict()
