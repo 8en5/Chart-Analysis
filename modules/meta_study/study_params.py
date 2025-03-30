@@ -6,7 +6,7 @@ from modules.file_handler import *
 from modules.params import *
 from modules.course import get_courses_paths
 from modules.error_handling import log_error
-from modules.strategy.strategy_invested import *
+from modules.strategy.indicator_signals import *
 from modules.strategy.evaluate_invested import evaluate_invested_multiple_cycles, evaluate_invested
 from modules.meta_study.study_visualize import manager_visualize_strategies
 
@@ -40,7 +40,7 @@ def eval_param_with_symbol_study(indicator_name, params:dict, course_paths):
     for index, symbol_file_path in enumerate(course_paths):
         #print(f'{index + 1}/{len(symbol_study_file_paths)}: {symbol_file_path.stem}')
         df = load_pandas_from_file_path(symbol_file_path)[['close']]
-        df = func_get_invested_from_indicator(indicator_name, df, params)
+        df = func_get_signals_from_indicator(indicator_name, df, params)
         df = df[['close', 'invested', 'close_perc']] # Cut df to the minimal relevant data
         if len(df) < minimum_length:
             raise AssertionError(f'The data of the course "{symbol_file_path.stem}" is too short: "{len(df)}". Remove it from the analysis')

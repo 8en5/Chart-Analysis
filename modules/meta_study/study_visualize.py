@@ -10,7 +10,7 @@ from modules.course import get_courses_paths
 from modules.params import get_all_params_variations_from_yaml
 from modules.plot import fig_type1_default, fig_type2_indicator, save_fig
 from modules.strategy.evaluate_invested import evaluate_invested_multiple_cycles
-from modules.strategy.strategy_invested import func_get_invested_from_indicator
+from modules.strategy.indicator_signals import func_get_signals_from_indicator
 
 
 #---------------------- Manger for Visualization ----------------------#
@@ -103,7 +103,7 @@ def _calc_indicator_and_invested(symbol_path, indicator_name, params) -> pd.Data
     # Load symbol - df[close]
     df = load_pandas_from_file_path(symbol_path)[['close']]
     # Calculate signals and invested - df[<indicators>, signal, invested]
-    df = func_get_invested_from_indicator(indicator_name, df, params)
+    df = func_get_signals_from_indicator(indicator_name, df, params)
     # print(df)
     return df
 

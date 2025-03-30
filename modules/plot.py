@@ -137,6 +137,20 @@ def _ax_course_highlight_invested_rect(ax, df):
         ax.add_patch(rect)
 
 
+#---------------------- Lvl 1.5 - visualize signals df[signal]  ----------------------#
+
+def ax_course_highlight_signals_line(ax, df):
+    # Course
+    ax_course(ax, df, background=False, log=True)
+    # Vertical line for the signals
+    color_map = {'buy': 'green', 'sell': 'red',
+                 'bullish': 'green', 'bearish': 'red'}
+    for idx, row in df.iterrows():
+        if row['signal'] in ['buy', 'sell']:
+            ax.axvline(x=idx, color=color_map[row['signal']], linestyle='-', linewidth=2)
+
+
+
 #---------------------- Lvl 1 - individual axes (which together form a fig) ----------------------#
 
 def func_ax_indicator(indicator_name:str, *args):
