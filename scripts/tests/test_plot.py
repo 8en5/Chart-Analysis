@@ -56,27 +56,6 @@ def test_plot_perc(freq='ME'):
     plt.show()
 
 
-def test_ax_background_colored_evaluation():
-    data = [1,2,2,2,4,4,4,5,5]
-    df = get_df_from_list(data)
-    df['evaluation'] = ''
-    df.loc[df.index[1], 'evaluation'] = 'buy'
-    df.loc[df.index[3], 'evaluation'] = 'sell'
-    df.loc[df.index[5], 'evaluation'] = 'bullish'
-    df.loc[df.index[7], 'evaluation'] = 'bearish'
-    print(df)
-
-    # Figure
-    fig, ax = plt.subplots(1, 1)
-    ax_course(ax, df)
-    ax_background_colored_highlighting(ax, df)
-
-    # Show
-    plt.show()
-
-
-
-
 if __name__ == "__main__":
 
     # Indicator

@@ -8,7 +8,7 @@ from modules.file_handler import *
 
 #---------------------- Lvl 2 - full figures (based on axes) ----------------------#
 
-def fig_type1_default(df, title=''):
+def fig_invested_default(df, title=''):
     """ [fig] Default plot
     - Plot 1: Course + Background invested
     """
@@ -19,12 +19,12 @@ def fig_type1_default(df, title=''):
     # Default Plot
     fig, ax = plt.subplots(1, 1)                  # 1 Plot
     # Plot 1 (Course with evaluation)
-    ax_course_highlight_invested(ax, df, 'rect')          # Course ['background', 'start_stop', 'interruption_line', 'rect']
+    ax_course_highlight_invested(ax, df, 'rect')          # Course with evaluation ['background', 'start_stop', 'interruption_line', 'rect']
     ax_properties(ax, title=title)                             # Labels
     plt_properties(plt)                                        # Labels
     return fig
 
-def fig_type2_indicator(df, indicator_name, title1=None, title2=None, suptitle=None):
+def fig_invested_indicator(df, indicator_name, title1=None, title2=None, suptitle=None):
     """ [fig] Plot indicator
     - Plot 1: Course + Background invested
     - Plot 2: Indicator + Background signals (['buy', 'sell', 'bullish', 'bearish'] from indicators)
@@ -40,14 +40,14 @@ def fig_type2_indicator(df, indicator_name, title1=None, title2=None, suptitle=N
     ax_course_highlight_invested(ax, df, 'rect')                # Course ['background', 'start_stop', 'interruption_line', 'rect']
     ax_properties(ax[0], title=title1)                               # Labels
     # Plot 2 (Indicator)
-    ax_background_colored_highlighting(ax[1], df[['signal']])        # df['signal'] -> [buy, sell, bullish, bearish]
     func_ax_indicator(indicator_name, ax[1], df)               # Indicator
+    ax_course_highlight_signals_line(ax[1], df[['signal']])          # Evaluate df['signal'] -> [buy, sell, bullish, bearish]
     ax_properties(ax[1], title=title2)                               # Labels
     fig_properties(fig, suptitle=suptitle)                           # Labels
     plt_properties(plt)                                              # Labels
     return fig
 
-def save_fig(fig, file_path=None):
+def save_fig_default(fig, file_path=None):
     """ [fig] Save matplotlib fig
     Calculate folder path from strategy name (when this class is called first) | default temp
     Calculate file name (from global counter, symbol and params | default counter
@@ -72,7 +72,7 @@ def save_fig(fig, file_path=None):
     save_matplotlib_figure(fig, file_path.parent, file_path.stem, 'png')
 
 
-#---------------------- Lvl 1.5 - visualize evaluation df[invested]  ----------------------#
+#---------------------- Lvl 1.5 - course evaluation df[signal, invested]  ----------------------#
 
 def ax_course_highlight_invested(ax, df, key='rect'):
     """[ax] Call the different highlight functions by key"""
@@ -80,8 +80,8 @@ def ax_course_highlight_invested(ax, df, key='rect'):
         case None: return
         case 'background':
             _ax_course_highlight_invested_background(ax, df)
-        case 'start_stop':
-            _ax_course_highlight_invested_start_stop(ax, df)
+        case 'dots':
+            _ax_course_highlight_invested_dots(ax, df)
         case 'interruption_line':
             _ax_course_highlight_invested_interruption_line(ax, df)
         case 'rect':
@@ -89,17 +89,21 @@ def ax_course_highlight_invested(ax, df, key='rect'):
         case _:
             raise ValueError(f'Wrong highlight key: {key}')
 
+
 def _ax_course_highlight_invested_background(ax, df):
     """[ax]"""
     # Course
-    ax_course(ax, df, background=False, log=False)
-    # Background color of df[invested]
-    ax_background_colored_highlighting(ax, df[['invested']])
+    ax_course(ax, df, background=False, log=True, leading=True)
+    # Background color for df[invested]
+    color_map = {1: 'green', 0: 'red', None: 'grey'}
+    for i in range(len(df) - 1):
+        color = color_map.get(df.iloc[i]['invested'], 'grey')
+        ax.axvspan(df.index[i], df.index[i + 1], color=color, alpha=0.3)
 
 
-def _ax_course_highlight_invested_start_stop(ax, df):
+def _ax_course_highlight_invested_dots(ax, df):
     """[ax]"""
-    ax_course(ax, df, background=True, log=False)
+    ax_course(ax, df, background=True, log=False, leading=True)
     # Groups of df[invested]
     for index, group in df.groupby('group_invested'):
         # Plot a dot at the first and last day of a invested group
@@ -110,7 +114,7 @@ def _ax_course_highlight_invested_start_stop(ax, df):
 def _ax_course_highlight_invested_interruption_line(ax, df):
     """[ax]"""
     # Course
-    ax_course(ax, df, background=True, log=False)
+    ax_course(ax, df, background=True, log=False, leading=True)
     # Groups of df[invested]
     for index, group in df.groupby('group_invested'):
         # Plot green line only if df[invested] is in
@@ -120,7 +124,7 @@ def _ax_course_highlight_invested_interruption_line(ax, df):
 def _ax_course_highlight_invested_rect(ax, df):
     """[ax]"""
     # Course
-    ax_course(ax, df, background=False, log=True)
+    ax_course(ax, df, background=False, log=True, leading=True)
     # Groups of df[invested]
     for index, group in df.groupby('group_invested'):
         # Plot rect from first to the last day of a invested group
@@ -137,16 +141,14 @@ def _ax_course_highlight_invested_rect(ax, df):
         ax.add_patch(rect)
 
 
-#---------------------- Lvl 1.5 - visualize signals df[signal]  ----------------------#
-
 def ax_course_highlight_signals_line(ax, df):
     # Course
-    ax_course(ax, df, background=False, log=True)
+    ax_course(ax, df, background=False, log=True, leading=True)
     # Vertical line for the signals
     color_map = {'buy': 'green', 'sell': 'red',
                  'bullish': 'green', 'bearish': 'red'}
     for idx, row in df.iterrows():
-        if row['signal'] in ['buy', 'sell']:
+        if row['signal'] in ['buy', 'sell', 'bullish', 'bearish']:
             ax.axvline(x=idx, color=color_map[row['signal']], linestyle='-', linewidth=2)
 
 
@@ -163,7 +165,7 @@ def func_ax_indicator(indicator_name:str, *args):
     # Check if function is defined
     func = globals().get(func_name)
     if not callable(func):
-        raise ValueError(f'The function "{func_name}" does not exist - define it in plot.py')
+        raise ValueError(f'The function "{func_name}" does not exist in {keys_func_ax_indicator()} - define it in plot.py')
     # Return called function
     return func(*args)
 
@@ -174,15 +176,24 @@ def keys_func_ax_indicator():
     return [name.replace('ax_', '', 1) for name in globals().keys() if name.startswith('ax_')]
 
 
-def ax_course(ax, df, background=False, log=False):
+def ax_course(ax, df, background=False, log=False, leading=False):
     """[ax]"""
     # Color
     color = 'lightgray' if background else 'black'
-    # Plot
-    if log:
-        ax.semilogy(df.index, df['close'], linestyle='-', color=color, label='Course')    # log
+
+    # Plot None values interrupted
+    df = df.copy()
+    if leading:
+        df['linestyle'] = df['signal'].notna().map({True: '-', False: '--'})
     else:
-        ax.plot(df.index, df['close'], linestyle='-', color=color, label='Course')        # linear
+        df['linestyle'] = '-'
+
+    # Define plot function
+    plot_func = ax.semilogy if log else ax.plot
+
+    # Plot
+    for linestyle, sub_df in df.groupby('linestyle'):
+        plot_func(sub_df.index, sub_df['close'], linestyle=linestyle, color=color, label='Course')
 
 
 def ax_perc(ax, df):
@@ -243,49 +254,6 @@ def ax_SMA(ax, df):
         cols_SMA = [cols_SMA]
     for col_SMA in cols_SMA:
         ax.plot(df.index, df[col_SMA], label=col_SMA, color='orange', linestyle='-')
-
-
-
-#--- ax background color ---#
-
-def ax_background_colored_highlighting(ax, df):
-    """[ax]"""
-    allowed_col = ['signal', 'invested']
-    col = ''
-    if any(element in allowed_col for element in df.columns):
-        if 'signal' in df.columns:
-            col = 'signal'
-        elif 'invested' in df.columns:
-            col = 'invested'
-    else:
-        raise ValueError(f'Column name {allowed_col} not in: {df.columns}')
-
-    colors = {
-        None: 'grey',
-        # Signal - One event [buy, sell]
-        'buy': 'lime',
-        'sell': 'red',
-        # Signal - Trend [bullish, bearish]
-        'bullish': 'green',
-        'bearish': 'salmon',
-        # invested - [1, 0]
-        1: 'green',
-        0: 'salmon',
-    }
-    for i in range(0, len(df)-1):
-        evaluation = df.iloc[i][col]
-        if evaluation == '':
-            continue
-        if evaluation not in colors:
-            print(f'Warning: evaluation "{evaluation}" not in color_status"')
-        if evaluation in ['buy', 'sell']:
-            # Vertical Line - concrete calculated signal
-            color = colors[evaluation]
-            ax.axvline(x=df.index[i], color=color, linestyle='-', linewidth=2)
-        elif evaluation in ['bullish', 'bearish', 1, 0, None]:
-            # Background color - general trend
-            color = colors[evaluation]
-            ax.axvspan(df.index[i], df.index[i+1], color=color, alpha=0.3)
 
 
 

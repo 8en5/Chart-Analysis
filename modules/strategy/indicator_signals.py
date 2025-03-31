@@ -1,3 +1,57 @@
+"""
+df[<indicators>, signal, invested, close_perc, group_invested]
+
+            close  MACD_5_10_14  MACDh_5_10_14  MACDs_5_10_14 Crossing_MACD_5_10_14-MACDs_5_10_14 signal invested  close_perc  group_invested
+date
+2017-10-01  0.025           NaN            NaN            NaN                                       None     None         NaN             NaN
+2017-10-02  0.026           NaN            NaN            NaN                                       None     None    0.040000             NaN
+2017-10-03  0.021           NaN            NaN            NaN                                       None     None   -0.192308             NaN
+2017-10-04  0.022           NaN            NaN            NaN                                       None     None    0.047619             NaN
+2017-10-05  0.022           NaN            NaN            NaN                                       None     None    0.000000             NaN
+2017-10-06  0.018           NaN            NaN            NaN                                       None     None   -0.181818             NaN
+2017-10-07  0.021           NaN            NaN            NaN                                       None     None    0.166667             NaN
+2017-10-08  0.021           NaN            NaN            NaN                                       None     None    0.000000             NaN
+2017-10-09  0.022           NaN            NaN            NaN                                       None     None    0.047619             NaN
+2017-10-10  0.021     -0.000586            NaN            NaN                                       None     None   -0.045455             NaN
+2017-10-11  0.023     -0.000224            NaN            NaN                                       None     None    0.095238             NaN
+2017-10-12  0.026      0.000442            NaN            NaN                                       None     None    0.130435             NaN
+2017-10-13  0.034      0.001990            NaN            NaN                                       None     None    0.307692             NaN
+2017-10-14  0.032      0.002411            NaN            NaN                                       None     None   -0.058824             NaN
+2017-10-15  0.030      0.002191            NaN            NaN                                       None     None   -0.062500             NaN
+2017-10-16  0.029      0.001787            NaN            NaN                                       None     None   -0.033333             NaN
+2017-10-17  0.027      0.001156            NaN            NaN                                       None     None   -0.068966             NaN
+2017-10-18  0.027      0.000741            NaN            NaN                                       None     None    0.000000             NaN
+2017-10-19  0.027      0.000470            NaN            NaN                                       None     None    0.000000             NaN
+2017-10-20  0.030      0.000748            NaN            NaN                                       None     None    0.111111             NaN
+2017-10-21  0.028      0.000551            NaN            NaN                                       None     None   -0.066667             NaN
+2017-10-22  0.028      0.000411            NaN            NaN                                       None     None    0.000000             NaN
+2017-10-23  0.026      0.000006  -8.577989e-04       0.000864                                                   0   -0.071429             NaN
+2017-10-24  0.027     -0.000063  -8.037266e-04       0.000740                                                   0    0.038462             NaN
+2017-10-25  0.027     -0.000098  -7.261225e-04       0.000629                                                   0    0.000000             NaN
+2017-10-26  0.027     -0.000110  -6.403060e-04       0.000530                                                   0    0.000000             NaN
+2017-10-27  0.026     -0.000262  -6.864548e-04       0.000424                                                   0   -0.037037             NaN
+2017-10-28  0.026     -0.000329  -6.529061e-04       0.000324                                                   0    0.000000             NaN
+2017-10-29  0.028     -0.000042  -3.175753e-04       0.000275                                                   0    0.076923             NaN
+2017-10-30  0.029      0.000268  -6.267243e-06       0.000274                                                   0    0.035714             NaN
+2017-10-31  0.031      0.000724   3.898298e-04       0.000334                                  up    buy        0    0.068966             NaN
+2017-11-01  0.023     -0.000283  -5.350836e-04       0.000252                                down   sell        1   -0.258065             1.0
+2017-11-02  0.021     -0.001119  -1.187635e-03       0.000069                                                   0   -0.086957             NaN
+2017-11-03  0.023     -0.001203  -1.102761e-03      -0.000101                                                   0    0.095238             NaN
+2017-11-04  0.022     -0.001328  -1.063914e-03      -0.000264                                                   0   -0.043478             NaN
+2017-11-05  0.021     -0.001467  -1.042625e-03      -0.000425                                                   0   -0.045455             NaN
+2017-11-06  0.022     -0.001303  -7.609913e-04      -0.000542                                                   0    0.047619             NaN
+2017-11-07  0.022     -0.001134  -5.133117e-04      -0.000621                                                   0    0.000000             NaN
+2017-11-08  0.025     -0.000519   8.838403e-05      -0.000607                                  up    buy        0    0.136364             NaN
+2017-11-09  0.032      0.000909   1.313901e-03      -0.000405                                                   1    0.280000             2.0
+2017-11-10  0.026      0.000724   9.779819e-04      -0.000254                                                   1   -0.187500             2.0
+2017-11-11  0.027      0.000730   8.532221e-04      -0.000123                                                   1    0.038462             2.0
+2017-11-12  0.024      0.000235   3.102498e-04      -0.000075                                                   1   -0.111111             2.0
+2017-11-13  0.026      0.000253   2.850629e-04      -0.000032                                                   1    0.083333             2.0
+2017-11-14  0.026      0.000248   2.425669e-04       0.000006                                                   1    0.000000             2.0
+2017-11-15  0.027      0.000382   3.260490e-04       0.000056                                                   1    0.038462             2.0
+2017-11-16  0.027      0.000432   3.256921e-04       0.000106                                                   1    0.000000             2.0
+2017-11-17  0.026      0.000281   1.517976e-04       0.000129                                                   1   -0.037037             2.0
+"""
 
 import pandas as pd
 import numpy as np
@@ -10,85 +64,9 @@ pd.set_option('future.no_silent_downcasting', True) # if values are converted do
 
 
 
-def routine_full_df(indicator_name, df, params=None):
-    """ [df[full]] Routine to calculate full df
-    :param indicator_name: name of the indicator defined in this file
-    :param df: df[close]
-    :param params: params for the indicator [None, dict, list]
-    :return: df[<indicators>, signal, invested, close_perc, group_invested]
-
-                    close  MACD_5_10_14  MACDh_5_10_14  MACDs_5_10_14 Crossing_MACD_5_10_14-MACDs_5_10_14 signal invested  close_perc  group_invested
-        date
-        2017-10-01  0.025           NaN            NaN            NaN                                       None     None         NaN             NaN
-        2017-10-02  0.026           NaN            NaN            NaN                                       None     None    0.040000             NaN
-        2017-10-03  0.021           NaN            NaN            NaN                                       None     None   -0.192308             NaN
-        2017-10-04  0.022           NaN            NaN            NaN                                       None     None    0.047619             NaN
-        2017-10-05  0.022           NaN            NaN            NaN                                       None     None    0.000000             NaN
-        2017-10-06  0.018           NaN            NaN            NaN                                       None     None   -0.181818             NaN
-        2017-10-07  0.021           NaN            NaN            NaN                                       None     None    0.166667             NaN
-        2017-10-08  0.021           NaN            NaN            NaN                                       None     None    0.000000             NaN
-        2017-10-09  0.022           NaN            NaN            NaN                                       None     None    0.047619             NaN
-        2017-10-10  0.021     -0.000586            NaN            NaN                                       None     None   -0.045455             NaN
-        2017-10-11  0.023     -0.000224            NaN            NaN                                       None     None    0.095238             NaN
-        2017-10-12  0.026      0.000442            NaN            NaN                                       None     None    0.130435             NaN
-        2017-10-13  0.034      0.001990            NaN            NaN                                       None     None    0.307692             NaN
-        2017-10-14  0.032      0.002411            NaN            NaN                                       None     None   -0.058824             NaN
-        2017-10-15  0.030      0.002191            NaN            NaN                                       None     None   -0.062500             NaN
-        2017-10-16  0.029      0.001787            NaN            NaN                                       None     None   -0.033333             NaN
-        2017-10-17  0.027      0.001156            NaN            NaN                                       None     None   -0.068966             NaN
-        2017-10-18  0.027      0.000741            NaN            NaN                                       None     None    0.000000             NaN
-        2017-10-19  0.027      0.000470            NaN            NaN                                       None     None    0.000000             NaN
-        2017-10-20  0.030      0.000748            NaN            NaN                                       None     None    0.111111             NaN
-        2017-10-21  0.028      0.000551            NaN            NaN                                       None     None   -0.066667             NaN
-        2017-10-22  0.028      0.000411            NaN            NaN                                       None     None    0.000000             NaN
-        2017-10-23  0.026      0.000006  -8.577989e-04       0.000864                                                   0   -0.071429             NaN
-        2017-10-24  0.027     -0.000063  -8.037266e-04       0.000740                                                   0    0.038462             NaN
-        2017-10-25  0.027     -0.000098  -7.261225e-04       0.000629                                                   0    0.000000             NaN
-        2017-10-26  0.027     -0.000110  -6.403060e-04       0.000530                                                   0    0.000000             NaN
-        2017-10-27  0.026     -0.000262  -6.864548e-04       0.000424                                                   0   -0.037037             NaN
-        2017-10-28  0.026     -0.000329  -6.529061e-04       0.000324                                                   0    0.000000             NaN
-        2017-10-29  0.028     -0.000042  -3.175753e-04       0.000275                                                   0    0.076923             NaN
-        2017-10-30  0.029      0.000268  -6.267243e-06       0.000274                                                   0    0.035714             NaN
-        2017-10-31  0.031      0.000724   3.898298e-04       0.000334                                  up    buy        0    0.068966             NaN
-        2017-11-01  0.023     -0.000283  -5.350836e-04       0.000252                                down   sell        1   -0.258065             1.0
-        2017-11-02  0.021     -0.001119  -1.187635e-03       0.000069                                                   0   -0.086957             NaN
-        2017-11-03  0.023     -0.001203  -1.102761e-03      -0.000101                                                   0    0.095238             NaN
-        2017-11-04  0.022     -0.001328  -1.063914e-03      -0.000264                                                   0   -0.043478             NaN
-        2017-11-05  0.021     -0.001467  -1.042625e-03      -0.000425                                                   0   -0.045455             NaN
-        2017-11-06  0.022     -0.001303  -7.609913e-04      -0.000542                                                   0    0.047619             NaN
-        2017-11-07  0.022     -0.001134  -5.133117e-04      -0.000621                                                   0    0.000000             NaN
-        2017-11-08  0.025     -0.000519   8.838403e-05      -0.000607                                  up    buy        0    0.136364             NaN
-        2017-11-09  0.032      0.000909   1.313901e-03      -0.000405                                                   1    0.280000             2.0
-        2017-11-10  0.026      0.000724   9.779819e-04      -0.000254                                                   1   -0.187500             2.0
-        2017-11-11  0.027      0.000730   8.532221e-04      -0.000123                                                   1    0.038462             2.0
-        2017-11-12  0.024      0.000235   3.102498e-04      -0.000075                                                   1   -0.111111             2.0
-        2017-11-13  0.026      0.000253   2.850629e-04      -0.000032                                                   1    0.083333             2.0
-        2017-11-14  0.026      0.000248   2.425669e-04       0.000006                                                   1    0.000000             2.0
-        2017-11-15  0.027      0.000382   3.260490e-04       0.000056                                                   1    0.038462             2.0
-        2017-11-16  0.027      0.000432   3.256921e-04       0.000106                                                   1    0.000000             2.0
-        2017-11-17  0.026      0.000281   1.517976e-04       0.000129                                                   1   -0.037037             2.0
-    """
-
-    # df[<indicators>, signal] - Calculate indicators
-    df = func_get_signals_from_indicator(indicator_name, df, params)
-
-    # df[invested] - Calculate invested
-    df = _calc_invested_from_signal(df)
-
-    # df[close_perc] - Calculate daily perc change from course
-    df['close_perc'] = df['close'].pct_change(periods=1)  # * 100
-
-    # df[group_invested] - Group invested
-    df = _df_group_invested(df)
-
-    #print(df)
-    return df
-
-
-
 #------------------------ Signals from Indicators ------------------------#
 
-def func_get_signals_from_indicator(indicator_name, df, params=None):
+def func_df_signals_from_indicator(indicator_name, df, params=None):
     """ [df[<indicators>, signal]] Call function set_manual_strategy_{indicator_name}()
     :param indicator_name: name of the indicator defined in this file
     :param df: df[close]
@@ -210,7 +188,7 @@ def _lead_time_signals(df):
 
 #------------------------ Invested from Indicators ------------------------#
 
-def _calc_invested_from_signal(df):
+def df_invested_from_signal(df):
     """ [df[signal, invested]] Calculate status 'invested' from the signals
     :param df: df[signal] - [buy/bullish , sell/bearish]
     :return: df[invested]
@@ -243,7 +221,7 @@ def _calc_invested_from_signal(df):
     """
 
     # Convert signals to invested status
-    df['invested'] = df['signal']
+    df['invested'] = 0
     if df['signal'].isin(['bullish', 'bearish']).any():
         df['invested'] = df['signal'].replace({'bullish': 1, 'bearish': 0, '': None})
     elif df['signal'].isin(['buy', 'sell']).any():
@@ -258,7 +236,7 @@ def _calc_invested_from_signal(df):
     return df
 
 
-def _df_group_invested(df):
+def df_group_invested(df):
     """ [df[invested, group_invested]] Group invested periods
     :param df: df[invested]
     :return: df[group_invested]
@@ -290,15 +268,7 @@ def _df_group_invested(df):
     return df
 
 
-
-
-if __name__ == "__main__":
-    # Testing
-    from modules.file_handler import load_pandas_from_symbol
-    from modules.utils import pandas_print_all
-    pandas_print_all()
-
-    df = load_pandas_from_symbol('ADA')
-    df = df[['close']]
-    df = routine_full_df('MACD', df, [5,10,14])
-    print(df)
+def df_close_perc(df):
+    """[df[close_perc]]"""
+    df['close_perc'] = df['close'].pct_change(periods=1)  # * 100
+    return df
