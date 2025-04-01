@@ -38,7 +38,8 @@ def fig_invested_indicator(df, indicator_name, title1=None, title2=None, suptitl
     # Indicator
     fig, ax = plt.subplots(2, 1, sharex=True)           # 2 Plots (share -> synch both plots during zoom)
     # Plot 1 (Course with evaluation)
-    ax_course_highlight_invested(ax[0], df, 'rect')             # Course ['background', 'start_stop', 'interruption_line', 'rect']
+    ax_course(ax[0], df, True, True, True, True) # Course
+    ax_course_highlight_invested(ax[0], df, 'rect')             # Course with evaluation ['background', 'start_stop', 'interruption_line', 'rect']
     ax_properties(ax[0], title=title1)                               # Labels
     # Plot 2 (Indicator)
     ax_highlight_signals_vertical_line(ax[1], df)                    # Evaluate df['signal'] -> [buy, sell, bullish, bearish]
@@ -73,7 +74,7 @@ def save_fig(fig, file_path=None):
     save_matplotlib_figure(fig, file_path.parent, file_path.stem, 'png')
 
 
-#---------------------- Lvl 1.5 - course evaluation df[signal, invested]  ----------------------#
+#---------------------- Lvl 1.5 - highlight evaluation df[signal, invested]  ----------------------#
 
 def ax_course_highlight_invested(ax, df, key='rect'):
     """[ax] Call the different highlight functions by key"""
@@ -93,8 +94,6 @@ def ax_course_highlight_invested(ax, df, key='rect'):
 
 def _ax_course_highlight_invested_background(ax, df):
     """[ax]"""
-    # Course
-    ax_course(ax, df, background=False, log=True, leading=True)
     # Background color for df[invested]
     color_map = {1: 'green', 0: 'red', None: 'grey'}
     for i in range(len(df) - 1):
@@ -104,8 +103,6 @@ def _ax_course_highlight_invested_background(ax, df):
 
 def _ax_course_highlight_invested_dots(ax, df):
     """[ax]"""
-    ax_course(ax, df, background=True, log=False, leading=True)
-    # Groups of df[invested]
     for index, group in df.groupby('group_invested'):
         # Plot a dot at the first and last day of a invested group
         ax.scatter(group.index[0], group.loc[group.index[0], 'close'], color='green', marker='o', label='buy' if index==1 else None)
@@ -114,8 +111,6 @@ def _ax_course_highlight_invested_dots(ax, df):
 
 def _ax_course_highlight_invested_interruption_line(ax, df):
     """[ax]"""
-    # Course
-    ax_course(ax, df, background=True, log=False, leading=True)
     # Groups of df[invested]
     for index, group in df.groupby('group_invested'):
         # Plot green line only if df[invested] is 1
@@ -124,8 +119,6 @@ def _ax_course_highlight_invested_interruption_line(ax, df):
 
 def _ax_course_highlight_invested_rect(ax, df):
     """[ax]"""
-    # Course
-    ax_course(ax, df, background=True, log=True, leading=True)
     # Groups of df[invested]
     for index, group in df.groupby('group_invested'):
         # Plot rect from first to the last day of a invested group
@@ -175,7 +168,7 @@ def keys_func_ax_indicator():
     return [name.replace('ax_', '', 1) for name in globals().keys() if name.startswith('ax_')]
 
 
-def ax_course(ax, df, background=False, log=False, leading=False):
+def ax_course(ax, df, background=False, log=False, leading=False, invested=False):
     """[ax]"""
     # Color
     color = 'lightgray' if background else 'black'
@@ -192,8 +185,14 @@ def ax_course(ax, df, background=False, log=False, leading=False):
     plot_func = ax.semilogy if log else ax.plot
 
     # Plot
-    for linestyle, sub_df in df.groupby('linestyle'):
-        plot_func(sub_df.index, sub_df['close'], linestyle=linestyle, color=color, label='Course')
+    for index, (linestyle, sub_df) in enumerate(df.groupby('linestyle')):
+        plot_func(sub_df.index, sub_df['close'], linestyle=linestyle, color=color, label='Course' if index==1 else None)
+
+    # Highlight df[invested]
+    if invested:
+        for index, group in df.groupby('group_invested'):
+            # Plot green line only if df[invested] is 1
+            plot_func(group.index, group['close'], linestyle='-', color='black', label='invested' if index==1 else None)
 
 
 def ax_perc(ax, df):
