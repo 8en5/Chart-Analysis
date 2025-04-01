@@ -7,7 +7,7 @@ from modules.strategy.evaluate_invested import evaluate_invested
 
 
 def strategy(course_path, indicator_name, params=None,
-             save_plot=False, study_type='params'):
+             save_plot=True, study_type=None):
 
     # 1. Calculate full df
     # Load course
@@ -32,13 +32,19 @@ def strategy(course_path, indicator_name, params=None,
     if show_plot or save_plot:
         # Figure
         evaluation_dict_str = _calc_evaluation_to_str(result_dict)
-        fig = fig_invested_default(df, title=evaluation_dict_str)
-        #fig = fig_invested_indicator(df, indicator_name, title1=course_path.stem, title2=f'{indicator_name}: {params}', suptitle=evaluation_dict_str)
+        # 1x1 fig - course with evaluation
+        #fig = fig_invested_default(df, title=evaluation_dict_str)
+        # 2x1 fig - course with evaluation + indicator
+        fig = fig_invested_indicator(df, indicator_name, title1=course_path.stem, title2=f'{indicator_name}: {params}', suptitle=evaluation_dict_str)
         # Save or plot
         if save_plot:
-            # file path [default - data/analyse/visualize/... , study - data/study/Study_newest/...]
-            file_path = _calc_file_path(indicator_name, course_path.stem, params, study_type)
-            save_fig_default(fig, file_path)
+            if study_type:
+                #file path [param/symbol -> data/analyse/visualize/... , study -> data/study/Study_newest/...]
+                file_path = _calc_file_path(indicator_name, course_path.stem, params, study_type)
+                save_fig(fig, file_path)
+            else:
+                # default -> data/analyse/visualize/temp
+                save_fig(fig)
         if show_plot:
             plt.show()
 
@@ -50,7 +56,7 @@ def strategy(course_path, indicator_name, params=None,
 #---------------------- Visualize ----------------------#
 
 
-def _calc_file_path(indicator_name:str, course:str, params:dict|list, study_type='params') -> Path:
+def _calc_file_path(indicator_name:str, course:str, params:dict|list, study_type=None) -> Path:
     """ [fig] Calculate file path for the plot
     Aim: Targeted saving of the different variants
 
@@ -120,7 +126,7 @@ if __name__ == "__main__":
     from modules.course import get_courses_paths
 
     pandas_print_all()
-    df_test = strategy(get_courses_paths('ADA')[0], 'MACD',
-                  save_plot=False, study_type='params')
+    result_dict = strategy(get_courses_paths('ADA')[0], 'MACD', params=[5, 10, 5],
+                           save_plot=False, study_type=None)
 
 

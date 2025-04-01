@@ -1,6 +1,7 @@
 
 import numpy as np
 import matplotlib.patches as patches
+from scipy.stats import alpha
 
 from modules.indicators import get_indicator_col_names
 from modules.file_handler import *
@@ -47,7 +48,7 @@ def fig_invested_indicator(df, indicator_name, title1=None, title2=None, suptitl
     plt_properties(plt)                                              # Labels
     return fig
 
-def save_fig_default(fig, file_path=None):
+def save_fig(fig, file_path=None):
     """ [fig] Save matplotlib fig
     Calculate folder path from strategy name (when this class is called first) | default temp
     Calculate file name (from global counter, symbol and params | default counter
@@ -117,14 +118,14 @@ def _ax_course_highlight_invested_interruption_line(ax, df):
     ax_course(ax, df, background=True, log=False, leading=True)
     # Groups of df[invested]
     for index, group in df.groupby('group_invested'):
-        # Plot green line only if df[invested] is in
+        # Plot green line only if df[invested] is 1
         ax.plot(group.index, group['close'], linestyle='-', color='green', label='invested' if index==1 else None)
 
 
 def _ax_course_highlight_invested_rect(ax, df):
     """[ax]"""
     # Course
-    ax_course(ax, df, background=False, log=True, leading=True)
+    ax_course(ax, df, background=True, log=True, leading=True)
     # Groups of df[invested]
     for index, group in df.groupby('group_invested'):
         # Plot rect from first to the last day of a invested group
@@ -147,7 +148,7 @@ def ax_highlight_signals_vertical_line(ax, df):
                  'bullish': 'green', 'bearish': 'red'}
     for idx, row in df.iterrows():
         if row['signal'] in ['buy', 'sell', 'bullish', 'bearish']:
-            ax.axvline(x=idx, color=color_map[row['signal']], linestyle='-', linewidth=2)
+            ax.axvline(x=idx, color=color_map[row['signal']], linestyle='-', alpha=0.3)
 
 
 
@@ -179,14 +180,15 @@ def ax_course(ax, df, background=False, log=False, leading=False):
     # Color
     color = 'lightgray' if background else 'black'
 
-    # Plot None values interrupted
-    df = df.copy()
+    # df[signal] is None
     if leading:
+        # Plot None values interrupted
         df['linestyle'] = df['signal'].notna().map({True: '-', False: '--'})
     else:
+        # Plot everything as line
         df['linestyle'] = '-'
 
-    # Define plot function
+    # linear or log
     plot_func = ax.semilogy if log else ax.plot
 
     # Plot

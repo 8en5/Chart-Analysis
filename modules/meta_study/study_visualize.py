@@ -8,7 +8,7 @@ Output: [fig] Plot (save/show) that visualizes the strategy
 from modules.file_handler import *
 from modules.course import get_courses_paths
 from modules.params import get_all_params_variations_from_yaml
-from modules.plot import fig_invested_default, fig_invested_indicator, save_fig_default
+from modules.plot import fig_invested_default, fig_invested_indicator, save_fig
 from modules.strategy.evaluate_invested import evaluate_invested_multiple_cycles
 from modules.strategy.indicator_signals import func_df_signals_from_indicator
 
@@ -87,7 +87,7 @@ def routine_visualize_strategy(indicator_name:str, symbol_path:Path, params:dict
     fig = fig_invested_indicator(df, indicator_name, symbol_path.stem, f'{indicator_name}: {params}', evaluation_dict_str)
     #fig = plot_type1_default(df, f'{evaluation_dict_str}\n{symbol_path.stem}\n{params}')
     if save_plot:
-        save_fig_default(fig, file_path)
+        save_fig(fig, file_path)
     if show_plot:
         plt.show()
 
