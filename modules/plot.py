@@ -10,7 +10,7 @@ from modules.file_handler import *
 
 def fig_invested_default(df, title=''):
     """ [fig] Default plot
-    - Plot 1: Course + Background invested
+    - Plot 1: Course + Evaluation invested
     """
     # Check columns
     minimal_columns = ['close', 'invested']
@@ -26,8 +26,8 @@ def fig_invested_default(df, title=''):
 
 def fig_invested_indicator(df, indicator_name, title1=None, title2=None, suptitle=None):
     """ [fig] Plot indicator
-    - Plot 1: Course + Background invested
-    - Plot 2: Indicator + Background signals (['buy', 'sell', 'bullish', 'bearish'] from indicators)
+    - Plot 1: Course + Evaluation invested
+    - Plot 2: Indicator + Evaluation signals (['buy', 'sell', 'bullish', 'bearish'] from indicators)
     """
     # Check columns
     minimal_columns = ['close', 'invested', 'signal']
@@ -35,13 +35,13 @@ def fig_invested_indicator(df, indicator_name, title1=None, title2=None, suptitl
         raise AssertionError(f'Min requirement failed: not all columns {minimal_columns} in {df.columns}')
 
     # Indicator
-    fig, ax = plt.subplots(2, 1, sharex=True)            # 2 Plots (share -> synch both plots during zoom)
+    fig, ax = plt.subplots(2, 1, sharex=True)           # 2 Plots (share -> synch both plots during zoom)
     # Plot 1 (Course with evaluation)
-    ax_course_highlight_invested(ax, df, 'rect')                # Course ['background', 'start_stop', 'interruption_line', 'rect']
+    ax_course_highlight_invested(ax[0], df, 'rect')             # Course ['background', 'start_stop', 'interruption_line', 'rect']
     ax_properties(ax[0], title=title1)                               # Labels
     # Plot 2 (Indicator)
+    ax_highlight_signals_vertical_line(ax[1], df)                    # Evaluate df['signal'] -> [buy, sell, bullish, bearish]
     func_ax_indicator(indicator_name, ax[1], df)               # Indicator
-    ax_course_highlight_signals_line(ax[1], df[['signal']])          # Evaluate df['signal'] -> [buy, sell, bullish, bearish]
     ax_properties(ax[1], title=title2)                               # Labels
     fig_properties(fig, suptitle=suptitle)                           # Labels
     plt_properties(plt)                                              # Labels
@@ -141,9 +141,7 @@ def _ax_course_highlight_invested_rect(ax, df):
         ax.add_patch(rect)
 
 
-def ax_course_highlight_signals_line(ax, df):
-    # Course
-    ax_course(ax, df, background=False, log=True, leading=True)
+def ax_highlight_signals_vertical_line(ax, df):
     # Vertical line for the signals
     color_map = {'buy': 'green', 'sell': 'red',
                  'bullish': 'green', 'bearish': 'red'}
