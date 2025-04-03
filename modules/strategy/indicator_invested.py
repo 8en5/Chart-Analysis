@@ -1,14 +1,11 @@
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import title
 
 from modules.plot import *
-from modules.strategy.indicator_signals import *
+from modules.strategy.df_signals_invested import *
 from modules.strategy.evaluate_invested import evaluate_invested, evaluate_invested_multiple_cycles
-from scripts.checks.overview.plot_all_courses import plot_course
 
 
-def strategy(course_path, indicator_name, params=None,
-             save_plot=False, base_folder:Path=None, study_type='params'):
+def indicator_invested(course_path, indicator_name, params=None,
+                       save_plot=False, base_folder:Path=None, study_type='params'):
 
     # 1. Calculate full df
     # Load course
@@ -140,7 +137,7 @@ if __name__ == "__main__":
     from modules.course import get_courses_paths
 
     pandas_print_all()
-    strategy(get_courses_paths('ADA')[0], 'MACD', save_plot=True)
+    indicator_invested(get_courses_paths('ADA')[0], 'MACD', save_plot=True)
     #strategy(get_courses_paths('ADA')[0], 'MACD', params=None, save_plot=False, study_type='params')
 
 

@@ -10,7 +10,7 @@ from modules.course import get_courses_paths
 from modules.params import get_all_params_variations_from_yaml
 from modules.plot import fig_invested_default, fig_invested_indicator, save_fig
 from modules.strategy.evaluate_invested import evaluate_invested_multiple_cycles
-from modules.strategy.indicator_signals import func_df_signals_from_indicator
+from modules.strategy.df_signals_invested import func_df_signals_from_indicator
 
 
 #---------------------- Manger for Visualization ----------------------#

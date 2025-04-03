@@ -19,8 +19,6 @@ def evaluate_invested(df) -> dict[str, any]:
              'in+': 32.728, 'in-': 58.884, 'out+': 67.271, 'out-': 41.115,
              'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
     """
-    # Work on a copy, because this function is called multiple times with different periods
-    df = df.copy()
 
     """ Save calculation time of the checks in large studies
     # Check required columns
@@ -162,7 +160,7 @@ def evaluate_invested_multiple_cycles(df) -> (dict[str,float], pd.DataFrame):
         start = df.index[interval[0]]
         end = df.index[interval[1]]
 
-        result = {'start': interval[0],'end': interval[1], **evaluate_invested(df[start:end])}
+        result = {'start': interval[0],'end': interval[1], **evaluate_invested(df[start:end].copy())}
 
         # Append all results in one dict
         for key, value in result.items():

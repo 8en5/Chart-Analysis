@@ -6,7 +6,7 @@ from modules.file_handler import *
 from modules.params import *
 from modules.course import get_courses_paths
 from modules.error_handling import log_error
-from modules.strategy.indicator_signals import routine_full_df
+from modules.strategy.df_signals_invested import routine_full_df
 from modules.strategy.evaluate_invested import evaluate_invested_multiple_cycles, evaluate_invested
 from modules.meta_study.study_visualize import manager_visualize_strategies
 
