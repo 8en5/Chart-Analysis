@@ -20,6 +20,7 @@ def fig_invested_default(df, title=''):
     # Default Plot
     fig, ax = plt.subplots(1, 1)                  # 1 Plot
     # Plot 1 (Course with evaluation)
+    ax_course(ax, df, True, True, True, True)  # Course
     ax_course_highlight_invested(ax, df, 'rect')          # Course with evaluation ['background', 'start_stop', 'interruption_line', 'rect']
     ax_properties(ax, title=title)                             # Labels
     plt_properties(plt)                                        # Labels
@@ -186,13 +187,13 @@ def ax_course(ax, df, background=False, log=False, leading=False, invested=False
 
     # Plot
     for index, (linestyle, sub_df) in enumerate(df.groupby('linestyle')):
-        plot_func(sub_df.index, sub_df['close'], linestyle=linestyle, color=color, label='Course' if index==1 else None)
+        plot_func(sub_df.index, sub_df['close'], linestyle=linestyle, color=color, label='Course' if index==0 else None)
 
     # Highlight df[invested]
     if invested:
         for index, group in df.groupby('group_invested'):
-            # Plot green line only if df[invested] is 1
-            plot_func(group.index, group['close'], linestyle='-', color='black', label='invested' if index==1 else None)
+            # Plot highlighted line only if df[invested] is 1
+            plot_func(group.index, group['close'], linestyle='-', color='black') #label='invested' if index==1 else None
 
 
 def ax_perc(ax, df):

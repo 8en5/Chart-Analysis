@@ -19,9 +19,26 @@ def evaluate_invested(df) -> dict[str, any]:
              'in+': 32.728, 'in-': 58.884, 'out+': 67.271, 'out-': 41.115,
              'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
     """
-    # Check and cut None values in df[invested]
+    # Work on a copy, because this function is called multiple times with different periods
+    df = df.copy()
+
+    """ Save calculation time of the checks in large studies
+    # Check required columns
+    minimal_columns = ['close', 'invested']
+    if not set(minimal_columns).issubset(df.columns):
+        raise AssertionError(f'Min requirement failed: not all columns {minimal_columns} in {df.columns}')
+    # Check invested at least once
+    if not (df['invested'] == 1).any():
+        print(f'Warning, never invested')
+    # df[close_perc]
+    if 'close_perc' not in df.columns:
+        df['close_perc'] = df['close'].pct_change(periods=1)  # * 100
+        print('jaa')
     """
-    df[invested] must not have None values, otherwise calculations in this function will fail.
+
+    # Cut None values in df[invested]
+    """
+    df[invested] is not allowed to have None values, otherwise calculations in this function will fail.
     - None values are where the indicator does not yet provide any signals
     - Here to run the calculation, all None values re replaced with 0. But then this strategy (1x params of an indicator)
       is not comparable with the other parameters that can already make decisions at this point. Therefore make sure 
@@ -31,6 +48,7 @@ def evaluate_invested(df) -> dict[str, any]:
     if amount_none_values > 0:
         print(f'Warning: Cut {amount_none_values}/{len(df)} values from None to 0 where there was no signal')
         df = df.replace({None: 0})
+    df.loc[:, 'invested'] = df['invested'].astype(int)  # because there is no None value, the column can be set to int
 
 
     # Main evaluation values
@@ -73,7 +91,7 @@ def evaluate_invested(df) -> dict[str, any]:
             #'factor_benchmark': (S - BaH) / BaH if S > BaH else -(BaH - S) / S if S < BaH else 1
         }
 
-    # Plot
+    # Plot for debugging
     save = False
     show = False
     if show or save:
@@ -92,7 +110,7 @@ def evaluate_invested(df) -> dict[str, any]:
 
 
 
-def evaluate_invested_multiple_cycles(df) -> dict[str,float]:
+def evaluate_invested_multiple_cycles(df) -> (dict[str,float], pd.DataFrame):
     """ [eval_dict df] Run evaluation_dict multiple times in different periods and summarize the result in the same result dict
     :param df: df[close, invested]
     :return: evaluation dict
@@ -136,22 +154,6 @@ def evaluate_invested_multiple_cycles(df) -> dict[str,float]:
         b) only mean from multiple cycles
         result_dict = {'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
     """
-    # Check min columns
-    minimal_columns = ['close', 'invested']
-    if not set(minimal_columns).issubset(df.columns):
-        raise AssertionError(f'Min requirement failed: not all columns {minimal_columns} in {df.columns}')
-
-    # Remove all columns where df[invested] is None
-    """
-    df[invested] in the beginning always multiple None values
-      (because the the indicators only provide signals after a certain amount of data)
-    The None values in df[invested] can be used specifically to remove all columns where the indicators do not yet provide any values.
-      (this has an impact on buy and hold, which also begins on the same day when the indicators deliver values)
-    """
-    df = df.dropna(subset=['invested']) # remove all rows in the beginning, where df[invested] is None - comparability to BaH
-    if df.empty: # all entries are None
-        raise ValueError(f'df[invested] only None values -> handle it earlier') # TODO weiß noch nicht wie ich damit umgehe (an welcher Stelle abfangen)
-    df.loc[:, 'invested'] = df['invested'].astype(int) # because there is no None value, the column can be set to int
 
     # Iterate over multiple periods
     intervals = get_intervals(len(df))
@@ -159,7 +161,8 @@ def evaluate_invested_multiple_cycles(df) -> dict[str,float]:
     for index, interval in enumerate(intervals):
         start = df.index[interval[0]]
         end = df.index[interval[1]]
-        result = evaluate_invested(df[start:end])
+
+        result = {'start': interval[0],'end': interval[1], **evaluate_invested(df[start:end])}
 
         # Append all results in one dict
         for key, value in result.items():
@@ -187,9 +190,9 @@ def evaluate_invested_multiple_cycles(df) -> dict[str,float]:
     result_dict = {'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
     """
     result_dict = df_summary.select_dtypes(include=['number']).mean().to_dict()
-    #print(result_dict)
-    #exit()
-    return result_dict
+    for key in ['start', 'end']:
+        result_dict.pop(key, None)
+    return result_dict, df_summary
 
 
 
