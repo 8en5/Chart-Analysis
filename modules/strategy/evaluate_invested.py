@@ -20,7 +20,6 @@ def evaluate_invested(df) -> dict[str, any]:
              'S': 12.53, 'BaH': 12.27, 'diff': 0.25, ...}
     """
 
-    """ Save calculation time of the checks in large studies
     # Check required columns
     minimal_columns = ['close', 'invested']
     if not set(minimal_columns).issubset(df.columns):
@@ -31,8 +30,7 @@ def evaluate_invested(df) -> dict[str, any]:
     # df[close_perc]
     if 'close_perc' not in df.columns:
         df['close_perc'] = df['close'].pct_change(periods=1)  # * 100
-        print('jaa')
-    """
+
 
     # Cut None values in df[invested]
     """
@@ -45,12 +43,23 @@ def evaluate_invested(df) -> dict[str, any]:
     amount_none_values = df['invested'].isnull().sum()
     if amount_none_values > 0:
         print(f'Warning: Cut {amount_none_values}/{len(df)} values from None to 0 where there was no signal')
-        df = df.replace({None: 0})
+        df['invested'] = df['invested'].replace({None: 0})
     df.loc[:, 'invested'] = df['invested'].astype(int)  # because there is no None value, the column can be set to int
 
     # Shift close_perc by one (because the percentage change apply to the next day)
+    """
+          date invested  close_perc
+    2017-11-08        0    0.3
+    2017-11-09       <1>   0.5  <- first investment point, but close_perc refers to the percentage change from the last day (where you are not invested)
+    2017-11-10        1   <0.1> <- this is the first percentage change when invested from 2017-11-09 to 2017-11-10
+    2017-11-11        0    0.2  <- this is the second percentage
+    -> shift close_perc one row up
+    """
     df['close_perc'] = df['close_perc'].shift(-1)
+    df = df.iloc[:-1] # delete the last row of df, because ot the shift(-1) there is no close_perc in the last column
 
+
+    # Evaluation
     # Main evaluation values
     BaH = _calc_total_accumulated_perc(df, 0)  # Buy_and_Hold
     S = _calc_total_accumulated_perc(df, 2)    # Strategy_with_fee
@@ -106,6 +115,7 @@ def evaluate_invested(df) -> dict[str, any]:
     result_dict = {'S': 12.53, 'BaH': 12.27, 'diff': 0.25, ...}
     """
     #print(result_dict)
+    #exit()
     return result_dict
 
 

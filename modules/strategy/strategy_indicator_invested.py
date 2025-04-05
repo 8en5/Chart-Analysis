@@ -26,15 +26,16 @@ def indicator_invested(course_path, indicator_name, params=None,
     # 2. Calculate evaluation
     result_dict_all = evaluate_invested(df)
     result_dict_intervals, df_summary = evaluate_invested_multiple_cycles(df)
-    #print(result_dict_intervals)
+    #print(json_round_dict(result_dict_all))
+    #print(json_round_dict(result_dict_intervals))
     #print(df_summary)
     #exit()
 
 
     # 3. Visualize
     df = add_one_invested_after_selling(df) # only for visualization
-    show_plot = True # debug
-    save_plot = False
+    show_plot = False # debug
+    save_plot = False # debug
     if show_plot or save_plot:
         # result_dict_all
         plot(df, indicator_name, course_path, params, study_type, result_dict_all, -1, save_plot, show_plot)
@@ -47,7 +48,23 @@ def indicator_invested(course_path, indicator_name, params=None,
 
 
     # 4. Prepare evaluation information
-    return result_dict_all
+    # sorting criteria
+    sorting_criteria = 'all' # [all, intervals]
+    if sorting_criteria == 'all':
+        sorting = result_dict_all['S'] ** 0.5 # square root, otherwise very rising courses will have too great influence
+    elif sorting_criteria == 'intervals':
+        sorting = result_dict_intervals['S']
+    else:
+        raise ValueError(f'Wrong key: {sorting_criteria}')
+    # All results in one dict
+    result_dict = {
+        'sorting': sorting,                 # this value is used to sort the studies
+        'all': result_dict_all,             # result_dict over the entire period
+        'intervals': result_dict_intervals  # result_dict as mean values over multiple cycles
+    }
+    #print(json_round_dict(result_dict))
+    #exit()
+    return result_dict
 
 
 #---------------------- Visualize ----------------------#
