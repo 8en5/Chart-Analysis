@@ -20,6 +20,8 @@ def indicator_invested(course_path, indicator_name, params=None,
     # df[group_invested] - Group invested
     df = df_group_invested(df)
     #print(df)
+    #exit()
+
 
     # 2. Calculate evaluation
     result_dict_all = evaluate_invested(df)
@@ -30,16 +32,21 @@ def indicator_invested(course_path, indicator_name, params=None,
 
 
     # 3. Visualize
-    show_plot = False # debug
+    df = add_one_invested_after_selling(df) # only for visualization
+    show_plot = True # debug
+    save_plot = False
     if show_plot or save_plot:
         # result_dict_all
         plot(df, indicator_name, course_path, params, study_type, result_dict_all, -1, save_plot, show_plot)
         # df_summary
-        for index, row in df_summary.iterrows():
+        for row in df_summary.itertuples(index=True):
             df_i = df.iloc[int(row.start):int(row.end)].copy()
-            result_dict = row[['S', 'BaH', 'diff']].to_dict()
-            plot(df_i, indicator_name, course_path, params, study_type, result_dict, index, save_plot, show_plot)
-    # Return evaluation for the meta study
+            row_dict = row._asdict()
+            result_dict = {k: v for k, v in row_dict.items() if k not in ['start', 'end', 'Index']}
+            plot(df_i, indicator_name, course_path, params, study_type, result_dict, row.Index, save_plot, show_plot)
+
+
+    # 4. Prepare evaluation information
     return result_dict_all
 
 

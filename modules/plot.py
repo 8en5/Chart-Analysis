@@ -99,7 +99,7 @@ def _ax_course_highlight_invested_background(ax, df):
     color_map = {1: 'green', 0: 'red', None: 'grey'}
     for i in range(len(df) - 1):
         color = color_map.get(df.iloc[i]['invested'], 'grey')
-        ax.axvspan(df.index[i], df.index[i + 1], color=color, alpha=0.3)
+        ax.axvspan(df.index[i], df.index[i + 1], color=color, alpha=0.1)
 
 
 def _ax_course_highlight_invested_dots(ax, df):

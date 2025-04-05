@@ -33,15 +33,15 @@ date
 2017-10-28  0.026     -0.000329  -6.529061e-04       0.000324                                                   0    0.000000             NaN
 2017-10-29  0.028     -0.000042  -3.175753e-04       0.000275                                                   0    0.076923             NaN
 2017-10-30  0.029      0.000268  -6.267243e-06       0.000274                                                   0    0.035714             NaN
-2017-10-31  0.031      0.000724   3.898298e-04       0.000334                                  up    buy        0    0.068966             NaN
-2017-11-01  0.023     -0.000283  -5.350836e-04       0.000252                                down   sell        1   -0.258065             1.0
+2017-10-31  0.031      0.000724   3.898298e-04       0.000334                                  up    buy        1    0.068966             NaN
+2017-11-01  0.023     -0.000283  -5.350836e-04       0.000252                                down   sell        0   -0.258065             1.0
 2017-11-02  0.021     -0.001119  -1.187635e-03       0.000069                                                   0   -0.086957             NaN
 2017-11-03  0.023     -0.001203  -1.102761e-03      -0.000101                                                   0    0.095238             NaN
 2017-11-04  0.022     -0.001328  -1.063914e-03      -0.000264                                                   0   -0.043478             NaN
 2017-11-05  0.021     -0.001467  -1.042625e-03      -0.000425                                                   0   -0.045455             NaN
 2017-11-06  0.022     -0.001303  -7.609913e-04      -0.000542                                                   0    0.047619             NaN
 2017-11-07  0.022     -0.001134  -5.133117e-04      -0.000621                                                   0    0.000000             NaN
-2017-11-08  0.025     -0.000519   8.838403e-05      -0.000607                                  up    buy        0    0.136364             NaN
+2017-11-08  0.025     -0.000519   8.838403e-05      -0.000607                                  up    buy        1    0.136364             NaN
 2017-11-09  0.032      0.000909   1.313901e-03      -0.000405                                                   1    0.280000             2.0
 2017-11-10  0.026      0.000724   9.779819e-04      -0.000254                                                   1   -0.187500             2.0
 2017-11-11  0.027      0.000730   8.532221e-04      -0.000123                                                   1    0.038462             2.0
@@ -227,8 +227,10 @@ def df_invested_from_signal(df):
     elif df['signal'].isin(['buy', 'sell']).any():
         df['invested'] = df['signal'].replace({'buy': 1, 'sell': 0, '': None})
 
+    """ Don't shift here, shift close_perc in evaluation
     # shift everything 1 day later (because percentage changes only apply to the next day)
     df['invested'] = df['invested'].shift(1)
+    """
     # fill all None values with 0
     df['invested'] = df['invested'].ffill().fillna(0)
     # set df[invested] to None if df[signal] is None
@@ -271,4 +273,36 @@ def df_group_invested(df):
 def df_close_perc(df):
     """[df[close_perc]]"""
     df['close_perc'] = df['close'].pct_change(periods=1)  # * 100
+    return df
+
+
+def add_one_invested_after_selling(df):
+    """[df]"""
+    """
+    For visualization set invested and group_invested one day longer to 'invested'
+    e.g. Input                      Output df[invested]
+            close signal  invested  invested(new)
+        0       0                0          0
+        1       1    buy         1          1
+        2       2                1          1
+        3      <3>  <sell>      <0>        <1>   <- this was the datapoint, when getting out (this mean, for visualization your are invested until this value)
+        4       4                0          0
+        5       5    buy         1          1
+        6       6                1          1
+        7       7                1          1
+        8       8   sell         0          1
+        9       9                0          0
+        10     10                0          0
+
+    """
+    i = 1
+    while i < len(df):
+        curr_idx = df.index[i]
+        prev_idx = df.index[i - 1]
+        if df.loc[curr_idx, 'invested'] == 0 and df.loc[prev_idx, 'invested'] == 1:
+            df.loc[curr_idx, 'invested'] = 1
+            df.loc[curr_idx, 'group_invested'] = df.loc[prev_idx, 'group_invested']
+            i += 2
+        else:
+            i += 1
     return df
