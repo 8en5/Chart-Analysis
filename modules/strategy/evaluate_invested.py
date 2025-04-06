@@ -25,8 +25,10 @@ def evaluate_invested(df) -> dict[str, any]:
     if not set(minimal_columns).issubset(df.columns):
         raise AssertionError(f'Min requirement failed: not all columns {minimal_columns} in {df.columns}')
     # Check invested at least once
+    """
     if not (df['invested'] == 1).any():
         print(f'Warning, never invested')
+    """
     # df[close_perc]
     if 'close_perc' not in df.columns:
         df['close_perc'] = df['close'].pct_change(periods=1)  # * 100
@@ -129,17 +131,17 @@ def evaluate_invested_multiple_cycles(df) -> (dict[str,float], pd.DataFrame):
         df[close, invested]
     Output 2:
         df_summary =
-            start   end         S        BaH       diff     %_inv
-                0      0   350  4.606851   2.800000   1.806851  0.515670
-                1    250   600  0.980588   0.385714   0.594874  0.558405
-                2    500   850  0.956191   1.292683  -0.336492  0.626781
-                3    750  1100  2.549863   2.450000   0.099863  0.547009
-                4   1000  1350  4.533366  18.234568 -13.701202  0.501425
-                5   1250  1600  0.905994   0.840329   0.065665  0.455840
-                6   1500  1850  0.505449   0.188147   0.317302  0.487179
-                7   1750  2100  1.137066   0.637555   0.499511  0.538462
-                8   2000  2350  2.242643   1.946237   0.296406  0.561254
-                9   2250  2600  1.835778   1.500000   0.335778  0.495726
+               start   end         S        BaH       diff     %_inv
+            0      0   350  4.606851   2.800000   1.806851  0.515670
+            1    250   600  0.980588   0.385714   0.594874  0.558405
+            2    500   850  0.956191   1.292683  -0.336492  0.626781
+            3    750  1100  2.549863   2.450000   0.099863  0.547009
+            4   1000  1350  4.533366  18.234568 -13.701202  0.501425
+            5   1250  1600  0.905994   0.840329   0.065665  0.455840
+            6   1500  1850  0.505449   0.188147   0.317302  0.487179
+            7   1750  2100  1.137066   0.637555   0.499511  0.538462
+            8   2000  2350  2.242643   1.946237   0.296406  0.561254
+            9   2250  2600  1.835778   1.500000   0.335778  0.495726
 
     Output 1:
         a) mean and std from multiple cycles
@@ -160,7 +162,11 @@ def evaluate_invested_multiple_cycles(df) -> (dict[str,float], pd.DataFrame):
         start = df.index[interval[0]]
         end = df.index[interval[1]]
         # Evaluation result of one specific interval
-        result = {'start': interval[0],'end': interval[1], **evaluate_invested(df[start:end].copy())}
+        result = {
+            'start': interval[0],
+            'end': interval[1],
+            **evaluate_invested(df[start:end].copy())
+        }
         # Append all results in one dict
         for key, value in result.items():
             if key not in summary_dict:

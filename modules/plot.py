@@ -1,6 +1,7 @@
 
 import numpy as np
 import matplotlib.patches as patches
+from matplotlib.pyplot import ylabel
 from scipy.stats import alpha
 
 from modules.indicators import get_indicator_col_names
@@ -18,12 +19,12 @@ def fig_invested_default(df, title=''):
     if not set(minimal_columns).issubset(df.columns):
         raise AssertionError(f'Min requirement failed: not all columns {minimal_columns} in {df.columns}')
     # Default Plot
-    fig, ax = plt.subplots(1, 1)                  # 1 Plot
+    fig, ax = plt.subplots(1, 1)                     # 1 Plot
     # Plot 1 (Course with evaluation)
     ax_course(ax, df, True, True, True, True)  # Course
-    ax_course_highlight_invested(ax, df, 'rect')          # Course with evaluation ['background', 'start_stop', 'interruption_line', 'rect']
-    ax_properties(ax, title=title)                             # Labels
-    plt_properties(plt)                                        # Labels
+    ax_course_highlight_invested(ax, df, 'rect')             # Course with evaluation ['background', 'start_stop', 'interruption_line', 'rect']
+    ax_properties(ax, title=title, xlabel='Date', ylabel='Chart') # Labels
+    plt_properties(plt)                                           # Labels
     return fig
 
 def fig_invested_indicator(df, indicator_name, title1=None, title2=None, suptitle=None):
@@ -41,11 +42,11 @@ def fig_invested_indicator(df, indicator_name, title1=None, title2=None, suptitl
     # Plot 1 (Course with evaluation)
     ax_course(ax[0], df, True, True, True, True) # Course
     ax_course_highlight_invested(ax[0], df, 'rect')             # Course with evaluation ['background', 'start_stop', 'interruption_line', 'rect']
-    ax_properties(ax[0], title=title1)                               # Labels
+    ax_properties(ax[0], title=title1, ylabel='Chart')               # Labels
     # Plot 2 (Indicator)
     ax_highlight_signals_vertical_line(ax[1], df)                    # Evaluate df['signal'] -> [buy, sell, bullish, bearish]
     func_ax_indicator(indicator_name, ax[1], df)               # Indicator
-    ax_properties(ax[1], title=title2)                               # Labels
+    ax_properties(ax[1], title=title2, xlabel='Date', ylabel='Chart')# Labels
     fig_properties(fig, suptitle=suptitle)                           # Labels
     plt_properties(plt)                                              # Labels
     return fig
@@ -267,7 +268,7 @@ def ax_ylim_threshold(values, ax, lower=0.05, upper=99.95):
     ax.set_ylim(lower_threshold, upper_threshold)
 
 
-def ax_properties(ax, title=None, xlabel='Date', ylabel='Chart', grid=True, legend=True):
+def ax_properties(ax, title=None, xlabel='', ylabel='', grid=True, legend=True):
     """[ax]"""
     # Graph elements
     if title: ax.set_title(title)

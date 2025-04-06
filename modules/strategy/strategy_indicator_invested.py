@@ -1,11 +1,12 @@
+import matplotlib.pyplot as plt
 
 from modules.plot import *
 from modules.strategy.df_signals_invested import *
 from modules.strategy.evaluate_invested import evaluate_invested, evaluate_invested_multiple_cycles
 
 
-def indicator_invested(course_path, indicator_name, params=None,
-                       save_plot=False, base_folder:Path=None, study_type='params'):
+def indicator_invested(indicator_name, course_path, params=None, offset:int=0,
+                       save_plot=False, show_plot=False, base_folder:Path=None):
 
     # 1. Calculate full df
     # Load course
@@ -13,6 +14,8 @@ def indicator_invested(course_path, indicator_name, params=None,
     df = df[['close']]
     # df[<indicators>, signal] - Calculate indicators
     df = func_df_signals_from_indicator(indicator_name, df, params)
+    # cut offset for standardization (each parameter has a different leading time until they deliver signals)
+    df = df.iloc[offset:]
     # df[invested] - Calculate invested
     df = df_invested_from_signal(df)
     # df[close_perc] - Calculate daily perc change from course
@@ -34,17 +37,20 @@ def indicator_invested(course_path, indicator_name, params=None,
 
     # 3. Visualize
     df = add_one_invested_after_selling(df) # only for visualization
-    show_plot = False # debug
-    save_plot = False # debug
+    #show_plot = True # debug
+    #save_plot = True # debug
+    study_type = 'params' # [params, symbols]
     if show_plot or save_plot:
         # result_dict_all
-        plot(df, indicator_name, course_path, params, study_type, result_dict_all, -1, save_plot, show_plot)
+        plot(df, indicator_name, course_path, params, study_type, result_dict_all,
+             index=-1, save_plot=save_plot, show_plot=show_plot, base_folder=base_folder)
         # df_summary
         for row in df_summary.itertuples(index=True):
             df_i = df.iloc[int(row.start):int(row.end)].copy()
             row_dict = row._asdict()
             result_dict = {k: v for k, v in row_dict.items() if k not in ['start', 'end', 'Index']}
-            plot(df_i, indicator_name, course_path, params, study_type, result_dict, row.Index, save_plot, show_plot)
+            plot(df_i, indicator_name, course_path, params, study_type, result_dict,
+                 index=row.Index, save_plot=save_plot, show_plot=show_plot, base_folder=base_folder)
 
 
     # 4. Prepare evaluation information
@@ -58,11 +64,12 @@ def indicator_invested(course_path, indicator_name, params=None,
         raise ValueError(f'Wrong key: {sorting_criteria}')
     # All results in one dict
     result_dict = {
-        'sorting': sorting,                 # this value is used to sort the studies
+        'sorting': sorting,                 # the study will be sorted according to this value
         'all': result_dict_all,             # result_dict over the entire period
         'intervals': result_dict_intervals  # result_dict as mean values over multiple cycles
     }
-    #print(json_round_dict(result_dict))
+    result_dict = json_round_dict(result_dict) # round
+    #print(result_dict)
     #exit()
     return result_dict
 
@@ -72,7 +79,7 @@ def indicator_invested(course_path, indicator_name, params=None,
 def plot(df, indicator_name, course_path, params, study_type, result_dict,
          index=-1, save_plot=False, show_plot=False, base_folder:Path=None):
     # Figure
-    plot_type = 'indicator'  # default, indicator
+    plot_type = 'default'  # default, indicator
     evaluation_dict_str = _calc_evaluation_to_str(result_dict)
     if plot_type == 'default':
         # 1x1 fig - course with evaluation
@@ -89,6 +96,7 @@ def plot(df, indicator_name, course_path, params, study_type, result_dict,
         # file path [param/symbol -> data/analyse/visualize/... , study -> data/study/Study_newest/...]
         file_path = _calc_file_path(indicator_name, course_path.stem, params, study_type, index, base_folder)
         save_fig(fig, file_path)
+        plt.close() # close figure, else it is still in memory ("Figures created through the pyplot interface (`matplotlib.pyplot.figure`) are retained until explicitly closed and may consume too much memory"
     if show_plot:
         plt.show()
 
@@ -111,14 +119,15 @@ def _calc_file_path(indicator_name:str, course:str, params:dict|list, study_type
     # Calculate folder path
     if not base_folder:
         base_folder = get_path() / f'data/analyse/visualize'
-    if study_type == 'params': # params oriented (for one param there are many symbols)
-        file_path = base_folder / f'{study_type}/{indicator_name}/{params_str}/{course}{suffix}.png'
-    elif study_type == 'symbols': # symbols oriented (for one symbol there are many params
-        file_path = base_folder / f'{study_type}/{indicator_name}/{course}/{params_str}{suffix}.png'
-    elif study_type == 'study': # best results from param study
-        file_path = base_folder / f'{params_str}/{course}.png'
-    else:
-        raise ValueError(f'study_type must be [params, symbols, study]: {study_type}')
+        if study_type == 'params': # params oriented (for one param there are many symbols)
+            file_path = base_folder / f'{study_type}/{indicator_name}/{params_str}/{course}{suffix}.png'
+        elif study_type == 'symbols': # symbols oriented (for one symbol there are many params
+            file_path = base_folder / f'{study_type}/{indicator_name}/{course}/{params_str}{suffix}.png'
+        else:
+            raise ValueError(f'study_type must be [params, symbols, study]: {study_type}')
+    else: # Study
+        file_path = base_folder / f'{params_str}/{course}{suffix}.png'
+
     return file_path
 
 
@@ -161,7 +170,6 @@ if __name__ == "__main__":
     from modules.course import get_courses_paths
 
     pandas_print_all()
-    indicator_invested(get_courses_paths('ADA')[0], 'MACD', save_plot=True)
-    #strategy(get_courses_paths('ADA')[0], 'MACD', params=None, save_plot=False, study_type='params')
-
+    indicator_invested('MACD', get_courses_paths('SOL')[0], params=None,
+                       save_plot=False, show_plot=True, offset=0)
 

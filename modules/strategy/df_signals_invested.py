@@ -227,10 +227,6 @@ def df_invested_from_signal(df):
     elif df['signal'].isin(['buy', 'sell']).any():
         df['invested'] = df['signal'].replace({'buy': 1, 'sell': 0, '': None})
 
-    """ Don't shift here, shift close_perc in evaluation
-    # shift everything 1 day later (because percentage changes only apply to the next day)
-    df['invested'] = df['invested'].shift(1)
-    """
     # fill all None values with 0
     df['invested'] = df['invested'].ffill().fillna(0)
     # set df[invested] to None if df[signal] is None

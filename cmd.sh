@@ -28,8 +28,7 @@ if [ ! -d "data" ]; then
 fi
 
 # Step 5: Run python script (in background with nohup)
-#SCRIPT="scripts/meta_analysis/study_visualize_strategies.py"
-SCRIPT="scripts/meta_analysis/study_indicator_params.py"
+SCRIPT="scripts/study/study_indicator_invested.py"
 if [ -f "$SCRIPT" ]; then
     echo "Starting script $SCRIPT with nohup..."
     nohup python3 $SCRIPT > data/output.log 2>&1 &
