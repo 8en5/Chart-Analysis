@@ -1,9 +1,10 @@
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
-from modules.utils import get_period, get_intervals, pandas_print_all
-from modules.plot import fig_type1_default, save_fig
+from modules.utils import get_period, get_intervals, pandas_print_all, json_round_dict
+from modules.plot import fig_invested_default, save_fig
 
 
 def evaluate_invested(df) -> dict[str, any]:
@@ -11,19 +12,31 @@ def evaluate_invested(df) -> dict[str, any]:
     :param df: df[close, invested]
     :return: evaluation dict
 
-    Input:    df[close, invested]
+    Input:    df[invested, close_perc, group_invested]
     Output:
-        min: {'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
+        min: {'S': 12.53, 'BaH': 12.27, 'diff': 0.25, ...}
         all: {'start': Timestamp('2017-10-05 00:00:00'), 'end': Timestamp('2018-09-20 00:00:00'), 'days': 350, 'transactions': 22,
              'in+': 32.728, 'in-': 58.884, 'out+': 67.271, 'out-': 41.115,
-             'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
+             'S': 12.53, 'BaH': 12.27, 'diff': 0.25, ...}
     """
-    # Work on a copy, because this function is called multiple cycles
-    df = df.copy()
 
-    # Check None values in df[invested]
+    # Check required columns
+    minimal_columns = ['close', 'invested']
+    if not set(minimal_columns).issubset(df.columns):
+        raise AssertionError(f'Min requirement failed: not all columns {minimal_columns} in {df.columns}')
+    # Check invested at least once
     """
-    df[invested] must not have None values, otherwise calculations in this function will fail.
+    if not (df['invested'] == 1).any():
+        print(f'Warning, never invested')
+    """
+    # df[close_perc]
+    if 'close_perc' not in df.columns:
+        df['close_perc'] = df['close'].pct_change(periods=1)  # * 100
+
+
+    # Cut None values in df[invested]
+    """
+    df[invested] is not allowed to have None values, otherwise calculations in this function will fail.
     - None values are where the indicator does not yet provide any signals
     - Here to run the calculation, all None values re replaced with 0. But then this strategy (1x params of an indicator)
       is not comparable with the other parameters that can already make decisions at this point. Therefore make sure 
@@ -32,11 +45,23 @@ def evaluate_invested(df) -> dict[str, any]:
     amount_none_values = df['invested'].isnull().sum()
     if amount_none_values > 0:
         print(f'Warning: Cut {amount_none_values}/{len(df)} values from None to 0 where there was no signal')
-        df = df.replace({None: 0})
+        df['invested'] = df['invested'].replace({None: 0})
+    df.loc[:, 'invested'] = df['invested'].astype(int)  # because there is no None value, the column can be set to int
 
-    # Calculate daily perc change from course - df['close_perc']
-    df['close_perc'] = df['close'].pct_change(periods=1)  # * 100
+    # Shift close_perc by one (because the percentage change apply to the next day)
+    """
+          date invested  close_perc
+    2017-11-08        0    0.3
+    2017-11-09       <1>   0.5  <- first investment point, but close_perc refers to the percentage change from the last day (where you are not invested)
+    2017-11-10        1   <0.1> <- this is the first percentage change when invested from 2017-11-09 to 2017-11-10
+    2017-11-11        0    0.2  <- this is the second percentage
+    -> shift close_perc one row up
+    """
+    df['close_perc'] = df['close_perc'].shift(-1)
+    df = df.iloc[:-1] # delete the last row of df, because ot the shift(-1) there is no close_perc in the last column
 
+
+    # Evaluation
     # Main evaluation values
     BaH = _calc_total_accumulated_perc(df, 0)  # Buy_and_Hold
     S = _calc_total_accumulated_perc(df, 2)    # Strategy_with_fee
@@ -77,78 +102,71 @@ def evaluate_invested(df) -> dict[str, any]:
             #'factor_benchmark': (S - BaH) / BaH if S > BaH else -(BaH - S) / S if S < BaH else 1
         }
 
-    # Plot
-    plot = False
-    if plot:
-        fig = fig_type1_default(df, '')
-        save_fig(fig, None)
+    # Plot for debugging
+    save = False
+    show = False
+    if show or save:
+        fig = fig_invested_default(df, title=json_round_dict(result_dict))
+        if save:
+         save_fig(fig, None)
+        if show:
+            plt.show()
 
     # Return Evaluation as dict
+    """
+    result_dict = {'S': 12.53, 'BaH': 12.27, 'diff': 0.25, ...}
+    """
     #print(result_dict)
+    #exit()
     return result_dict
 
 
 
-def run_evaluate_invested_multiple_cycles(df) -> pd.DataFrame:
-    """ [eval_sum_cycle df] Run evaluation_dict multiple times in different periods and summarize the result
-    :return: df_summary -> df[S, BaH, diff]
+def evaluate_invested_multiple_cycles(df) -> (dict[str,float], pd.DataFrame):
+    """ [eval_dict df] Run evaluation_dict multiple times in different periods and summarize the results
+    :param df: df[close, invested]
+    :return: evaluation dict as mean over multiple cycles and pd.DataFrame of all cycles
 
     Input:
         df[close, invested]
-    Output
-        All
-               start        end  days  transactions        in+        in-       out+       out-  Buy_and_Hold  Strategy_without_fee  Strategy_with_fee
-        0 2017-10-05 2018-09-20   350            22  32.728084  58.884625  67.271916  41.115375      3.718401              0.110469           0.101552
-        1 2018-06-12 2019-05-28   350            30  49.721213  54.213025  50.278787  45.786975      0.564459              0.539257           0.480084
-        2 2019-02-17 2020-02-02   350            32  50.156938  54.908679  49.843062  45.091321      1.350605              0.878070           0.775477
-        3 2019-10-25 2020-10-09   350            31  48.398018  52.845813  51.601982  47.154187      2.456438              1.084703           0.961814
-        4 2020-07-01 2021-06-16   350            41  43.589992  36.443157  56.410008  63.556843     15.198689              5.706372           4.861090
-        5 2021-03-08 2022-02-21   350            37  53.025593  38.030742  46.974407  61.969258      0.766577              2.769912           2.397740
-        6 2021-11-13 2022-10-29   350            31  58.074943  51.425244  41.925057  48.574756      0.204922              0.657962           0.583420
-        7 2022-07-21 2023-07-06   350            32  50.641365  60.986784  49.358635  39.013216      0.557646              0.450793           0.398123
-        8 2023-03-28 2024-03-12   350            33  40.723208  44.248819  59.276792  55.751181      2.031768              1.157571           1.018231
-        9 2023-12-03 2024-11-17   350            31  40.902785  50.047369  59.097215  49.952631      1.778987              0.804957           0.713761
+    Output 2:
+        df_summary =
+               start   end         S        BaH       diff     %_inv
+            0      0   350  4.606851   2.800000   1.806851  0.515670
+            1    250   600  0.980588   0.385714   0.594874  0.558405
+            2    500   850  0.956191   1.292683  -0.336492  0.626781
+            3    750  1100  2.549863   2.450000   0.099863  0.547009
+            4   1000  1350  4.533366  18.234568 -13.701202  0.501425
+            5   1250  1600  0.905994   0.840329   0.065665  0.455840
+            6   1500  1850  0.505449   0.188147   0.317302  0.487179
+            7   1750  2100  1.137066   0.637555   0.499511  0.538462
+            8   2000  2350  2.242643   1.946237   0.296406  0.561254
+            9   2250  2600  1.835778   1.500000   0.335778  0.495726
 
-        Min
-           Buy_and_Hold  Strategy_with_fee  diff_benchmark
-        0      3.718401           0.101552       -3.616850
-        1      0.564459           0.480084       -0.084376
-        2      1.350605           0.775477       -0.575129
-        3      2.456438           0.961814       -1.494624
-        4     15.198689           4.861090      -10.337600
-        5      0.766577           2.397740        1.631163
-        6      0.204922           0.583420        0.378498
-        7      0.557646           0.398123       -0.159523
-        8      2.031768           1.018231       -1.013536
-        9      1.778987           0.713761       -1.065226
-    """
-    # Check min columns
-    minimal_columns = ['close', 'invested']
-    if not set(minimal_columns).issubset(df.columns):
-        raise AssertionError(f'Min requirement failed: not all columns {minimal_columns} in {df.columns}')
+    Output 1:
+        a) mean and std from multiple cycles
+            df_stats =
+                      Buy_and_Hold  Strategy_with_fee  diff_benchmark
+                mean      2.862849           1.229129       -1.633720
+                std       4.463157           1.417515        3.346977
 
-    # Remove all columns where df[invested] is None
+        b) only mean from multiple cycles
+            result_dict = {'S': 12.53, 'BaH': 12.27, 'diff': 0.25}
     """
-    df[invested] in the beginning always multiple None values
-      (because the the indicators only provide signals after a certain amount of data)
-    The None values in df[invested] can be used specifically to remove all columns where the indicators do not yet provide any values.
-      (this has an impact on buy and hold, which also begins on the same day when the indicators deliver values)
-    """
-    df = df.dropna(subset=['invested']) # remove all rows in the beginning, where df[invested] is None - comparability to BaH
-    if df.empty: # all entries are None
-        raise ValueError(f'df[invested] only None values -> handle it earlier') # TODO weiß noch nicht wie ich damit umgehe (an welcher Stelle abfangen)
-    df.loc[:, 'invested'] = df['invested'].astype(int) # because there is no None value, the column can be set to int
 
     # Iterate over multiple periods
     intervals = get_intervals(len(df))
-    #print(len(df))
-    #print(intervals)
     summary_dict = {}
     for index, interval in enumerate(intervals):
+        # Period (start, stop)
         start = df.index[interval[0]]
         end = df.index[interval[1]]
-        result = evaluate_invested(df[start:end])
-
+        # Evaluation result of one specific interval
+        result = {
+            'start': interval[0],
+            'end': interval[1],
+            **evaluate_invested(df[start:end].copy())
+        }
         # Append all results in one dict
         for key, value in result.items():
             if key not in summary_dict:
@@ -156,33 +174,28 @@ def run_evaluate_invested_multiple_cycles(df) -> pd.DataFrame:
             summary_dict[key].append(value)
     df_summary = pd.DataFrame(summary_dict)
     #print(df_summary)
-    return df_summary
+    #exit()
 
-
-
-def get_evaluation_invested_statistics(df) -> dict[str,float]:
-    """ [eval_dict_cycle df] Calculate mean and std of the most important key figures from the evaluation
-    :param df: df[close, invested]
-    :return: result: mean and std from important key figures over multiple cycles
-    """
-    # Summarize all Evaluations in one df
-    df_summary = run_evaluate_invested_multiple_cycles(df)
-    #print(df_summary)
-
-    # Statistics (mean and std from all number columns)
-    """ mean and std from multiple cycles
-          Buy_and_Hold  Strategy_with_fee  diff_benchmark
-    mean      2.862849           1.229129       -1.633720
-    std       4.463157           1.417515        3.346977
+    # Result dict over multiple cycles
+    # Mean and std
+    """ mean and std from all numeric columns over multiple cycles
     df_stats = df_summary.select_dtypes(include=['number']).agg(['mean', 'std'])
     print(df_stats)
+                    start          end         S       BaH      diff     %_inv
+        mean  1125.000000  1475.000000  2.025379  3.027523 -1.002144  0.528775
+        std    756.912589   756.912589  1.486954  5.412831  4.496627  0.048334
+    
     """
-
-    # Mean of all numeric columns (standard deviation currently not because I don't know how to use it for the evaluation)
+    # Only mean
+    """ Only mean from all numeric columns (standard deviation currently not because I don't know how to use it for the evaluation)
     result_dict = df_summary.select_dtypes(include=['number']).mean().to_dict()
-    #print(result_dict)
-
-    return result_dict
+    print(result_dict)
+        result_dict = {'start': 1125.0, 'end': 1475.0, 'S': 2.03, 'BaH': 3.03, 'diff': -1.0, '%_inv': 0.53}
+    """
+    result_dict = df_summary.select_dtypes(include=['number']).mean().to_dict()
+    for key in ['start', 'end']:
+        result_dict.pop(key, None)
+    return result_dict, df_summary
 
 
 
@@ -321,3 +334,4 @@ def _calc_total_accumulated_perc(df, n=2) -> float:
     """
     # Call calc_accumulated_perc(df, n) and take the last accumulated value - this corresponds to the total return
     return _calc_accumulated_perc(df, n)['accumulate'].iloc[-1]
+

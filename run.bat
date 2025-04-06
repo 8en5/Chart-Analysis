@@ -28,7 +28,7 @@ if not exist "data" (
 
 :: Step 5: run python script
 ::set SCRIPT=scripts\meta_analysis\study_visualize_strategies.py
-set SCRIPT=scripts\meta_analysis\study_indicator_params.py
+set SCRIPT=scripts\study\study_indicator_invested.py
 if exist %SCRIPT% (
     echo Starting script %SCRIPT%...
     ::python %SCRIPT% > data\output.log 2>&1
@@ -42,4 +42,4 @@ if exist %SCRIPT% (
 
 REM Keep terminal open
 echo.
-cmd /k
+pause

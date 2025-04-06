@@ -36,10 +36,10 @@ def get_courses_paths(source_courses:str|list[str]) -> list:
     :return: list of symbol file paths
 
     e.g.
-      1 get_courses_paths('default')               -> Path[ADA, BTC, ETH, LINK] (defined in the yaml)
-      2 get_courses_paths('BTC')                   -> Path[BTC]
-      3 get_courses_paths(['BTC', 'ETH', 'SOL'])   -> Path[BTC, ETH, SOL]
-      4 get_courses_paths(['../data/../BTC.csv'])  -> Path[BTC, ETH, SOL]
+      1 key:  get_courses_paths('default')               -> Path[ADA, BTC, ETH, LINK] (defined in the yaml)
+      2 name: get_courses_paths('BTC')                   -> Path[BTC]
+      3 list: get_courses_paths(['BTC', 'ETH', 'SOL'])   -> Path[BTC, ETH, SOL]
+      4 list: get_courses_paths(['../data/../BTC.csv'])  -> Path[BTC, ETH, SOL]
     """
     # Get list of symbols based on different sources
     if isinstance(source_courses, str):

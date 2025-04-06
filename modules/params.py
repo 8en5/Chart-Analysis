@@ -4,6 +4,33 @@ import ast
 from modules.file_handler import get_path, load_yaml_from_file_path
 
 
+def get_params_variation(indicator_name, source_params:str|list|dict|None) -> list[dict|list[float]]:
+    """ Central function to get a list of params variations
+    :param indicator_name: indicator name
+    :param source_params: source [key, list, dict]
+    :return: list of param variations
+    """
+    if isinstance(source_params, str):  # key from yaml (standard)
+        # 'visualize' -> [{'m_fast': 10, 'm_slow': 20, 'm_signal': 30}, {'m_fast': 10, 'm_slow': 20, 'm_signal': 90}, ...]
+        params_variations = get_all_params_variations_from_yaml(indicator_name, source_params)
+    elif isinstance(source_params, list):
+        if isinstance(source_params[0], dict): # already a list of params_variations
+            # [{'m_fast': 10, 'm_slow': 20, 'm_signal': 30}, {'m_fast': 10, 'm_slow': 20, 'm_signal': 90}, ...] -> ==
+            params_variations = source_params
+        else:                                  # 1x params as list
+            # [14, 30, 70] -> [[14, 30, 70]]
+            params_variations = [source_params]
+    elif isinstance(source_params, dict):      # 1x params as dict
+        # {'m_fast': 14, 'm_slow': 30, 'm_signal': 70} -> [{'m_fast': 14, 'm_slow': 30, 'm_signal': 70}]
+        params_variations = [source_params]
+    elif source_params is None:            # 1x params default
+        # None -> key 'default'
+        params_variations = get_all_params_variations_from_yaml(indicator_name, 'default')
+    else:
+        raise ValueError(f'Wrong instance (not [str, list, None] of source_params: {source_params}')
+    return params_variations
+
+
 def get_params_from_yaml(indicator_name, key_variant):
     """ Return params defined in indicator_params.yaml
     :param indicator_name: dict[key]

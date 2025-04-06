@@ -149,24 +149,6 @@ def list_file_paths_in_folder(folder_path:Path, filter:str='') -> list[Path]:
     return file_paths
 
 
-def get_file_in_folder(folder_path:Path, file_name:str) -> Path | None:
-    """ Returns file path if file exists in folder.
-    :param folder_path: Directory (Path)
-    :param file_name: Name of the file to search for
-    :return: Path of the file if found, else None
-    """
-    # If folder does not exist, there are no existing files
-    if not folder_path.exists():
-        return None
-
-    # Search if file exists in folder
-    for file_path in list_file_paths_in_folder(folder_path):
-        if file_name in file_path.stem:
-            return file_path
-
-    return None
-
-
 def get_names_from_paths(list_file_paths:list) -> list[str]:
     """ Return list of file names based on a list of file paths
     :param list_file_paths: list of file paths
@@ -178,9 +160,8 @@ def get_names_from_paths(list_file_paths:list) -> list[str]:
 #---------------------- Pandas ----------------------#
 def load_pandas_from_symbol(symbol:str) -> pd.DataFrame:
     # Find file path from symbol in folder
-    folder_path = get_path('cc')
-    file_name = f'{symbol}.csv'
-    file_path = get_file_in_directory(folder_path, file_name)
+    folder_dir = get_path()
+    file_path = get_file_in_directory(folder_dir, symbol, 'csv')
 
     return load_pandas_from_file_path(file_path)
 
