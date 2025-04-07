@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from modules.utils import get_period, get_intervals, pandas_print_all, json_round_dict
-from modules.plot import fig_invested_default, save_fig
+from modules.plot import fig_invested_simple, save_fig
 
 
 def evaluate_invested(df) -> dict[str, any]:
@@ -106,7 +106,7 @@ def evaluate_invested(df) -> dict[str, any]:
     save = False
     show = False
     if show or save:
-        fig = fig_invested_default(df, title=json_round_dict(result_dict))
+        fig = fig_invested_simple(df, title=json_round_dict(result_dict))
         if save:
          save_fig(fig, None)
         if show:

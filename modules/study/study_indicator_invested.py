@@ -72,7 +72,7 @@ def manager_study_indicator_invested(indicator_name:str, source_courses:Any='def
         save_evaluation_results(list_results, file_path_param_study)
         if not save_plot: # if save_plot then all parameters are already saved
             # Plot the best params (call this currently running function again)
-            n = 2
+            n = 5
             list_params = get_best_params(list_results, n)
             print(f'Start visualizing the best {n} params for the indicator {indicator_name}: {list_params}')
             manager_study_indicator_invested(indicator_name, source_courses, list_params,

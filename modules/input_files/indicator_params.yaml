@@ -45,7 +45,7 @@ RSI:
     bl: [20, 30, 40]
     bu: [60, 70, 90]
   brute_force:
-    rsi_l: (1, 150, 1)
+    rsi_l: (1, 150, 2)
     bl: (5, 60, 2)
     bu: (40, 95, 2)
   optimization:

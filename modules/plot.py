@@ -10,7 +10,8 @@ from modules.file_handler import *
 
 #---------------------- Lvl 2 - full figures (based on axes) ----------------------#
 
-def fig_invested_default(df, title=''):
+# invested
+def fig_invested_simple(df, title=''):
     """ [fig] Default plot
     - Plot 1: Course + Evaluation invested
     """
@@ -33,7 +34,7 @@ def fig_invested_indicator(df, indicator_name, title1=None, title2=None, suptitl
     - Plot 2: Indicator + Evaluation signals (['buy', 'sell', 'bullish', 'bearish'] from indicators)
     """
     # Check columns
-    minimal_columns = ['close', 'invested', 'signal']
+    minimal_columns = ['close', 'signal', 'invested']
     if not set(minimal_columns).issubset(df.columns):
         raise AssertionError(f'Min requirement failed: not all columns {minimal_columns} in {df.columns}')
 
@@ -50,6 +51,26 @@ def fig_invested_indicator(df, indicator_name, title1=None, title2=None, suptitl
     fig_properties(fig, suptitle=suptitle)                           # Labels
     plt_properties(plt)                                              # Labels
     return fig
+
+
+# signals
+def fig_signals(df, title=''):
+    """ [fig] Default plot
+    - Plot 1: Course + signals
+    """
+    # Check columns
+    minimal_columns = ['close', 'signal']
+    if not set(minimal_columns).issubset(df.columns):
+        raise AssertionError(f'Min requirement failed: not all columns {minimal_columns} in {df.columns}')
+    # Default Plot
+    fig, ax = plt.subplots(1, 1)                      # 1 Plot
+    # Plot 1 (Course with evaluation)
+    ax_course(ax, df, False, True, True)    # Course
+    ax_highlight_signals_vertical_line(ax, df)                      # Course with signals
+    ax_properties(ax, title=title, xlabel='Date', ylabel='Chart') # Labels
+    plt_properties(plt)                                           # Labels
+    return fig
+
 
 def save_fig(fig, file_path=None):
     """ [fig] Save matplotlib fig
@@ -143,7 +164,7 @@ def ax_highlight_signals_vertical_line(ax, df):
                  'bullish': 'green', 'bearish': 'red'}
     for idx, row in df.iterrows():
         if row['signal'] in ['buy', 'sell', 'bullish', 'bearish']:
-            ax.axvline(x=idx, color=color_map[row['signal']], linestyle='-', alpha=0.3)
+            ax.axvline(x=idx, color=color_map[row['signal']], linestyle='-', alpha=0.6)
 
 
 
