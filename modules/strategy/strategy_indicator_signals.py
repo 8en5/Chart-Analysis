@@ -3,7 +3,7 @@ from pathlib import Path
 
 from modules.utils import pandas_print_width, pandas_print_all
 from modules.file_handler import load_pandas_from_file_path
-from modules.plot import fig_signals
+from modules.plot import fig_signals_simple, fig_signals_indicator
 from modules.strategy.df_signals_invested import func_df_signals_from_indicator
 from modules.strategy.evaluate_signals import evaluate_signals
 
@@ -31,7 +31,7 @@ def indicator_signals(indicator_name, course_path, params=None, offset:int=0,
     #print(df)
     #exit()
 
-
+    #df = df[0:200]
     # 2. Calculate evaluation
     evaluate_signals(df)
 
@@ -39,7 +39,8 @@ def indicator_signals(indicator_name, course_path, params=None, offset:int=0,
     # 3. Visualize
     show_plot = True
     if show_plot:
-        fig = fig_signals(df, 'Title')
+        #fig = fig_signals_simple(df, 'Title')
+        fig = fig_signals_indicator(df, indicator_name, 'title1', 'title2', 'suptitle')
         plt.show()
 
 
@@ -48,7 +49,7 @@ def indicator_signals(indicator_name, course_path, params=None, offset:int=0,
 if __name__ == "__main__":
     # Testing
     from modules.course import get_courses_paths
-    pandas_print_all()
+    #pandas_print_all()
     indicator = 'MACD'
     param = None # [10, 20, 10]
     course_path = get_courses_paths('ADA')[0]

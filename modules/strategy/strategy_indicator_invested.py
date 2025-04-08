@@ -89,9 +89,9 @@ def indicator_invested(indicator_name, course_path, params=None, offset:int=0,
 def plot_invested(df, indicator_name, course_path, params, study_type, result_dict,
          index=-1, save_plot=False, show_plot=False, base_folder:Path=None):
     # Figure
-    plot_type = 'default'  # default, indicator
+    plot_type = 'indicator'  # simple, indicator
     evaluation_dict_str = _calc_evaluation_to_str(result_dict)
-    if plot_type == 'default':
+    if plot_type == 'simple':
         # 1x1 fig - course with evaluation
         fig = fig_invested_simple(df, title=evaluation_dict_str)
     elif plot_type == 'indicator':
