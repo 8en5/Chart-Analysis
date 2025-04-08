@@ -1,30 +1,23 @@
 
 import numpy as np
 import matplotlib.patches as patches
-from matplotlib.pyplot import ylabel
+from matplotlib.pyplot import ylabel, title
 from scipy.stats import alpha
 
 from modules.indicators import get_indicator_col_names
 from modules.file_handler import *
 
 
-#---------------------- Lvl 2 - full figures (based on axes) ----------------------#
+#---------------------- Lvl 3 - full figures (based on axes or figs) ----------------------#
 
 # invested
 def fig_invested_simple(df, title=''):
     """ [fig] Default plot
     - Plot 1: Course + Evaluation invested
     """
-    # Check columns
-    minimal_columns = ['close', 'invested']
-    if not set(minimal_columns).issubset(df.columns):
-        raise AssertionError(f'Min requirement failed: not all columns {minimal_columns} in {df.columns}')
-    # Default Plot
     fig, ax = plt.subplots(1, 1)                     # 1 Plot
     # Plot 1 (Course with evaluation)
-    ax_course(ax, df, True, True, True, True)  # Course
-    ax_course_highlight_invested(ax, df, 'rect')             # Course with evaluation ['background', 'start_stop', 'interruption_line', 'rect']
-    ax_properties(ax, title=title, xlabel='Date', ylabel='Chart') # Labels
+    sub_fig_highlight_course_invested(ax, df, title=title)
     plt_properties(plt)                                           # Labels
     return fig
 
@@ -33,42 +26,39 @@ def fig_invested_indicator(df, indicator_name, title1=None, title2=None, suptitl
     - Plot 1: Course + Evaluation invested
     - Plot 2: Indicator + Evaluation signals (['buy', 'sell', 'bullish', 'bearish'] from indicators)
     """
-    # Check columns
-    minimal_columns = ['close', 'signal', 'invested']
-    if not set(minimal_columns).issubset(df.columns):
-        raise AssertionError(f'Min requirement failed: not all columns {minimal_columns} in {df.columns}')
-
-    # Indicator
     fig, ax = plt.subplots(2, 1, sharex=True)           # 2 Plots (share -> synch both plots during zoom)
     # Plot 1 (Course with evaluation)
-    ax_course(ax[0], df, True, True, True, True) # Course
-    ax_course_highlight_invested(ax[0], df, 'rect')             # Course with evaluation ['background', 'start_stop', 'interruption_line', 'rect']
-    ax_properties(ax[0], title=title1, ylabel='Chart')               # Labels
+    sub_fig_highlight_course_invested(ax[0], df, title=title1)
     # Plot 2 (Indicator)
-    ax_highlight_signals_vertical_line(ax[1], df)                    # Evaluate df['signal'] -> [buy, sell, bullish, bearish]
-    func_ax_indicator(indicator_name, ax[1], df)               # Indicator
-    ax_properties(ax[1], title=title2, xlabel='Date', ylabel='Chart')# Labels
+    sub_fig_indicator(ax[1], df, indicator_name, title=title2)
     fig_properties(fig, suptitle=suptitle)                           # Labels
     plt_properties(plt)                                              # Labels
     return fig
 
 
 # signals
-def fig_signals(df, title=''):
+def fig_signals_simple(df, title='', signal_type='all'):
     """ [fig] Default plot
     - Plot 1: Course + signals
     """
-    # Check columns
-    minimal_columns = ['close', 'signal']
-    if not set(minimal_columns).issubset(df.columns):
-        raise AssertionError(f'Min requirement failed: not all columns {minimal_columns} in {df.columns}')
-    # Default Plot
-    fig, ax = plt.subplots(1, 1)                      # 1 Plot
+    fig, ax = plt.subplots(1, 1)                        # 1 Plot
+    # Plot 1 (Course with signals)
+    sub_fig_highlight_course_signal(ax, df, title, signal_type=signal_type)
+    plt_properties(plt)                                             # Labels
+    return fig
+
+def fig_signals_indicator(df, indicator_name, title1=None, title2=None, suptitle=None, signal_type='all'):
+    """ [fig] Plot indicator
+    - Plot 1: Course + Vertical lines signals
+    - Plot 2: Indicator + Evaluation signals (['buy', 'sell', 'bullish', 'bearish'] from indicators)
+    """
+    fig, ax = plt.subplots(2, 1, sharex=True)  # 2 Plots (share -> synch both plots during zoom)
     # Plot 1 (Course with evaluation)
-    ax_course(ax, df, False, True, True)    # Course
-    ax_highlight_signals_vertical_line(ax, df)                      # Course with signals
-    ax_properties(ax, title=title, xlabel='Date', ylabel='Chart') # Labels
-    plt_properties(plt)                                           # Labels
+    sub_fig_highlight_course_signal(ax[0], df, title=title1, signal_type=signal_type)
+    # Plot 2 (Indicator)
+    sub_fig_indicator(ax[1], df, indicator_name, title=title2)
+    fig_properties(fig, suptitle=suptitle)  # Labels
+    plt_properties(plt)  # Labels
     return fig
 
 
@@ -95,6 +85,40 @@ def save_fig(fig, file_path=None):
 
     # Save plot
     save_matplotlib_figure(fig, file_path.parent, file_path.stem, 'png')
+
+
+#---------------------- Lvl 2 - sub figures (based on axes) ----------------------#
+
+def sub_fig_highlight_course_signal(ax, df, title='', signal_type='all'):
+    minimal_columns = ['close', 'signal']
+    if not set(minimal_columns).issubset(df.columns):
+        raise AssertionError(f'Min requirement failed: not all columns {minimal_columns} in {df.columns}')
+    # Highlight signals with vertical line
+    ax_highlight_signals_vertical_line(ax, df, signal_type=signal_type)  # Course with signals
+    # Course
+    ax_course(ax, df, False, True, True, False)
+    # Labels
+    ax_properties(ax, title=title, xlabel='Date', ylabel='Chart')
+
+def sub_fig_highlight_course_invested(ax, df, title=''):
+    minimal_columns = ['close', 'invested']
+    if not set(minimal_columns).issubset(df.columns):
+        raise AssertionError(f'Min requirement failed: not all columns {minimal_columns} in {df.columns}')
+    # Course
+    ax_course(ax, df, True, True, True, True)
+    # Highlight invested
+    ax_course_highlight_invested(ax, df,'rect')  # ['background', 'start_stop', 'interruption_line', 'rect']
+    # Labels
+    ax_properties(ax, title=title, xlabel='Date', ylabel='Chart')
+
+
+def sub_fig_indicator(ax, df, indicator_name, title=''):
+    # Highlight signals with vertical line -> [buy, sell, bullish, bearish]
+    ax_highlight_signals_vertical_line(ax, df)
+    # Indicator
+    func_ax_indicator(indicator_name, ax, df)
+    # Labels
+    ax_properties(ax, title=title, xlabel='Date', ylabel='Chart')
 
 
 #---------------------- Lvl 1.5 - highlight evaluation df[signal, invested]  ----------------------#
@@ -158,12 +182,17 @@ def _ax_course_highlight_invested_rect(ax, df):
         ax.add_patch(rect)
 
 
-def ax_highlight_signals_vertical_line(ax, df):
+def ax_highlight_signals_vertical_line(ax, df, signal_type='all'):
     # Vertical line for the signals
     color_map = {'buy': 'green', 'sell': 'red',
                  'bullish': 'green', 'bearish': 'red'}
+    match signal_type:
+        case 'all': selection = ['buy', 'sell', 'bullish', 'bearish']
+        case 'buy': selection = ['buy', 'bullish']
+        case 'sell': selection = ['sell', 'bearish']
+        case _: raise ValueError(f'Wrong key: {signal_type}')
     for idx, row in df.iterrows():
-        if row['signal'] in ['buy', 'sell', 'bullish', 'bearish']:
+        if row['signal'] in selection:
             ax.axvline(x=idx, color=color_map[row['signal']], linestyle='-', alpha=0.6)
 
 
