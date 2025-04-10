@@ -56,7 +56,12 @@ def json_dump_nicely(input_dict:dict):
     # Dump the dict to a JSON string with indentation
     json_str = json.dumps(input_dict, indent=4)
     # Format lists to be in a single line (ChatGPT)
-    json_str = re.sub(r'\[\s*([\s\S]*?)\s*\]', lambda m: f"[{', '.join(re.findall(r'[^,\s\[\]]+', m.group(1)))}]", json_str)
+    pattern = r'[^,\s\[\]]+'
+    json_str = re.sub(
+        r'\[\s*([\s\S]*?)\s*\]',
+        lambda m: f"[{', '.join(re.findall(pattern, m.group(1)))}]",
+        json_str
+    )
     return json_str
 
 
