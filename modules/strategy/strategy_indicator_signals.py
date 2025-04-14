@@ -39,8 +39,8 @@ def indicator_signals(indicator_name, course_path, params=None, offset:int=0,
     # 3. Visualize
     show_plot = True
     if show_plot:
-        fig = fig_signals_simple(df, 'Title')
-        #fig = fig_signals_indicator(df, indicator_name, 'title1', 'title2', 'suptitle')
+        fig = fig_signals_simple(df, indicator_name, signal_type='buy')
+        #fig = fig_signals_indicator(df, indicator_name, course_path.stem, indicator_name, 'temp result', signal_type='buy')
         plt.show()
 
 
@@ -50,6 +50,7 @@ if __name__ == "__main__":
     # Testing
     from modules.course import get_courses_paths
     #pandas_print_all()
+    pandas_print_width()
     indicator = 'MACD'
     param = [9, 27, 41]
     course_path = get_courses_paths('SOL')[0]
