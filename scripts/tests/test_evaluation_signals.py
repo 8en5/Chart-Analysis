@@ -9,10 +9,10 @@ def test_compute_return():
     pd.set_option('display.float_format', '{:.2f}'.format)
     df = pd.DataFrame({'close_today': [start_price] * len(future_price)})
     df['close_future'] = future_price
-    df['percentage'] = df['close_future'].apply(lambda x: compute_return(start_price, x, mode='percentage'))
-    df['fracture'] = df['close_future'].apply(lambda x: compute_return(start_price, x, mode='fracture'))
-    df['factor'] = df['close_future'].apply(lambda x: compute_return(start_price, x, mode='factor'))
-    df['log'] = df['close_future'].apply(lambda x: compute_return(start_price, x, mode='log'))
+    df['percentage'] = df['close_future'].apply(lambda x: calc_return(start_price, x, mode='percentage'))
+    df['fracture'] = df['close_future'].apply(lambda x: calc_return(start_price, x, mode='fracture'))
+    df['factor'] = df['close_future'].apply(lambda x: calc_return(start_price, x, mode='factor'))
+    df['log'] = df['close_future'].apply(lambda x: calc_return(start_price, x, mode='log'))
     print(df)
 
 

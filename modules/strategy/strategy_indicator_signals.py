@@ -5,7 +5,7 @@ from modules.utils import pandas_print_width, pandas_print_all
 from modules.file_handler import load_pandas_from_file_path
 from modules.plot import fig_signals_simple, fig_signals_indicator
 from modules.strategy.df_signals_invested import func_df_signals_from_indicator
-from modules.strategy.evaluate_signals import evaluate_signals
+from modules.strategy.evaluate_signals import evaluate_signals, calc_states_from_dict, print_result_dict_as_df, fig_signals_evaluation
 
 
 def indicator_signals(indicator_name, course_path, params=None, offset:int=0,
@@ -31,18 +31,21 @@ def indicator_signals(indicator_name, course_path, params=None, offset:int=0,
     #print(df)
     #exit()
 
-    #df = df[0:200]
+
     # 2. Calculate evaluation
-    evaluate_signals(df)
+    #df = df[0:200]
+    result_dict_returns = evaluate_signals(df)
+    result_dict_states = calc_states_from_dict(result_dict_returns)
+    #print_result_dict_as_df(result_dict_states)
 
 
     # 3. Visualize
     show_plot = True
     if show_plot:
-        fig = fig_signals_simple(df, indicator_name, signal_type='buy')
-        #fig = fig_signals_indicator(df, indicator_name, course_path.stem, indicator_name, 'temp result', signal_type='buy')
+        fig1 = fig_signals_simple(df, indicator_name, signal_type='buy')
+        #fig1 = fig_signals_indicator(df, indicator_name, course_path.stem, indicator_name, 'temp result', signal_type='buy')
+        fig2 = fig_signals_evaluation(result_dict_states)
         plt.show()
-
 
 
 

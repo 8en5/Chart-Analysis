@@ -179,7 +179,7 @@ if __name__ == "__main__":
     # Testing
     from modules.course import get_courses_paths
     pandas_print_all()
-    indicator = 'MACD'
+    indicator = 'BB'
     course_path = get_courses_paths('ADA')[0]
     param = None  # [10, 20, 10]
     indicator_invested(indicator, course_path, params=param,
