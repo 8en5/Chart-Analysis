@@ -277,27 +277,30 @@ def calc_state_from_list(returns):
 
 #---------------------- Visualize ----------------------#
 
-def fig_signals_evaluation(result_dict_stats):
+def fig_signals_evaluation(result_dict_stats, signal_type='all'):
     fig, ax = plt.subplots(3, 1)
-    sub_fig_heatmap_ax(ax[0], result_dict_stats, metric='return', center=0, with_stat=True)
-    sub_fig_heatmap_ax(ax[1], result_dict_stats, metric='increase_perc', center=0.5, with_stat=False)
-    sub_fig_metric_curve(ax[2], result_dict_stats)
-    plt.show()
+    sub_fig_heatmap_ax(ax[0], result_dict_stats, metric='return', center=0, with_stat=True, signal_type=signal_type)
+    sub_fig_heatmap_ax(ax[1], result_dict_stats, metric='increase_perc', center=0.5, with_stat=False, signal_type=signal_type)
+    sub_fig_metric_curve(ax[2], result_dict_stats, signal_type=signal_type)
+    #plt.show()
     return fig
 
 
-def sub_fig_heatmap_ax(ax, result_dict_stats, metric='return', center=0.0, with_stat=False):
+def sub_fig_heatmap_ax(ax, result_dict_stats, metric='return', center=0.0, with_stat=False, signal_type='all'):
     """
     :param ax:
     :param result_dict_stats:
     :param metric:
     :param center:
     :param with_stat:
+    :param signal_type:
     :return:
     """
     data = {}
     text = {}
     for signal in result_dict_stats:
+        if signal_type != 'all' and signal_type != signal:
+            continue
         data[signal] = {}
         text[signal] = {}
         for time in result_dict_stats[signal]:
@@ -325,8 +328,10 @@ def sub_fig_heatmap_ax(ax, result_dict_stats, metric='return', center=0.0, with_
 
 
 
-def sub_fig_metric_curve(ax, result_dict_stats):
+def sub_fig_metric_curve(ax, result_dict_stats, signal_type='all'):
     for signal in result_dict_stats:
+        if signal_type != 'all' and signal_type != signal:
+            continue
         x = list(result_dict_stats[signal].keys())
         y = [result_dict_stats[signal][t]['return_mean'] for t in x]
         yerr = [result_dict_stats[signal][t]['return_std'] for t in x]

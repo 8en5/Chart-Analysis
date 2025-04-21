@@ -3,7 +3,7 @@ import itertools
 import pandas as pd
 
 from modules.file_handler import get_path
-from modules.study.study_indicator_invested import manager_study_indicator_invested, save_evaluation_results
+from modules.strategy.invested.study_indicator_invested import manager_study_indicator_invested
 
 
 def meta_study():
@@ -18,7 +18,7 @@ def meta_study():
     sources_courses = ['default']
 
     # Params
-    source_params = 'brute_force'  # default, visualize, brute_force, optimization
+    source_params = 'visualize'  # default, visualize, brute_force, optimization
 
     # Start study over all combinations
     base_folder = get_path('study') / f'Study_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}'

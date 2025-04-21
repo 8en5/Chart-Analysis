@@ -1,5 +1,5 @@
 
-from modules.strategy.evaluate_signals import *
+from modules.strategy.signals.evaluate_signals import *
 
 def test_compute_return():
     start_price = 50

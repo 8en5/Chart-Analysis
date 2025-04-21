@@ -8,7 +8,7 @@ from modules.file_handler import get_path, save_pandas_to_file
 from modules.course import get_courses_paths
 from modules.params import get_params_variation
 from modules.error_handling import log_error
-from modules.strategy.strategy_indicator_invested import indicator_invested
+from modules.strategy.invested.strategy_indicator_invested import indicator_invested
 
 
 def manager_study_indicator_invested(indicator_name:str, source_courses:Any='default', source_params:Any='default',

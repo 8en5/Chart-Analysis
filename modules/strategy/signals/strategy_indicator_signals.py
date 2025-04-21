@@ -1,11 +1,12 @@
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-from modules.utils import pandas_print_width, pandas_print_all
+from modules.utils import pandas_print_width
 from modules.file_handler import load_pandas_from_file_path
-from modules.plot import fig_signals_simple, fig_signals_indicator
+from modules.plot import fig_signals_simple, fig_signals_indicator, save_fig
 from modules.strategy.df_signals_invested import func_df_signals_from_indicator
-from modules.strategy.evaluate_signals import evaluate_signals, calc_states_from_dict, print_result_dict_as_df, fig_signals_evaluation
+from modules.strategy.signals.evaluate_signals import evaluate_signals, calc_states_from_dict, fig_signals_evaluation
+from modules.strategy.utils_study import *
 
 
 def indicator_signals(indicator_name, course_path, params=None, offset:int=0,
@@ -40,12 +41,33 @@ def indicator_signals(indicator_name, course_path, params=None, offset:int=0,
 
 
     # 3. Visualize
-    show_plot = True
-    if show_plot:
-        fig1 = fig_signals_simple(df, indicator_name, signal_type='buy')
-        #fig1 = fig_signals_indicator(df, indicator_name, course_path.stem, indicator_name, 'temp result', signal_type='buy')
-        fig2 = fig_signals_evaluation(result_dict_states)
-        plt.show()
+    #save_plot = True # debug
+    #show_plot = False # debug
+    if show_plot or save_plot:
+        signal_type = 'buy'
+        # Figure 1
+        plot_type = 'indicator'  # simple, indicator
+        if plot_type == 'simple':
+            # 1x1 fig - course with evaluation
+            fig1 = fig_signals_simple(df, indicator_name, signal_type)
+        elif plot_type == 'indicator':
+            # 2x1 fig - course with evaluation + indicator
+            fig1 = fig_signals_indicator(df, indicator_name, title1=course_path.stem,
+                                         title2=f'{indicator_name}: {params}', signal_type='buy')
+        else:
+            raise ValueError(f'Wrong plot type: {plot_type}')
+        # Figure 2
+        fig2 = fig_signals_evaluation(result_dict_states, signal_type)
+        if save_plot:
+            if not base_folder:
+                base_folder = get_path() / f'data/analyse/visualize/signals'
+            file_path1 = calc_file_path(indicator_name, course_path.stem, params, index=1, base_folder=base_folder)
+            save_fig(fig1, file_path1)
+            file_path2 = calc_file_path(indicator_name, course_path.stem, params, index=2, base_folder=base_folder)
+            save_fig(fig2, file_path2)
+            plt.close()  # close figure, else it is still in memory
+        if show_plot:
+            plt.show()
 
 
 

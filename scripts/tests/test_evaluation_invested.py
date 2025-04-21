@@ -1,7 +1,7 @@
 from modules.utils import *
 from test import *
 
-from modules.strategy.evaluate_invested import _calc_amount_transactions, _calc_all_investment_states, \
+from modules.strategy.invested.evaluate_invested import _calc_amount_transactions, _calc_all_investment_states, \
     _calc_accumulated_perc, _calc_total_accumulated_perc, evaluate_invested_multiple_cycles
 
 

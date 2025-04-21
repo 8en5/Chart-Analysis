@@ -1,10 +1,9 @@
 
-from modules.utils import pandas_print_width, pandas_print_all
+from modules.utils import pandas_print_all
 from modules.file_handler import load_pandas_from_symbol
 from modules.strategy.df_signals_invested import func_df_signals_from_indicator
 from modules.params import get_params_from_yaml
-from modules.strategy.evaluate_invested import evaluate_invested_multiple_cycles, evaluate_invested
-
+from modules.strategy.invested.evaluate_invested import evaluate_invested_multiple_cycles
 
 #pandas_print_width()
 pandas_print_all()
