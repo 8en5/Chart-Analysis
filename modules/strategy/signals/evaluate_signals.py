@@ -125,7 +125,7 @@ def calc_return(start_price, future_price, mode='log') -> float:
         raise ValueError(f'Wrong key: {mode}')
 
 
-def print_result_dict_as_df(result_dict_stats):
+def print_result_dict_states_as_df(result_dict_stats):
     """ Print result dict as pandas DataFrame
     :param result_dict_stats: states
     :return: None
@@ -275,13 +275,26 @@ def calc_state_from_list(returns):
     return states_dict
 
 
+from collections import defaultdict
+def join_multiple_returns(list_result_dict_returns):
+    merged = defaultdict(lambda: defaultdict(list))
+    for d in list_result_dict_returns:
+        for key1, subdict in d.items():
+            for key2, values in subdict.items():
+                merged[key1][key2].extend(values)
+    merged = {k: dict(v) for k, v in merged.items()}
+    #print(json_dump_nicely(merged))
+    return merged
+
+
 #---------------------- Visualize ----------------------#
 
 def fig_signals_evaluation(result_dict_stats, signal_type='all'):
-    fig, ax = plt.subplots(3, 1)
+    fig, ax = plt.subplots(4, 1)
     sub_fig_heatmap_ax(ax[0], result_dict_stats, metric='return', center=0, with_stat=True, signal_type=signal_type)
     sub_fig_heatmap_ax(ax[1], result_dict_stats, metric='increase_perc', center=0.5, with_stat=False, signal_type=signal_type)
-    sub_fig_metric_curve(ax[2], result_dict_stats, signal_type=signal_type)
+    sub_fig_metric_curve(ax[2], result_dict_stats, metric='return', with_stat=True, signal_type=signal_type)
+    sub_fig_metric_curve(ax[3], result_dict_stats, metric='increase_perc', with_stat=False, signal_type=signal_type)
     #plt.show()
     return fig
 
@@ -296,6 +309,7 @@ def sub_fig_heatmap_ax(ax, result_dict_stats, metric='return', center=0.0, with_
     :param signal_type:
     :return:
     """
+
     data = {}
     text = {}
     for signal in result_dict_stats:
@@ -328,18 +342,24 @@ def sub_fig_heatmap_ax(ax, result_dict_stats, metric='return', center=0.0, with_
 
 
 
-def sub_fig_metric_curve(ax, result_dict_stats, signal_type='all'):
+def sub_fig_metric_curve(ax, result_dict_stats, metric='return', with_stat=False, signal_type='all'):
     for signal in result_dict_stats:
         if signal_type != 'all' and signal_type != signal:
             continue
         x = list(result_dict_stats[signal].keys())
-        y = [result_dict_stats[signal][t]['return_mean'] for t in x]
-        yerr = [result_dict_stats[signal][t]['return_std'] for t in x]
-        ax.errorbar(x, y, yerr=yerr, label=signal, capsize=5, marker='o')
+        if with_stat:
+            y = [result_dict_stats[signal][t][f'{metric}_mean'] for t in x]
+            yerr = [result_dict_stats[signal][t]['return_std'] for t in x]
+            ax.errorbar(x, y, yerr=yerr, label=signal, capsize=5, marker='o')
+            ax.axhline(0, color='black', linewidth=1, linestyle='--')
+        else:
+            y = [result_dict_stats[signal][t][metric] for t in x]
+            ax.plot(x, y, label=signal, marker='o')
+            ax.axhline(0.5, color='black', linewidth=1, linestyle='--')
 
     ax.set_xlabel('Days after Signal')
     ax.set_ylabel('return_mean')
     ax.set_title('return_mean vs Time')
     ax.legend()
     ax.grid(True)
-    ax.axhline(0, color='black', linewidth=1, linestyle='--')
+

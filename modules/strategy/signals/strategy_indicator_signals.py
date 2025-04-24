@@ -1,16 +1,16 @@
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-from modules.utils import pandas_print_width
+from modules.utils import pandas_print_width, json_dump_nicely
 from modules.file_handler import load_pandas_from_file_path
 from modules.plot import fig_signals_simple, fig_signals_indicator, save_fig
 from modules.strategy.df_signals_invested import func_df_signals_from_indicator
-from modules.strategy.signals.evaluate_signals import evaluate_signals, calc_states_from_dict, fig_signals_evaluation
+from modules.strategy.signals.evaluate_signals import *
 from modules.strategy.utils_study import *
 
 
 def indicator_signals(indicator_name, course_path, params=None, offset:int=0,
-                       save_plot=False, show_plot=False, base_folder:Path=None) -> None:
+                       save_plot=False, show_plot=False, base_folder:Path=None) -> dict:
     """ [strategy, indicator, signals] Load and evaluate strategy (1x param for 1x course)
     :param indicator_name: indicator name
     :param course_path: course path
@@ -36,6 +36,7 @@ def indicator_signals(indicator_name, course_path, params=None, offset:int=0,
     # 2. Calculate evaluation
     #df = df[0:200]
     result_dict_returns = evaluate_signals(df)
+    #print(json_dump_nicely(result_dict_returns))
     result_dict_states = calc_states_from_dict(result_dict_returns)
     #print_result_dict_as_df(result_dict_states)
 
@@ -65,9 +66,13 @@ def indicator_signals(indicator_name, course_path, params=None, offset:int=0,
             save_fig(fig1, file_path1)
             file_path2 = calc_file_path(indicator_name, course_path.stem, params, index=2, base_folder=base_folder)
             save_fig(fig2, file_path2)
-            plt.close()  # close figure, else it is still in memory
+            plt.close('all')  # close figure, else it is still in memory
         if show_plot:
             plt.show()
+
+
+    # Return result_dict
+    return result_dict_returns
 
 
 

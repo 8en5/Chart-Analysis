@@ -4,9 +4,9 @@ import pandas as pd
 
 from modules.file_handler import get_path
 from modules.strategy.invested.study_indicator_invested import manager_study_indicator_invested
+from modules.strategy.signals.study_indicator_signals import manager_study_indicator_signals
 
-
-def meta_study():
+def meta_study(func):
     """ Meta study -> multiple studies
     :return: None
     """
@@ -20,34 +20,33 @@ def meta_study():
     # Params
     source_params = 'visualize'  # default, visualize, brute_force, optimization
 
-    # Start study over all combinations
+    # Storage location
     base_folder = get_path('study') / f'Study_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}'
+    #base_folder = None
+
+    # Start study over all combinations
     for indicator_name, source_courses in itertools.product(indicator_names, sources_courses):
-        manager_study_indicator_invested(
+        folder = base_folder / f'{indicator_name}_{source_courses}'
+        func(
             indicator_name, source_courses, source_params,
-            save_evaluation=True, save_plot=False, base_folder=base_folder
+            save_evaluation=True, save_plot=False, base_folder=folder
         )
 
 
 
-def study():
+def study(func):
     """ 1x study with specific selected parameters
     :return: None
     """
     # Parameters for the study
-
     # Save evaluation results
     save_evaluation = True
 
     # Save all plots
     save_plot = False
 
-    # Storage location
-    base_folder = get_path('study') / f'Study_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}'
-    #base_folder = None
-
     # Indicator
-    indicator_name = 'BB'   # MACD, BB, RSI
+    indicator_name = 'MACD'   # MACD, BB, RSI
 
     # Symbols
     source_courses = 'default'     # default
@@ -57,15 +56,30 @@ def study():
     # Params
     source_params = 'visualize'  # default, visualize, (brute_force, optimization)
 
+    # Storage location
+    base_folder = get_path('study') / f'Study_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}'
+    folder = base_folder / f'{indicator_name}_{source_courses}'
+    #folder = None
+
     # Start study over all combinations
-    manager_study_indicator_invested(
+    func(
         indicator_name, source_courses, source_params,
-        save_evaluation, save_plot, base_folder
+        save_evaluation, save_plot, folder
     )
 
 
 
 
 if __name__ == "__main__":
-    meta_study()
-    #study()
+
+    study_type = 'signals' # invested
+
+    if study_type == 'signals':
+        function = manager_study_indicator_signals
+    elif study_type == 'invested':
+        function = manager_study_indicator_invested
+    else:
+        raise ValueError(f'Wrong key: {study_type}')
+
+    #meta_study(func)
+    study(function)
