@@ -301,9 +301,9 @@ def fig_signals_evaluation(result_dict_stats, signal_type='all'):
     sub_fig_heatmap_ax(ax[1], result_dict_stats, metric='increase_perc', center=0.5, with_stat=False, signal_type=signal_type)
     sub_fig_metric_curve(ax[2], result_dict_stats, metric='return', with_stat=True, signal_type=signal_type)
     sub_fig_metric_curve(ax[3], result_dict_stats, metric='increase_perc', with_stat=False, signal_type=signal_type)
-    if signal_type == 'all': subtitle = f'Buy: {result_dict_stats['buy'][2]['count']} | Sell: {result_dict_stats['sell'][2]['count']}'
-    elif signal_type == 'buy': subtitle = f'Buy: {result_dict_stats['buy'][2]['count']}'
-    elif signal_type == 'sell': subtitle = f'Sell: {result_dict_stats['sell'][2]['count']}'
+    if signal_type == 'all': subtitle = f"Buy: {result_dict_stats['buy'][2]['count']} | Sell: {result_dict_stats['sell'][2]['count']}"
+    elif signal_type == 'buy': subtitle = f"Buy: {result_dict_stats['buy'][2]['count']}"
+    elif signal_type == 'sell': subtitle = f"Sell: {result_dict_stats['sell'][2]['count']}"
     else: raise ValueError(f'Wrong key: {signal_type}')
     fig.suptitle(subtitle)
     #plt.show()

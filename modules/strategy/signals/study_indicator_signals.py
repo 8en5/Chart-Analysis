@@ -158,15 +158,16 @@ def save_evaluation_results(list_results:list, file_path:Path) -> None:
 
 def get_best_params(df, signal_type, period, state='return_mean', n=2):
     values = []
-
     for idx, row in df.iterrows():
         #print(row)
         value = row['result_dict_states'][signal_type][period][state]
         values.append((idx, value))
 
+    #print(values)
     # Sort values
     mode = 'max' if signal_type == 'buy' else 'min'
-    sorted_vals = sorted(values, key=lambda x: x[1], reverse=(mode == mode))
+    sorted_vals = sorted(values, key=lambda x: x[1], reverse=(mode=='max'))
+    #print(sorted_vals)
 
     # Top-N
     if n < len(df):

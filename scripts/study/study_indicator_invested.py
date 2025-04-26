@@ -18,7 +18,7 @@ def meta_study(func):
     sources_courses = ['default']
 
     # Params
-    source_params = 'visualize'  # default, visualize, brute_force, optimization
+    source_params = 'optimization'  # default, visualize, brute_force, optimization
 
     # Storage location
     base_folder = get_path('study') / f'Study_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}'
@@ -81,5 +81,5 @@ if __name__ == "__main__":
     else:
         raise ValueError(f'Wrong key: {study_type}')
 
-    study(function)
-    #meta_study(function)
+    #study(function)
+    meta_study(function)
