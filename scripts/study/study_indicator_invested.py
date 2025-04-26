@@ -81,5 +81,5 @@ if __name__ == "__main__":
     else:
         raise ValueError(f'Wrong key: {study_type}')
 
-    #study(function)
-    meta_study(function)
+    study(function)
+    #meta_study(function)

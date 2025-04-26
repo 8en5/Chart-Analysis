@@ -73,15 +73,13 @@ def manager_study_indicator_signals(
             df_summary = pd.DataFrame(list_results)
 
             keys_signals = ['buy', 'sell']
-            keys_times = [2, 5, 10, 30, 60, 120] # TODO
+            keys_times = list_results[0]['result_dict_states']['buy'].keys() # ['2', '5', '10', '30', '60', '120']
             keys_metric = ['return_mean', 'increase_perc']
 
             for signal in keys_signals:
                 for time in keys_times:
                     for metric in keys_metric:
-                        mode = 'max' if 'buy' else 'min' # TODO
-                        time = str(time)
-                        list_params = get_best_params(df_summary, signal, time, metric, mode, 1)
+                        list_params = get_best_params(df_summary, signal, time, metric, 1)
                         folder = base_folder / signal / f'{time}_{metric}'
                         print(f'The best params for {signal}-{time}-{metric} is: {list_params}')
                         manager_study_indicator_signals(indicator_name, source_courses, list_params,
@@ -158,7 +156,7 @@ def save_evaluation_results(list_results:list, file_path:Path) -> None:
     save_pandas_to_file(df_summary, file_path.parent, file_path.stem)
 
 
-def get_best_params(df, signal_type, period, state='return_mean', mode='max', n=2):
+def get_best_params(df, signal_type, period, state='return_mean', n=2):
     values = []
 
     for idx, row in df.iterrows():
@@ -167,6 +165,7 @@ def get_best_params(df, signal_type, period, state='return_mean', mode='max', n=
         values.append((idx, value))
 
     # Sort values
+    mode = 'max' if signal_type == 'buy' else 'min'
     sorted_vals = sorted(values, key=lambda x: x[1], reverse=(mode == mode))
 
     # Top-N
@@ -192,9 +191,9 @@ if __name__ == "__main__":
 
     #manager_study_indicator_invested('MACD', 'default', None)
 
-    #manager_study_indicator_signals('MACD', 'default', 'visualize',
-     #                               save_evaluation=False, save_plot=True, base_folder=None)
+    manager_study_indicator_signals('MACD', 'default', 'visualize',
+                                    save_evaluation=True, save_plot=False, base_folder=None)
 
-    manager_study_indicator_signals('BB', 'default', [5, 2.5],
-                                    save_evaluation=False, save_plot=True, base_folder=None)
+    #manager_study_indicator_signals('BB', 'default', [5, 2.5],
+     #                               save_evaluation=True, save_plot=False, base_folder=None)
 

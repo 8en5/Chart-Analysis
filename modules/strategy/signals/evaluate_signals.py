@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 import math
 
 from modules.utils import json_dump_nicely
@@ -345,7 +346,9 @@ def sub_fig_heatmap_ax(ax, result_dict_stats, metric='return', center=0.0, with_
     #print(df_text)
     #exit()
 
-    sns.heatmap(df_data, annot=df_text, fmt='', cmap='coolwarm', center=center, ax=ax)
+    colors = ['red', 'white', 'green']
+    custom_cmap = LinearSegmentedColormap.from_list('custom_red_white_green', colors)
+    sns.heatmap(df_data, annot=df_text, fmt='', cmap=custom_cmap, center=center, ax=ax)
     ax.set_title(f'{metric}')
     #ax.set_xlabel('Days after Signal')
     #ax.set_ylabel('Signal Type')
