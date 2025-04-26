@@ -7,7 +7,7 @@ import math
 from modules.utils import json_dump_nicely
 
 
-def evaluate_signals(df):
+def evaluate_signals(df) -> dict|None:
     """ Calculate returns for all signals
     :param df: df[close, signal]
     :return:
@@ -239,6 +239,8 @@ def calc_states_from_dict(result_dict_returns):
         }
     }
     """
+    #print(json_dump_nicely(result_dict_returns))
+    #exit()
     result_dict_stats = {
         key_signal: {
             key_time: calc_state_from_list(value_returns)
@@ -247,6 +249,7 @@ def calc_states_from_dict(result_dict_returns):
         for key_signal, value_dict in result_dict_returns.items()
     }
     #print(json_dump_nicely(result_dict_stats))
+    #exit()
     return result_dict_stats
 
 
@@ -256,14 +259,16 @@ def calc_state_from_list(returns):
     :param returns: result_dict over multiple signals
     :return: evaluation dict
     """
-    returns = np.array(returns)
-    if len(returns) == 0:
-        return None
-
-    return_mean = np.mean(returns)
-    return_std = np.std(returns)
-    increase_perc = np.mean(returns > 0)
-    #sharpe_ratio = return_mean / (return_std + 1e-6)
+    if len(returns) > 0:
+        returns = np.array(returns)
+        return_mean = np.mean(returns)
+        return_std = np.std(returns)
+        increase_perc = np.mean(returns > 0)
+        #sharpe_ratio = return_mean / (return_std + 1e-6)
+    else:
+        return_mean = 0
+        return_std = 0
+        increase_perc = 0.5
 
     states_dict = {
         'count': len(returns),
@@ -295,7 +300,13 @@ def fig_signals_evaluation(result_dict_stats, signal_type='all'):
     sub_fig_heatmap_ax(ax[1], result_dict_stats, metric='increase_perc', center=0.5, with_stat=False, signal_type=signal_type)
     sub_fig_metric_curve(ax[2], result_dict_stats, metric='return', with_stat=True, signal_type=signal_type)
     sub_fig_metric_curve(ax[3], result_dict_stats, metric='increase_perc', with_stat=False, signal_type=signal_type)
+    if signal_type == 'all': subtitle = f'Buy: {result_dict_stats['buy'][2]['count']} | Sell: {result_dict_stats['sell'][2]['count']}'
+    elif signal_type == 'buy': subtitle = f'Buy: {result_dict_stats['buy'][2]['count']}'
+    elif signal_type == 'sell': subtitle = f'Sell: {result_dict_stats['sell'][2]['count']}'
+    else: raise ValueError(f'Wrong key: {signal_type}')
+    fig.suptitle(subtitle)
     #plt.show()
+    #exit()
     return fig
 
 
@@ -309,7 +320,6 @@ def sub_fig_heatmap_ax(ax, result_dict_stats, metric='return', center=0.0, with_
     :param signal_type:
     :return:
     """
-
     data = {}
     text = {}
     for signal in result_dict_stats:

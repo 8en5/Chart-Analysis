@@ -10,7 +10,7 @@ from modules.strategy.utils_study import *
 
 
 def indicator_signals(indicator_name, course_path, params=None, offset:int=0,
-                       save_plot=False, show_plot=False, base_folder:Path=None) -> dict:
+                       save_plot=False, show_plot=False, base_folder:Path=None, signal_type='all') -> dict|None:
     """ [strategy, indicator, signals] Load and evaluate strategy (1x param for 1x course)
     :param indicator_name: indicator name
     :param course_path: course path
@@ -19,6 +19,7 @@ def indicator_signals(indicator_name, course_path, params=None, offset:int=0,
     :param save_plot: save plot
     :param show_plot: show plot
     :param base_folder: base folder
+    :param signal_type: for plotting [all, buy, sell]
     :return: None
     """
     # 1. Calculate full df
@@ -36,6 +37,8 @@ def indicator_signals(indicator_name, course_path, params=None, offset:int=0,
     # 2. Calculate evaluation
     #df = df[0:200]
     result_dict_returns = evaluate_signals(df)
+    if not result_dict_returns:
+        return None
     #print(json_dump_nicely(result_dict_returns))
     result_dict_states = calc_states_from_dict(result_dict_returns)
     #print_result_dict_as_df(result_dict_states)
@@ -45,7 +48,7 @@ def indicator_signals(indicator_name, course_path, params=None, offset:int=0,
     #save_plot = True # debug
     #show_plot = False # debug
     if show_plot or save_plot:
-        signal_type = 'buy'
+        #signal_type = 'all'
         # Figure 1
         plot_type = 'indicator'  # simple, indicator
         if plot_type == 'simple':
@@ -54,7 +57,7 @@ def indicator_signals(indicator_name, course_path, params=None, offset:int=0,
         elif plot_type == 'indicator':
             # 2x1 fig - course with evaluation + indicator
             fig1 = fig_signals_indicator(df, indicator_name, title1=course_path.stem,
-                                         title2=f'{indicator_name}: {params}', signal_type='buy')
+                                         title2=f'{indicator_name}: {params}', signal_type=signal_type)
         else:
             raise ValueError(f'Wrong plot type: {plot_type}')
         # Figure 2
@@ -85,4 +88,5 @@ if __name__ == "__main__":
     param = [9, 27, 41]
     course_path = get_courses_paths('SOL')[0]
     indicator_signals(indicator, course_path, params=param,
-                       save_plot=False, show_plot=True, offset=0)
+                      save_plot=False, show_plot=True, offset=0,
+                      signal_type='sell')

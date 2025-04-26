@@ -16,13 +16,14 @@ from modules.strategy.utils_study import calc_file_path
 
 def manager_study_indicator_signals(
         indicator_name:str, source_courses:Any= 'default', source_params:Any= 'default',
-        save_evaluation=False, save_plot=False, base_folder:Path=None) -> None:
+        save_evaluation=False, save_plot=False, base_folder:Path=None, signal_type='all') -> None:
     """ [Loop fig] Manager to plot and save (visualize) strategies
     :param indicator_name: indicator name
     :param source_courses: multiple sources possible: course_selection_key / list symbol_names / list symbol paths
     :param source_params: different sources possible - key_course_selection / list_params_variations / None (default key_course_selection) / 1x as dict / 1x as list
     :param save_evaluation: save evaluation results and visualize the best parameters
     :param save_plot: plot all parameters
+    :param signal_type: for plotting [all, buy, sell]
     :param base_folder: base folder for the output
     """
     # Prepare variables (from different sources to one format)
@@ -46,7 +47,7 @@ def manager_study_indicator_signals(
     list_results = []
     for index, params in enumerate(params_variations):
         try:
-            result = eval_indicator_signals_with_multiple_courses(indicator_name, courses_paths, params, save_plot, base_folder)
+            result = eval_indicator_signals_with_multiple_courses(indicator_name, courses_paths, params, save_plot, base_folder, signal_type)
             result = json_round_dict(result) # Warning - convert int key to str key (2 -> '2')
             print(
                 f'{index + 1}/{len(params_variations)}: \t\t'  # index
@@ -72,30 +73,32 @@ def manager_study_indicator_signals(
             df_summary = pd.DataFrame(list_results)
 
             keys_signals = ['buy', 'sell']
-            keys_times = [2, 5, 10, 30, 60, 120]
+            keys_times = [2, 5, 10, 30, 60, 120] # TODO
             keys_metric = ['return_mean', 'increase_perc']
 
             for signal in keys_signals:
                 for time in keys_times:
                     for metric in keys_metric:
-                        mode = 'max' if 'buy' else 'min'
+                        mode = 'max' if 'buy' else 'min' # TODO
                         time = str(time)
                         list_params = get_best_params(df_summary, signal, time, metric, mode, 1)
                         folder = base_folder / signal / f'{time}_{metric}'
                         print(f'The best params for {signal}-{time}-{metric} is: {list_params}')
                         manager_study_indicator_signals(indicator_name, source_courses, list_params,
-                                                        save_evaluation=False, save_plot=True, base_folder=folder)
+                                                        save_evaluation=False, save_plot=True, base_folder=folder,
+                                                        signal_type=signal)
 
 
 def eval_indicator_signals_with_multiple_courses(
         indicator_name:str, course_paths:list, params: dict|list,
-        save_plot=False, base_folder:Path=None) -> dict:
+        save_plot=False, base_folder:Path=None, signal_type='all') -> dict|None:
     """ [eval, invested, 1x param, n courses] valuate one param variation of an indicator over multiple courses
     :param indicator_name: indicator name
     :param course_paths: list of course paths
     :param params: 1x params
     :param save_plot: save plot
     :param base_folder: storage base folder
+    :param signal_type: for plotting [all, buy, sell]
     :return: result dict (evaluation for 1x params over multiple courses)
     """
     OFFSET = 200
@@ -110,10 +113,11 @@ def eval_indicator_signals_with_multiple_courses(
         }
         """
         result = indicator_signals(indicator_name, course_path, params=params, offset=OFFSET,
-                                   save_plot=save_plot, base_folder=base_folder)
+                                   save_plot=save_plot, base_folder=base_folder, signal_type=signal_type)
         #print(result)
         #exit()
         list_results.append(result)
+
     #print(list_results)
     result_dict_returns = join_multiple_returns(list_results)
     #print(json_dump_nicely(result_dict_returns))
@@ -124,7 +128,6 @@ def eval_indicator_signals_with_multiple_courses(
     #print(print_result_dict_states_as_df(result_dict_states))
 
     if save_plot:
-        signal_type = 'buy'
         fig = fig_signals_evaluation(result_dict_states, signal_type)
         file_path = calc_file_path(indicator_name, '_multiple_courses', params, base_folder=base_folder)
         save_fig(fig, file_path)
@@ -164,7 +167,7 @@ def get_best_params(df, signal_type, period, state='return_mean', mode='max', n=
         values.append((idx, value))
 
     # Sort values
-    sorted_vals = sorted(values, key=lambda x: x[1], reverse=(mode == 'max'))
+    sorted_vals = sorted(values, key=lambda x: x[1], reverse=(mode == mode))
 
     # Top-N
     if n < len(df):
@@ -189,5 +192,9 @@ if __name__ == "__main__":
 
     #manager_study_indicator_invested('MACD', 'default', None)
 
-    manager_study_indicator_signals('MACD', 'default', 'visualize',
+    #manager_study_indicator_signals('MACD', 'default', 'visualize',
+     #                               save_evaluation=False, save_plot=True, base_folder=None)
+
+    manager_study_indicator_signals('BB', 'default', [5, 2.5],
                                     save_evaluation=False, save_plot=True, base_folder=None)
+
